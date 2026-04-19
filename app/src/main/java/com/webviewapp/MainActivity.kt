@@ -190,7 +190,22 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun fetchThemeColor(view: WebView) {
-        val js = "(function() { var m = document.querySelector('meta[name="theme-color"]'); if (m && m.content) { ThemeBridge.onThemeColor(m.content); return; } var el = document.elementFromPoint(window.innerWidth/2, 1); if (el) { var bg = getComputedStyle(el).backgroundColor; var r = bg.match(/rgba?\\((\\d+),(\\d+),(\\d+)/); if (r) ThemeBridge.onThemeColor('#'+[r[1],r[2],r[3]].map(function(x){return ('0'+parseInt(x).toString(16)).slice(-2)}).join('')); } })();"
+        val js = """
+            (function() {
+                var m = document.querySelector('meta[name="theme-color"]');
+                if (m && m.content) { ThemeBridge.onThemeColor(m.content); return; }
+                var el = document.elementFromPoint(window.innerWidth/2, 1);
+                if (el) {
+                    var bg = getComputedStyle(el).backgroundColor;
+                    var r = bg.match(/rgba?\((\d+),(\d+),(\d+)/);
+                    if (r) ThemeBridge.onThemeColor(
+                        '#' + [r[1],r[2],r[3]].map(function(x){
+                            return ('0' + parseInt(x).toString(16)).slice(-2);
+                        }).join('')
+                    );
+                }
+            })();
+        """.trimIndent()
         view.evaluateJavascript(js, null)
     }
 
