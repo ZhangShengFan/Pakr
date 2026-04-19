@@ -162,12 +162,17 @@ async function handleDownload(request, env) {
     : arts.artifacts?.[0];
   if (!a) return json({ error: 'Artifact not found' }, 404);
 
-  // 下载 ZIP 到内存
-  const dl = await gh(env,
+  // GitHub artifact 下载：先拿重定向 URL，再不带 Auth 头去 S3 下载
+  const dlRedirect = await gh(env,
     `/repos/${env.GITHUB_OWNER}/${env.GITHUB_REPO}/actions/artifacts/${a.id}/zip`,
-    { redirect: 'follow' }
+    { redirect: 'manual' }
   );
-  if (!dl.ok) return json({ error: 'Download failed' }, 502);
+  // 302 重定向到 S3，不能带 Authorization 头
+  const s3Url = dlRedirect.headers.get('location');
+  if (!s3Url) return json({ error: 'Download redirect failed', status: dlRedirect.status }, 502);
+
+  const dl = await fetch(s3Url);
+  if (!dl.ok) return json({ error: 'Download failed from S3', status: dl.status }, 502);
   const zipBuf = await dl.arrayBuffer();
 
   // 尝试解压，直接返回 .apk
