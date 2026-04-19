@@ -105,8 +105,16 @@ async function handleStatus(request, env) {
     const arts = await (await gh(env,
       `/repos/${env.GITHUB_OWNER}/${env.GITHUB_REPO}/actions/runs/${runId}/artifacts`
     )).json();
-    const a = arts.artifacts?.[0];
-    if (a) { result.artifact_id = a.id; result.artifact_name = a.name; }
+    // 返回全部 artifacts，让前端展示多个 APK 下载选项
+    if (arts.artifacts?.length) {
+      result.artifacts = arts.artifacts.map(a => ({
+        id: a.id,
+        name: a.name,
+      }));
+      // 兼容旧字段
+      result.artifact_id   = arts.artifacts[0].id;
+      result.artifact_name = arts.artifacts[0].name;
+    }
   }
 
   // 构建失败时找出失败步骤，并拉取该步骤的日志片段
@@ -140,14 +148,18 @@ async function handleStatus(request, env) {
 }
 
 async function handleDownload(request, env) {
-  const params = new URL(request.url).searchParams;
-  const runId  = params.get('run_id');
+  const params     = new URL(request.url).searchParams;
+  const runId      = params.get('run_id');
+  const artifactId = params.get('artifact_id');
   if (!runId) return json({ error: 'Missing run_id' }, 400);
 
   const arts = await (await gh(env,
     `/repos/${env.GITHUB_OWNER}/${env.GITHUB_REPO}/actions/runs/${runId}/artifacts`
   )).json();
-  const a = arts.artifacts?.[0];
+  // 优先用指定的 artifact_id，否则取第一个
+  const a = artifactId
+    ? arts.artifacts?.find(x => String(x.id) === String(artifactId))
+    : arts.artifacts?.[0];
   if (!a) return json({ error: 'Artifact not found' }, 404);
 
   // 下载 ZIP 到内存
