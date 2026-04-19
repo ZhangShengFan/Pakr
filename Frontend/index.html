@@ -574,17 +574,27 @@ function renderDownloadButtons(data, runId){
   const artifacts = data.artifacts || (data.artifact_id ? [{id: data.artifact_id, name: data.artifact_name}] : []);
   const firstUrl = WORKER + '/download?run_id=' + runId + (artifacts[0] ? '&artifact_id=' + artifacts[0].id : '');
 
-  // 多架构下载按钮
-  artifacts.forEach((art, i) => {
-    const dlUrl = WORKER + '/download?run_id=' + runId + '&artifact_id=' + art.id;
-    const arch = art.name.match(/arm64|armeabi|x86_64|universal/i)?.[0] || (i === 0 ? 'arm64' : 'armeabi');
+  if (artifacts.length === 0) {
+    // 兜底：没有 artifact 信息时直接用 run_id 下载
     const btn = document.createElement('button');
     btn.className = 'download-btn show';
     btn.style.flex = '1';
-    btn.innerHTML = `<svg style="width:16px;height:16px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round" viewBox="0 0 24 24"><path d="M12 3v13M5 14l7 7 7-7"/><path d="M3 21h18"/></svg> ${arch}`;
-    btn.onclick = () => { window.location.href = dlUrl; };
+    btn.innerHTML = '<svg style="width:16px;height:16px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round" viewBox="0 0 24 24"><path d="M12 3v13M5 14l7 7 7-7"/><path d="M3 21h18"/></svg> 下载 APK';
+    btn.onclick = () => { window.location.href = firstUrl; };
     dlActions.appendChild(btn);
-  });
+  } else {
+    // 多架构下载按钮
+    artifacts.forEach((art, i) => {
+      const dlUrl = WORKER + '/download?run_id=' + runId + '&artifact_id=' + art.id;
+      const arch = art.name.match(/arm64|armeabi|x86_64|universal/i)?.[0] || (i === 0 ? 'arm64' : 'armeabi');
+      const btn = document.createElement('button');
+      btn.className = 'download-btn show';
+      btn.style.flex = '1';
+      btn.innerHTML = `<svg style="width:16px;height:16px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round" viewBox="0 0 24 24"><path d="M12 3v13M5 14l7 7 7-7"/><path d="M3 21h18"/></svg> ${arch}`;
+      btn.onclick = () => { window.location.href = dlUrl; };
+      dlActions.appendChild(btn);
+    });
+  }
 
   // 二维码按钮
   const qrBtn = document.createElement('button');
