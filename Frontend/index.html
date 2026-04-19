@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Pakr</title>
+<title>网页打包APK</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -475,12 +475,19 @@ form.addEventListener('submit', async e => {
 
 function startPoll(runId, data){
   let elapsed = 0;
+  const MAX_WAIT = 900; // 最长等 15 分钟
   pollTimer = setInterval(async ()=>{
     elapsed += 5;
     try {
       const r    = await fetch(WORKER + '/status?run_id=' + runId);
       const data = await r.json();
       const est  = Math.min(18 + Math.round(elapsed / 300 * 70), 88);
+
+      if(data.status === 'queued' || data.status === 'waiting'){
+        setDot('running');
+        setProgress(8);
+        setTitle('排队中','等待 GitHub Actions 分配运行器…');
+      }
 
       if(data.status === 'in_progress'){
         setDot('running');
@@ -500,53 +507,15 @@ function startPoll(runId, data){
 
       if(data.status === 'completed'){
         clearInterval(pollTimer);
-        if(data.conclusion === 'success'){
+        if(data.conclusion === 'success' || data.artifacts?.length || data.artifact_id){
+          // 成功，或者虽然结论异常但 artifacts 存在，都给下载链接
           setStep(2,'done'); setStep(3,'done'); setStep(4,'done');
           setProgress(100); setDot('success');
           setTitle('打包完成 🎉','APK 已生成，点击下载');
           setBusy(false);
-          // 动态生成多个 APK 下载按钮
-          const dlActions = document.getElementById('dlActions');
-          dlActions.innerHTML = '';
-          const artifacts = data.artifacts || (data.artifact_id ? [{id: data.artifact_id, name: data.artifact_name}] : []);
-          const firstUrl = WORKER + '/download?run_id=' + runId + (artifacts[0] ? '&artifact_id=' + artifacts[0].id : '');
-
-          artifacts.forEach((art, i) => {
-            const dlUrl = WORKER + '/download?run_id=' + runId + '&artifact_id=' + art.id;
-            // 从名字里提取架构标识
-            const arch = art.name.match(/arm64|armeabi|x86_64|universal/i)?.[0] || (i === 0 ? 'arm64' : 'armeabi');
-            const btn = document.createElement('button');
-            btn.className = 'download-btn show';
-            btn.style.flex = '1';
-            btn.innerHTML = `<svg style="width:16px;height:16px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round" viewBox="0 0 24 24"><path d="M12 3v13M5 14l7 7 7-7"/><path d="M3 21h18"/></svg> ${arch}`;
-            btn.onclick = () => { window.location.href = dlUrl; };
-            dlActions.appendChild(btn);
-          });
-
-          // 复制链接按钮
-          const copyBtn = document.createElement('button');
-          copyBtn.className = 'download-btn show';
-          copyBtn.style.cssText = 'flex:0 0 auto;background:#f5f5f5;color:#111;border:1px solid #e0e0e0';
-          copyBtn.innerHTML = '<svg style="width:15px;height:15px;fill:none;stroke:#333;stroke-width:2;stroke-linecap:round" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg> 复制';
-          copyBtn.onclick = () => {
-            navigator.clipboard.writeText(firstUrl).then(() => {
-              copyBtn.textContent = '已复制!';
-              setTimeout(() => { copyBtn.innerHTML = '<svg style="width:15px;height:15px;fill:none;stroke:#333;stroke-width:2;stroke-linecap:round" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg> 复制'; }, 2000);
-            }).catch(() => { prompt('复制下载链接：', firstUrl); });
-          };
-          dlActions.appendChild(copyBtn);
-
-          // 二维码按钮
-          const qrBtn = document.createElement('button');
-          qrBtn.className = 'download-btn show';
-          qrBtn.style.cssText = 'flex:0 0 auto;background:#f5f5f5;color:#111;border:1px solid #e0e0e0';
-          qrBtn.innerHTML = '<svg style="width:15px;height:15px;fill:none;stroke:#333;stroke-width:2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="3" height="3"/></svg> 二维码';
-          qrBtn.onclick = () => showQrModal(firstUrl);
-          dlActions.appendChild(qrBtn);
-
-          dlActions.style.display = 'flex';
+          renderDownloadButtons(data, runId);
           addHistory(data);
-        } else {
+        } else if(data.conclusion === 'failure'){
           setStep(4,'fail');
           const failStep = data.failed_step ? `步骤「${data.failed_step}」失败` : '构建失败';
           showErr(failStep + '，请检查参数后重试');
@@ -557,19 +526,86 @@ function startPoll(runId, data){
             detail.innerHTML = `<div class="err-detail-title">错误日志</div><div class="err-detail-log">${data.failed_log.replace(/</g,'&lt;')}</div>`;
             box.appendChild(detail);
           }
+          setBusy(false);
+        } else {
+          // cancelled / timed_out 等，尝试拿 artifacts
+          tryFetchArtifacts(runId, data);
         }
+        return;
       }
+
+      // 超时保护：15 分钟后先查一次 artifacts
+      if(elapsed >= MAX_WAIT){
+        clearInterval(pollTimer);
+        tryFetchArtifacts(runId, data);
+      }
+
     } catch(e){ /* 网络抖动忽略 */ }
   }, 5000);
 }
 
-/* Input enter key */
-document.querySelectorAll('input').forEach(el=>{
-  el.addEventListener('input', ()=> el.classList.remove('err'));
-});
+async function tryFetchArtifacts(runId, data){
+  try {
+    const r = await fetch(WORKER + '/status?run_id=' + runId);
+    const fresh = await r.json();
+    if(fresh.artifacts?.length || fresh.artifact_id){
+      setStep(2,'done'); setStep(3,'done'); setStep(4,'done');
+      setProgress(100); setDot('success');
+      setTitle('打包完成 🎉','APK 已生成，点击下载');
+      setBusy(false);
+      renderDownloadButtons(fresh, runId);
+      addHistory(fresh);
+    } else {
+      setDot('fail');
+      setTitle('超时', '构建时间过长，请前往 GitHub Actions 查看状态');
+      showErr('构建超时，可直接前往 <a href="https://github.com/ZhangShengFan/Pakr/actions" target="_blank" style="color:#111">GitHub Actions</a> 下载 Artifact');
+      setBusy(false);
+    }
+  } catch(e){
+    setDot('fail');
+    showErr('网络错误，请稍后重试');
+    setBusy(false);
+  }
+}
 
-/* ── 表单记忆 ── */
-const SAVE_KEYS = ['f_url','f_name','f_pkg','f_ver','f_icon'];
+function renderDownloadButtons(data, runId){
+  const dlActions = document.getElementById('dlActions');
+  dlActions.innerHTML = '';
+  const artifacts = data.artifacts || (data.artifact_id ? [{id: data.artifact_id, name: data.artifact_name}] : []);
+  const firstUrl = WORKER + '/download?run_id=' + runId + (artifacts[0] ? '&artifact_id=' + artifacts[0].id : '');
+
+  artifacts.forEach((art, i) => {
+    const dlUrl = WORKER + '/download?run_id=' + runId + '&artifact_id=' + art.id;
+    const arch = art.name.match(/arm64|armeabi|x86_64|universal/i)?.[0] || (i === 0 ? 'arm64' : 'armeabi');
+    const btn = document.createElement('button');
+    btn.className = 'download-btn show';
+    btn.style.flex = '1';
+    btn.innerHTML = `<svg style="width:16px;height:16px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round" viewBox="0 0 24 24"><path d="M12 3v13M5 14l7 7 7-7"/><path d="M3 21h18"/></svg> ${arch}`;
+    btn.onclick = () => { window.location.href = dlUrl; };
+    dlActions.appendChild(btn);
+  });
+
+  const copyBtn = document.createElement('button');
+  copyBtn.className = 'download-btn show';
+  copyBtn.style.cssText = 'flex:0 0 auto;background:#f5f5f5;color:#111;border:1px solid #e0e0e0';
+  copyBtn.innerHTML = '<svg style="width:15px;height:15px;fill:none;stroke:#333;stroke-width:2;stroke-linecap:round" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg> 复制';
+  copyBtn.onclick = () => {
+    navigator.clipboard.writeText(firstUrl).then(() => {
+      copyBtn.textContent = '已复制!';
+      setTimeout(() => { copyBtn.innerHTML = '<svg style="width:15px;height:15px;fill:none;stroke:#333;stroke-width:2;stroke-linecap:round" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg> 复制'; }, 2000);
+    }).catch(() => { prompt('复制下载链接：', firstUrl); });
+  };
+  dlActions.appendChild(copyBtn);
+
+  const qrBtn = document.createElement('button');
+  qrBtn.className = 'download-btn show';
+  qrBtn.style.cssText = 'flex:0 0 auto;background:#f5f5f5;color:#111;border:1px solid #e0e0e0';
+  qrBtn.innerHTML = '<svg style="width:15px;height:15px;fill:none;stroke:#333;stroke-width:2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="3" height="3"/></svg> 二维码';
+  qrBtn.onclick = () => showQrModal(firstUrl);
+  dlActions.appendChild(qrBtn);
+  dlActions.style.display = 'flex';
+}
+
 function saveForm(){
   const saved = {};
   SAVE_KEYS.forEach(id => { saved[id] = document.getElementById(id).value; });
