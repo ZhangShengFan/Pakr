@@ -505,20 +505,46 @@ function startPoll(runId, data){
           setProgress(100); setDot('success');
           setTitle('打包完成 🎉','APK 已生成，点击下载');
           setBusy(false);
-          dlBtn.classList.add('show');
-          const dlUrl = WORKER + '/download?run_id=' + runId;
-          dlBtn.onclick = () => { window.location.href = dlUrl; };
-          const copyBtn = document.getElementById('copyBtn');
+          // 动态生成多个 APK 下载按钮
+          const dlActions = document.getElementById('dlActions');
+          dlActions.innerHTML = '';
+          const artifacts = data.artifacts || (data.artifact_id ? [{id: data.artifact_id, name: data.artifact_name}] : []);
+          const firstUrl = WORKER + '/download?run_id=' + runId + (artifacts[0] ? '&artifact_id=' + artifacts[0].id : '');
+
+          artifacts.forEach((art, i) => {
+            const dlUrl = WORKER + '/download?run_id=' + runId + '&artifact_id=' + art.id;
+            // 从名字里提取架构标识
+            const arch = art.name.match(/arm64|armeabi|x86_64|universal/i)?.[0] || (i === 0 ? 'arm64' : 'armeabi');
+            const btn = document.createElement('button');
+            btn.className = 'download-btn show';
+            btn.style.flex = '1';
+            btn.innerHTML = `<svg style="width:16px;height:16px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round" viewBox="0 0 24 24"><path d="M12 3v13M5 14l7 7 7-7"/><path d="M3 21h18"/></svg> ${arch}`;
+            btn.onclick = () => { window.location.href = dlUrl; };
+            dlActions.appendChild(btn);
+          });
+
+          // 复制链接按钮
+          const copyBtn = document.createElement('button');
+          copyBtn.className = 'download-btn show';
+          copyBtn.style.cssText = 'flex:0 0 auto;background:#f5f5f5;color:#111;border:1px solid #e0e0e0';
+          copyBtn.innerHTML = '<svg style="width:15px;height:15px;fill:none;stroke:#333;stroke-width:2;stroke-linecap:round" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg> 复制';
           copyBtn.onclick = () => {
-            navigator.clipboard.writeText(dlUrl).then(() => {
+            navigator.clipboard.writeText(firstUrl).then(() => {
               copyBtn.textContent = '已复制!';
-              setTimeout(() => {
-                copyBtn.innerHTML = '<svg style="width:15px;height:15px;fill:none;stroke:#333;stroke-width:2;stroke-linecap:round" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg> 复制链接';
-              }, 2000);
-            }).catch(() => {
-              prompt('复制下载链接：', dlUrl);
-            });
+              setTimeout(() => { copyBtn.innerHTML = '<svg style="width:15px;height:15px;fill:none;stroke:#333;stroke-width:2;stroke-linecap:round" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg> 复制'; }, 2000);
+            }).catch(() => { prompt('复制下载链接：', firstUrl); });
           };
+          dlActions.appendChild(copyBtn);
+
+          // 二维码按钮
+          const qrBtn = document.createElement('button');
+          qrBtn.className = 'download-btn show';
+          qrBtn.style.cssText = 'flex:0 0 auto;background:#f5f5f5;color:#111;border:1px solid #e0e0e0';
+          qrBtn.innerHTML = '<svg style="width:15px;height:15px;fill:none;stroke:#333;stroke-width:2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="3" height="3"/></svg> 二维码';
+          qrBtn.onclick = () => showQrModal(firstUrl);
+          dlActions.appendChild(qrBtn);
+
+          dlActions.style.display = 'flex';
           addHistory(data);
         } else {
           setStep(4,'fail');
@@ -640,6 +666,36 @@ renderHistory();
 
 /* ── 构建成功时记录历史 ── */
 const _origStartPoll = startPoll;
+</script>
+
+<!-- 二维码 Modal -->
+<div id="qrModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:999;align-items:center;justify-content:center">
+  <div style="background:#fff;border-radius:20px;padding:28px 24px;text-align:center;max-width:280px;width:90%;position:relative">
+    <button onclick="document.getElementById('qrModal').style.display='none'"
+      style="position:absolute;top:12px;right:14px;background:none;border:none;font-size:20px;color:#999;cursor:pointer">✕</button>
+    <div style="font-size:14px;font-weight:600;color:#111;margin-bottom:16px">扫码下载 APK</div>
+    <div id="qrCanvas" style="display:flex;justify-content:center"></div>
+    <div style="font-size:11px;color:#999;margin-top:12px">使用手机扫描二维码直接下载安装</div>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+<script>
+function showQrModal(url) {
+  const modal = document.getElementById('qrModal');
+  const canvas = document.getElementById('qrCanvas');
+  canvas.innerHTML = '';
+  modal.style.display = 'flex';
+  QRCode.toCanvas(document.createElement('canvas'), url, {
+    width: 200, margin: 2,
+    color: { dark: '#111111', light: '#ffffff' }
+  }, (err, c) => {
+    if (!err) { c.style.borderRadius = '8px'; canvas.appendChild(c); }
+  });
+}
+// 点击背景关闭
+document.getElementById('qrModal').addEventListener('click', function(e) {
+  if (e.target === this) this.style.display = 'none';
+});
 </script>
 </body>
 </html>
