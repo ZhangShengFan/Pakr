@@ -153,18 +153,23 @@ async function handleDownload(request, env) {
   const artifactId = params.get('artifact_id');
   if (!runId) return json({ error: 'Missing run_id' }, 400);
 
-  const arts = await (await gh(env,
-    `/repos/${env.GITHUB_OWNER}/${env.GITHUB_REPO}/actions/runs/${runId}/artifacts`
-  )).json();
-  // 优先用指定的 artifact_id，否则取第一个
-  const a = artifactId
-    ? arts.artifacts?.find(x => String(x.id) === String(artifactId))
-    : arts.artifacts?.[0];
-  if (!a) return json({ error: 'Artifact not found' }, 404);
+  let resolvedId = artifactId;
+  let artifactName = 'apk';
+
+  if (!resolvedId) {
+    // 没有指定 artifact_id，查列表取第一个
+    const arts = await (await gh(env,
+      `/repos/${env.GITHUB_OWNER}/${env.GITHUB_REPO}/actions/runs/${runId}/artifacts`
+    )).json();
+    const a = arts.artifacts?.[0];
+    if (!a) return json({ error: 'Artifact not found' }, 404);
+    resolvedId = a.id;
+    artifactName = a.name;
+  }
 
   // GitHub artifact 下载：先拿重定向 URL，再不带 Auth 头去 S3 下载
   const dlRedirect = await gh(env,
-    `/repos/${env.GITHUB_OWNER}/${env.GITHUB_REPO}/actions/artifacts/${a.id}/zip`,
+    `/repos/${env.GITHUB_OWNER}/${env.GITHUB_REPO}/actions/artifacts/${resolvedId}/zip`,
     { redirect: 'manual' }
   );
   // 302 重定向到 S3，不能带 Authorization 头
@@ -179,7 +184,7 @@ async function handleDownload(request, env) {
   try {
     const apk = await extractApkFromZip(zipBuf);
     if (apk) {
-      const apkName = a.name.replace(/\.zip$/, '') + '.apk';
+      const apkName = artifactName.replace(/\.zip$/, '') + '.apk';
       return new Response(apk, {
         headers: {
           'Content-Type': 'application/vnd.android.package-archive',
@@ -195,7 +200,7 @@ async function handleDownload(request, env) {
   return new Response(zipBuf, {
     headers: {
       'Content-Type': 'application/zip',
-      'Content-Disposition': `attachment; filename="${a.name}.zip"`,
+      'Content-Disposition': `attachment; filename="${artifactName}.zip"`,
       'Cache-Control': 'no-store',
     }
   });
