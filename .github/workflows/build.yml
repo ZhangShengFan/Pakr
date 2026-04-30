@@ -96,7 +96,10 @@ jobs:
           SAFE=$(echo "${{ github.event.inputs.app_name }}" | tr ' ' '_')
           VER="${{ github.event.inputs.version_name }}"
           mkdir -p /tmp/signed
-          for APK in $(find app/build/outputs/apk -name '*.apk' 2>/dev/null); do
+          echo "=== APK search ==="
+          find /home/runner/work -name '*.apk' 2>/dev/null || true
+          echo "=== end search ==="
+          for APK in $(find /home/runner/work -name '*.apk' 2>/dev/null); do
             ABI=$(echo "$APK" | grep -oE '(arm64-v8a|armeabi-v7a)' || echo "universal")
             OUT="/tmp/signed/${SAFE}_${VER}_${ABI}.apk"
             $ANDROID_HOME/build-tools/$BUILD_TOOLS/zipalign -f -p 4 "$APK" /tmp/aligned_${ABI}.apk
