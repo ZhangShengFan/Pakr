@@ -73,13 +73,16 @@ jobs:
           pip install Pillow -q
           python3 Scripts/process_icon.py
 
-      - name: Build APK (arm64 + armeabi-v7a)
+      - name: Build APK
         run: |
-          gradle assembleRelease --no-daemon \
-            -Pandroid.injected.build.abi=arm64-v8a,armeabi-v7a
+          gradle assembleRelease --no-daemon
 
       - name: Sign APK
         run: |
+          echo "=== Build outputs ==="
+          ls -la app/build/outputs/ 2>/dev/null || echo "No outputs dir"
+          ls -la app/build/outputs/apk/ 2>/dev/null || echo "No apk dir"
+          find app/build/outputs -name '*.apk' 2>/dev/null | head -20 || true
           KS_B64="${{ secrets.KEYSTORE_BASE64 }}"
           if [ -n "$KS_B64" ]; then
             echo "$KS_B64" | base64 --decode > /tmp/release.keystore
@@ -93,23 +96,25 @@ jobs:
             KEY_PASS="android"
           fi
           BUILD_TOOLS=$(ls $ANDROID_HOME/build-tools/ | sort -V | tail -1)
-          SAFE=$(echo "${{ github.event.inputs.app_name }}" | tr ' ' '_')
+          SAFE=$(echo "${{ github.event.inputs.app_name }}" | tr ' /' '__' | LC_ALL=C tr -cd 'A-Za-z0-9_.-')
+          [ -z "$SAFE" ] && SAFE="app"
           VER="${{ github.event.inputs.version_name }}"
           mkdir -p /tmp/signed
-          echo "=== APK search ==="
-          find /home/runner/work -name '*.apk' 2>/dev/null || true
-          echo "=== end search ==="
-          for APK in $(find /home/runner/work -name '*.apk' 2>/dev/null); do
-            ABI=$(echo "$APK" | grep -oE '(arm64-v8a|armeabi-v7a)' || echo "universal")
-            OUT="/tmp/signed/${SAFE}_${VER}_${ABI}.apk"
-            $ANDROID_HOME/build-tools/$BUILD_TOOLS/zipalign -f -p 4 "$APK" /tmp/aligned_${ABI}.apk
-            $ANDROID_HOME/build-tools/$BUILD_TOOLS/apksigner sign \
-              --ks /tmp/release.keystore --ks-pass "pass:$KS_PASS" \
-              --ks-key-alias "$KEY_ALIAS" --key-pass "pass:$KEY_PASS" \
-              --out "$OUT" /tmp/aligned_${ABI}.apk
-            $ANDROID_HOME/build-tools/$BUILD_TOOLS/apksigner verify "$OUT"
-            echo "Signed: $OUT"
-          done
+          APK=$(find app/build/outputs/apk -name '*.apk' 2>/dev/null | head -1)
+          if [ -z "$APK" ]; then
+            echo "ERROR: No APK found. Contents of app/build/outputs:"
+            find app/build/outputs -type f 2>/dev/null | head -30
+            exit 1
+          fi
+          echo "Signing: $APK"
+          OUT="/tmp/signed/${SAFE}_${VER}.apk"
+          $ANDROID_HOME/build-tools/$BUILD_TOOLS/zipalign -f -p 4 "$APK" /tmp/aligned.apk
+          $ANDROID_HOME/build-tools/$BUILD_TOOLS/apksigner sign \
+            --ks /tmp/release.keystore --ks-pass "pass:$KS_PASS" \
+            --ks-key-alias "$KEY_ALIAS" --key-pass "pass:$KEY_PASS" \
+            --out "$OUT" /tmp/aligned.apk
+          $ANDROID_HOME/build-tools/$BUILD_TOOLS/apksigner verify "$OUT"
+          echo "Signed: $OUT"
           echo "SIGNED_DIR=/tmp/signed" >> $GITHUB_ENV
           echo "APK_NAME=${SAFE}_${VER}" >> $GITHUB_ENV
 
