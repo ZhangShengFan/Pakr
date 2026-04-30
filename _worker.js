@@ -157,37 +157,65 @@ async function handleDownload(request, env) {
   if (!runId) return json({ error: 'Missing run_id' }, 400);
 
   let resolvedId = artifactId;
-  let artifactName = 'apk';
+  let artifactName = 'app';
 
+  // 如果没有 artifact_id，从列表里取第一个
   if (!resolvedId) {
-    // 没有指定 artifact_id，查列表取第一个
-    const arts = await (await gh(env,
+    const artsRes = await gh(env,
       `/repos/${env.GITHUB_OWNER}/${env.GITHUB_REPO}/actions/runs/${runId}/artifacts`
-    )).json();
+    );
+    const arts = await artsRes.json();
     const a = arts.artifacts?.[0];
-    if (!a) return json({ error: 'Artifact not found' }, 404);
+    if (!a) return json({ error: 'Artifact not found', artifacts: arts }, 404);
     resolvedId = a.id;
     artifactName = a.name;
   }
 
-  // GitHub artifact 下载：先拿重定向 URL，再不带 Auth 头去 S3 下载
-  const dlRedirect = await gh(env,
-    `/repos/${env.GITHUB_OWNER}/${env.GITHUB_REPO}/actions/artifacts/${resolvedId}/zip`,
-    { redirect: 'manual' }
-  );
-  // 302 重定向到 S3，不能带 Authorization 头
-  const s3Url = dlRedirect.headers.get('location');
-  if (!s3Url) return json({ error: 'Download redirect failed', status: dlRedirect.status }, 502);
+  // 关键修复：不用 gh()，直接 fetch，手动控制 redirect
+  // Step1: 请求 GitHub artifact zip endpoint（带 auth，手动 redirect）
+  const ghUrl = `${GH}/repos/${env.GITHUB_OWNER}/${env.GITHUB_REPO}/actions/artifacts/${resolvedId}/zip`;
 
-  const dl = await fetch(s3Url);
-  if (!dl.ok) return json({ error: 'Download failed from S3', status: dl.status }, 502);
-  const zipBuf = await dl.arrayBuffer();
+  const headRes = await fetch(ghUrl, {
+    method: 'GET',
+    redirect: 'manual',
+    headers: {
+      Authorization: `Bearer ${env.GITHUB_TOKEN}`,
+      Accept: 'application/vnd.github+json',
+      'X-GitHub-Api-Version': '2022-11-28',
+      'User-Agent': 'APK-Builder/1.0',
+    }
+  });
 
-  // 尝试解压，直接返回 .apk
+  // CF Worker 中 redirect:manual 返回 opaqueredirect，status=0，无法读 location
+  // 改用另一种方式：直接 follow redirect，但在 redirect 之前去掉 auth header
+  // 实现方法：让第一次请求 follow，CF会自动跟到S3
+  // GitHub 的 artifact S3 URL 是 presigned 的，不需要额外的 Authorization header
+  // 但 CF Worker 在 follow redirect 时会带上原始 headers...
+
+  // 最简单可靠的方式：直接用 redirect:follow，GitHub presigned S3 URL 会忽略额外 headers
+  const dlRes = await fetch(ghUrl, {
+    method: 'GET',
+    redirect: 'follow',
+    headers: {
+      Authorization: `Bearer ${env.GITHUB_TOKEN}`,
+      Accept: 'application/vnd.github+json',
+      'X-GitHub-Api-Version': '2022-11-28',
+      'User-Agent': 'APK-Builder/1.0',
+    }
+  });
+
+  if (!dlRes.ok) {
+    return json({ error: 'Download failed', status: dlRes.status, url: dlRes.url }, 502);
+  }
+
+  const zipBuf = await dlRes.arrayBuffer();
+  if (!zipBuf.byteLength) return json({ error: 'Empty response from GitHub' }, 502);
+
+  // 解压 ZIP，提取 .apk
   try {
     const apk = await extractApkFromZip(zipBuf);
     if (apk) {
-      const apkName = artifactName.replace(/\.zip$/, '') + '.apk';
+      const apkName = (artifactName + '.apk').replace(/\.zip\.apk$/, '.apk');
       return new Response(apk, {
         headers: {
           'Content-Type': 'application/vnd.android.package-archive',
@@ -197,9 +225,9 @@ async function handleDownload(request, env) {
         }
       });
     }
-  } catch (_) {}
+  } catch (e) {}
 
-  // 解压失败，降级返回原始 ZIP
+  // 降级：返回原始 ZIP
   return new Response(zipBuf, {
     headers: {
       'Content-Type': 'application/zip',
@@ -208,6 +236,7 @@ async function handleDownload(request, env) {
     }
   });
 }
+
 
 // 解析 ZIP Local File Headers，提取第一个 .apk 文件字节（支持 stored + deflate）
 async function extractApkFromZip(buf) {
