@@ -1,4 +1,0 @@
-# Cloudflare Pages 配置
-# 静态文件目录：Frontend/
-# Pages Functions：functions/（自动识别）
-pages_build_output_dir = "Frontend"
