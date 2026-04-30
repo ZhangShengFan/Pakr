@@ -96,7 +96,10 @@ jobs:
           SAFE=$(echo "${{ github.event.inputs.app_name }}" | tr ' ' '_')
           VER="${{ github.event.inputs.version_name }}"
           mkdir -p /tmp/signed
-          for APK in $(find app/build/outputs/apk/release -name '*.apk'); do
+          # 用递归搜索，兼容多ABI构建的不同目录结构
+          APK_LIST=$(find app/build/outputs/apk -name '*.apk' -not -name '*-unsigned*' 2>/dev/null)
+          echo "Found APKs: $APK_LIST"
+          for APK in $APK_LIST; do
             ABI=$(echo "$APK" | grep -oP '(arm64-v8a|armeabi-v7a)' || echo "universal")
             OUT="/tmp/signed/${SAFE}_${VER}_${ABI}.apk"
             $ANDROID_HOME/build-tools/$BUILD_TOOLS/zipalign -v -p 4 "$APK" /tmp/aligned_${ABI}.apk
@@ -116,3 +119,4 @@ jobs:
           name: ${{ env.APK_NAME }}
           path: ${{ env.SIGNED_DIR }}/*.apk
           retention-days: 7
+          if-no-files-found: error
