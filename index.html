@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>网页打包APK</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;-webkit-font-smoothing:antialiased}
+body{font-family:'Inter',system-ui,sans-serif;background:#fff;color:#111;line-height:1.6}
+
+/* ── Nav ── */
+nav{
+  position:sticky;top:0;z-index:100;
+  height:60px;padding:0 24px;
+  display:flex;align-items:center;justify-content:space-between;
+  background:rgba(255,255,255,0.85);
+  backdrop-filter:blur(12px);
+  border-bottom:1px solid #f0f0f0;
+}
+.nav-logo{display:flex;align-items:center;gap:10px;font-size:15px;font-weight:700;color:#111;text-decoration:none}
+.nav-logo-icon{
+  width:30px;height:30px;border-radius:8px;
+  background:#111;display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+}
+.nav-logo-icon svg{width:16px;height:16px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round}
+.nav-badge{
+  font-size:11px;font-weight:500;color:#666;
+  background:#f5f5f5;border:1px solid #e8e8e8;
+  padding:3px 10px;border-radius:100px;
+}
+.github-link{
+  display:flex;align-items:center;justify-content:center;
+  width:34px;height:34px;padding:0;
+  color:#444;background:#f5f5f5;border:1px solid #e8e8e8;
+  border-radius:50%;text-decoration:none;
+  transition:background .15s,color .15s,border-color .15s;
+}
+.github-link:hover{background:#111;color:#fff;border-color:#111;}
+
+/* ── Hero ── */
+.hero{
+  max-width:680px;margin:0 auto;
+  padding:80px 24px 56px;
+  text-align:center;
+}
+.hero-tag{
+  display:inline-flex;align-items:center;gap:6px;
+  font-size:12px;font-weight:500;color:#555;
+  background:#f7f7f7;border:1px solid #e8e8e8;
+  padding:4px 12px;border-radius:100px;
+  margin-bottom:24px;
+}
+.hero-tag-dot{width:6px;height:6px;border-radius:50%;background:#22c55e;flex-shrink:0}
+.hero h1{
+  font-size:clamp(2.2rem,5vw,3.2rem);
+  font-weight:700;letter-spacing:-0.04em;line-height:1.1;
+  color:#111;margin-bottom:18px;
+}
+.hero h1 span{color:#555}
+.hero p{font-size:16px;color:#666;max-width:420px;margin:0 auto 40px;line-height:1.7}
+.hero-stats{
+  display:flex;justify-content:center;gap:32px;flex-wrap:wrap;
+}
+
+
+
+
+/* ── Main Content ── */
+.content{max-width:520px;margin:0 auto;padding:0 24px 80px}
+
+
+/* ── Form Card ── */
+.card{
+  background:#fff;border:1px solid #e8e8e8;
+  border-radius:16px;padding:28px;
+  box-shadow:0 4px 24px rgba(0,0,0,0.06);
+}
+.card-title{font-size:14px;font-weight:600;color:#111;margin-bottom:20px;display:flex;align-items:center;gap:8px}
+.card-title-badge{
+  font-size:11px;font-weight:500;color:#888;
+  background:#f5f5f5;padding:2px 8px;border-radius:4px;
+}
+
+.form{display:flex;flex-direction:column;gap:16px}
+.field{display:flex;flex-direction:column;gap:6px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:400px){.row{grid-template-columns:1fr}}
+
+label{font-size:12px;font-weight:500;color:#444}
+.hint{font-size:11px;color:#999;margin-top:2px}
+input{
+  height:42px;
+  border:1px solid #e0e0e0;border-radius:8px;
+  padding:0 12px;font-size:14px;font-family:inherit;
+  color:#111;background:#fafafa;outline:none;
+  transition:border-color .15s,box-shadow .15s,background .15s;
+}
+input::placeholder{color:#bbb}
+input:focus{border-color:#111;background:#fff;box-shadow:0 0 0 3px rgba(0,0,0,0.06)}
+input:not(:placeholder-shown){background:#fafafa}
+input:-webkit-autofill,input:-webkit-autofill:focus{
+  -webkit-box-shadow:0 0 0 100px #fafafa inset!important;
+  -webkit-text-fill-color:#111!important}
+input.err{border-color:#ef4444;box-shadow:0 0 0 3px rgba(239,68,68,0.08)}
+
+.btn{
+  width:100%;height:46px;margin-top:4px;
+  background:#111;color:#fff;border:none;border-radius:8px;
+  font-size:14px;font-weight:600;font-family:inherit;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;
+  transition:background .15s,transform .12s,box-shadow .15s;
+  position:relative;overflow:hidden;
+}
+.btn:hover:not(:disabled){background:#222;box-shadow:0 4px 16px rgba(0,0,0,0.20)}
+.btn:active:not(:disabled){transform:scale(0.98)}
+.btn:disabled{opacity:0.5;cursor:not-allowed}
+.btn-icon{width:16px;height:16px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+
+/* ── Info Card ── */
+.info-card{display:flex;flex-direction:column;gap:16px}
+.feature{display:flex;gap:12px;align-items:flex-start}
+.feature-icon{
+  width:36px;height:36px;border-radius:8px;background:#f5f5f5;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.feature-icon svg{width:16px;height:16px;fill:none;stroke:#555;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.feature-title{font-size:13px;font-weight:600;color:#111;margin-bottom:2px}
+.feature-desc{font-size:12px;color:#888;line-height:1.5}
+
+.steps-card{background:#f9f9f9;border:1px solid #efefef;border-radius:12px;padding:20px}
+.steps-title{font-size:12px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.06em;margin-bottom:14px}
+.step-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #efefef}
+.step-item:last-child{border-bottom:none}
+.step-num{
+  width:22px;height:22px;border-radius:50%;
+  background:#111;color:#fff;font-size:11px;font-weight:600;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.step-text{font-size:13px;color:#555}
+
+/* ── Status Box ── */
+.status-box{
+  display:none;
+  background:#fff;border:1px solid #e8e8e8;
+  border-radius:16px;padding:24px;
+  box-shadow:0 4px 24px rgba(0,0,0,0.06);
+}
+.status-box.show{display:block}
+.status-header{display:flex;align-items:center;gap:10px;margin-bottom:20px}
+.status-dot{
+  width:10px;height:10px;border-radius:50%;background:#ddd;flex-shrink:0;
+  transition:background .3s;
+}
+.status-dot.running{background:#f59e0b;animation:pulse 1.2s ease-in-out infinite}
+.status-dot.success{background:#22c55e}
+.status-dot.fail{background:#ef4444}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.7;transform:scale(1.3)}}
+.status-title{font-size:14px;font-weight:600;color:#111}
+.status-sub{font-size:12px;color:#888;margin-top:1px}
+
+.progress-wrap{background:#f0f0f0;border-radius:100px;height:4px;margin-bottom:20px;overflow:hidden}
+.progress-bar{height:100%;background:#111;border-radius:100px;transition:width .4s ease;width:0%}
+
+.check-list{display:flex;flex-direction:column;gap:8px}
+.check-item{display:flex;align-items:center;gap:8px;font-size:13px;color:#999}
+.check-item.done{color:#111}
+.check-item.active{color:#f59e0b}
+.check-item.fail{color:#ef4444}
+.check-ico{
+  width:18px;height:18px;border-radius:50%;border:1.5px solid #ddd;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  transition:all .2s;
+}
+.check-item.done .check-ico{border-color:#22c55e;background:#22c55e}
+.check-item.active .check-ico{border-color:#f59e0b;background:#fff}
+.check-item.fail .check-ico{border-color:#ef4444;background:#ef4444}
+.check-ico svg{width:10px;height:10px;stroke:#fff;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+.check-item.active .check-ico svg{stroke:#f59e0b}
+
+.err-msg{
+  margin-top:14px;padding:12px;
+  background:#fff5f5;border:1px solid #fecaca;border-radius:8px;
+  font-size:12px;color:#dc2626;display:none;
+}
+.err-msg.show{display:block}
+
+.download-btn{
+  display:none;width:100%;height:46px;margin-top:16px;
+  background:#22c55e;color:#fff;border:none;border-radius:8px;
+  font-size:14px;font-weight:600;font-family:inherit;
+  cursor:pointer;align-items:center;justify-content:center;gap:8px;
+  transition:background .15s,transform .12s;
+}
+.download-btn.show{display:flex}
+.download-btn:hover{background:#16a34a}
+.download-btn:active{transform:scale(0.98)}
+
+/* ── Footer ── */
+footer{
+  border-top:1px solid #f0f0f0;
+  padding:24px;text-align:center;
+  font-size:12px;color:#aaa;
+}
+footer span{margin:0 8px;opacity:.4}
+
+/* ── Icon Preview ── */
+.icon-field{display:flex;gap:10px;align-items:flex-end}
+.icon-field .field{flex:1}
+.icon-preview{
+  width:42px;height:42px;border-radius:10px;flex-shrink:0;margin-top:0;
+  background:#f5f5f5;border:1px solid #e8e8e8;
+  overflow:hidden;display:flex;align-items:center;justify-content:center;
+}
+.icon-preview img{width:100%;height:100%;object-fit:cover;display:none}
+.icon-preview-placeholder{width:20px;height:20px;opacity:.25}
+
+/* ── History Card ── */
+.history-card{
+  background:#fff;border:1px solid #e8e8e8;border-radius:16px;padding:20px;
+  box-shadow:0 4px 24px rgba(0,0,0,0.06);margin-top:16px;display:none;
+}
+.history-card.show{display:block}
+.history-title{
+  font-size:12px;font-weight:600;color:#888;
+  text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.history-clear{font-size:11px;color:#bbb;cursor:pointer;font-weight:400;text-transform:none;letter-spacing:0}
+.history-clear:hover{color:#ef4444}
+.history-list{display:flex;flex-direction:column;gap:8px}
+.history-item{
+  display:flex;align-items:center;gap:10px;padding:10px 12px;
+  background:#f9f9f9;border:1px solid #efefef;border-radius:8px;
+  cursor:pointer;transition:background .15s;
+}
+.history-item:hover{background:#f0f0f0}
+.history-icon{
+  width:32px;height:32px;border-radius:7px;overflow:hidden;
+  background:#e8e8e8;flex-shrink:0;display:flex;align-items:center;justify-content:center;
+}
+.history-icon img{width:100%;height:100%;object-fit:cover}
+.history-info{flex:1;min-width:0}
+.history-name{font-size:13px;font-weight:600;color:#111;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.history-meta{font-size:11px;color:#999;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.history-use{font-size:11px;color:#888;flex-shrink:0}
+
+
+.err-detail{margin-top:10px;background:#fff5f5;border:1px solid #fecaca;border-radius:8px;padding:10px 12px;text-align:left}
+.err-detail-title{font-size:12px;font-weight:600;color:#dc2626;margin-bottom:4px}
+.err-detail-log{font-size:11px;color:#7f1d1d;font-family:monospace;white-space:pre-wrap;word-break:break-all;max-height:120px;overflow-y:auto;line-height:1.5}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="#" class="nav-logo">
+    <div class="nav-logo-icon">
+      <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+    </div>
+    Pakr
+  </a>
+  <a href="https://github.com/ZhangShengFan/Pakr" target="_blank" class="nav-badge github-link" title="GitHub">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
+    </svg>
+  </a>
+</nav>
+
+
+<div class="content">
+
+  <!-- 左：表单 -->
+  <div>
+    <div class="card">
+      <div class="card-title">
+        填写应用信息
+      </div>
+      <form class="form" id="form" novalidate>
+        <div class="field">
+          <label for="f_url">目标网址</label>
+          <input type="url" id="f_url" placeholder="https://example.com" autocomplete="off" required>
+        </div>
+        <div class="field">
+          <label for="f_name">App 名称</label>
+          <input type="text" id="f_name" placeholder="我的应用" required>
+        </div>
+        <div class="field">
+          <label for="f_pkg">包名</label>
+          <input type="text" id="f_pkg" placeholder="com.example.myapp" required>
+        </div>
+        <div class="field">
+            <label for="f_ver">版本号</label>
+            <input type="text" id="f_ver" placeholder="1.0.0" value="1.0.0" required>
+          </div>
+          <div class="icon-field">
+            <div class="field">
+              <label for="f_icon">图标 URL</label>
+              <input type="url" id="f_icon" placeholder="" required>
+            </div>
+            <div class="icon-preview" id="iconPreview">
+              <svg class="icon-preview-placeholder" viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+              <img id="iconImg" alt="icon">
+            </div>
+          </div>
+        <button type="submit" class="btn" id="submitBtn">
+          <svg class="btn-icon" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          开始打包
+        </button>
+      </form>
+    </div>
+
+    <!-- 状态卡片 -->
+    <div class="status-box" id="statusBox" style="margin-top:16px">
+      <div class="status-header">
+        <div class="status-dot" id="sDot"></div>
+        <div>
+          <div class="status-title" id="sTitle">等待中</div>
+          <div class="status-sub" id="sSub">正在初始化构建任务</div>
+        </div>
+      </div>
+      <div class="progress-wrap"><div class="progress-bar" id="progFill"></div></div>
+      <div class="check-list">
+        <div class="check-item" id="st1">
+          <div class="check-ico"><svg viewBox="0 0 12 12"><path d="M2 6l3 3 5-5"/></svg></div>
+          触发构建任务
+        </div>
+        <div class="check-item" id="st2">
+          <div class="check-ico"><svg viewBox="0 0 12 12"><path d="M2 6l3 3 5-5"/></svg></div>
+          注入参数 &amp; 处理图标
+        </div>
+        <div class="check-item" id="st3">
+          <div class="check-ico"><svg viewBox="0 0 12 12"><path d="M2 6l3 3 5-5"/></svg></div>
+          Gradle 编译 APK
+        </div>
+        <div class="check-item" id="st4">
+          <div class="check-ico"><svg viewBox="0 0 12 12"><path d="M2 6l3 3 5-5"/></svg></div>
+          签名 &amp; 打包完成
+        </div>
+      </div>
+      <div class="err-msg" id="errBox"></div>
+      <div id="dlActions" style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="download-btn" id="dlBtn" style="flex:1">
+          <svg style="width:16px;height:16px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round" viewBox="0 0 24 24"><path d="M12 3v13M5 14l7 7 7-7"/><path d="M3 21h18"/></svg>
+          下载 APK
+        </button>
+        <button class="download-btn" id="copyBtn" style="flex:0 0 auto;background:#f5f5f5;color:#111;border:1px solid #e0e0e0">
+          <svg style="width:15px;height:15px;fill:none;stroke:#333;stroke-width:2;stroke-linecap:round" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+          复制链接
+        </button>
+      </div>
+    </div>
+  </div>
+
+    <!-- 打包历史 -->
+    <div class="history-card" id="historyCard">
+      <div class="history-title">
+        打包历史
+        <span class="history-clear" id="historyClear">清空</span>
+      </div>
+      <div class="history-list" id="historyList"></div>
+    </div>
+  </div>
+
+
+</div>
+
+<footer></footer>
+
+<script>
+const WORKER = '';  // Pages Functions 同域（/build /status /download）
+
+/* ── Form ── */
+const form      = document.getElementById('form');
+const submitBtn = document.getElementById('submitBtn');
+const statusBox = document.getElementById('statusBox');
+const sDot      = document.getElementById('sDot');
+const sTitle    = document.getElementById('sTitle');
+const sSub      = document.getElementById('sSub');
+const progFill  = document.getElementById('progFill');
+const errBox    = document.getElementById('errBox');
+const dlBtn     = document.getElementById('dlBtn');
+
+let pollTimer = null;
+let busy = false;
+
+function setBusy(v){ busy=v; submitBtn.disabled=v; }
+
+function setStep(n, state){
+  const el = document.getElementById('st'+n);
+  el.className = 'check-item ' + state;
+}
+
+function setProgress(p){ progFill.style.width = p + '%'; }
+
+function setTitle(t, s){
+  sTitle.textContent = t;
+  sSub.textContent   = s;
+}
+
+function setDot(state){
+  sDot.className = 'status-dot ' + state;
+}
+
+function showErr(msg){
+  errBox.textContent = msg;
+  errBox.classList.add('show');
+  setDot('fail');
+  setTitle('提交失败', '');
+  setBusy(false);
+}
+
+function showStatus(){ statusBox.classList.add('show'); }
+
+/* Validate */
+function validate(){
+  let ok = true;
+  ['f_url','f_name','f_pkg','f_ver','f_icon'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(!el.value.trim()){ el.classList.add('err'); ok=false; }
+    else el.classList.remove('err');
+  });
+  const pkg = document.getElementById('f_pkg').value.trim();
+  if(!/^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*){2,}$/.test(pkg)){
+    document.getElementById('f_pkg').classList.add('err');
+    ok = false;
+  }
+  return ok;
+}
+
+form.addEventListener('submit', async e => {
+  e.preventDefault();
+  if(busy) return;
+  errBox.classList.remove('show');
+  dlBtn.classList.remove('show');
+  if(!validate()) return;
+
+  const data = {
+    app_url:      document.getElementById('f_url').value.trim(),
+    app_name:     document.getElementById('f_name').value.trim(),
+    package_name: document.getElementById('f_pkg').value.trim(),
+    version_name: document.getElementById('f_ver').value.trim(),
+    icon_url:     document.getElementById('f_icon').value.trim(),
+  };
+
+  setBusy(true);
+  showStatus();
+  setDot('running');
+  setTitle('提交中', '正在触发 GitHub Actions…');
+  setProgress(6);
+  [1,2,3,4].forEach(n => setStep(n, ''));
+
+  try {
+    const res  = await fetch(WORKER + '/build', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(data),
+    });
+    const json = await res.json();
+    if(!res.ok) throw new Error(json.error || '触发失败');
+
+    setStep(1,'done'); setStep(2,'active'); setProgress(18);
+    setTitle('排队中','等待 GitHub Actions 启动…');
+    startPoll(json.run_id, data);
+
+  } catch(err){
+    const msg = err.message.includes('fetch') || err.message.includes('network') || err.message === 'Failed to fetch'
+      ? '网络连接失败，请检查网络后重试'
+      : err.message;
+    showErr(msg);
+  }
+});
+
+function startPoll(runId, data){
+  let elapsed = 0;
+  const MAX_WAIT = 900; // 最长等 15 分钟
+  pollTimer = setInterval(async ()=>{
+    elapsed += 5;
+    try {
+      const r    = await fetch(WORKER + '/status?run_id=' + runId);
+      const data = await r.json();
+      const est  = Math.min(18 + Math.round(elapsed / 300 * 70), 88);
+
+      if(data.status === 'queued' || data.status === 'waiting'){
+        setDot('running');
+        setProgress(8);
+        setTitle('排队中','等待 GitHub Actions 分配运行器…');
+      }
+
+      if(data.status === 'in_progress'){
+        setDot('running');
+        const pct = data.progress || est;
+        setProgress(Math.min(pct, 95));
+        const step = data.current_step || '';
+        if(step.includes('Inject') || pct < 20){
+          setStep(2,'active'); setTitle('构建中','注入参数 & 处理图标…');
+        } else if(step.includes('Process') || pct < 35){
+          setStep(2,'done'); setStep(3,'active'); setTitle('构建中','处理图标资源…');
+        } else if(step.includes('Build') || pct < 85){
+          setStep(2,'done'); setStep(3,'active'); setTitle('编译中','Gradle 正在编译 APK…');
+        } else {
+          setStep(3,'done'); setStep(4,'active'); setTitle('签名中','正在签名打包…');
+        }
+      }
+
+      if(data.status === 'completed'){
+        clearInterval(pollTimer);
+        if(data.conclusion === 'success' || data.artifacts?.length || data.artifact_id){
+          // 成功，或者虽然结论异常但 artifacts 存在，都给下载链接
+          setStep(2,'done'); setStep(3,'done'); setStep(4,'done');
+          setProgress(100); setDot('success');
+          setTitle('打包完成 🎉','APK 已生成，点击下载');
+          setBusy(false);
+          renderDownloadButtons(data, runId);
+          addHistory(data);
+        } else if(data.conclusion === 'failure'){
+          setStep(4,'fail');
+          const failStep = data.failed_step ? `步骤「${data.failed_step}」失败` : '构建失败';
+          showErr(failStep + '，请检查参数后重试');
+          if (data.failed_log) {
+            const box = document.getElementById('statusBox');
+            const detail = document.createElement('div');
+            detail.className = 'err-detail';
+            detail.innerHTML = `<div class="err-detail-title">错误日志</div><div class="err-detail-log">${data.failed_log.replace(/</g,'&lt;')}</div>`;
+            box.appendChild(detail);
+          }
+          setBusy(false);
+        } else {
+          // cancelled / timed_out 等，尝试拿 artifacts
+          tryFetchArtifacts(runId, data);
+        }
+        return;
+      }
+
+      // 超时保护：15 分钟后先查一次 artifacts
+      if(elapsed >= MAX_WAIT){
+        clearInterval(pollTimer);
+        tryFetchArtifacts(runId, data);
+      }
+
+    } catch(e){ /* 网络抖动忽略 */ }
+  }, 5000);
+}
+
+async function tryFetchArtifacts(runId, data){
+  try {
+    const r = await fetch(WORKER + '/status?run_id=' + runId);
+    const fresh = await r.json();
+    if(fresh.artifacts?.length || fresh.artifact_id){
+      setStep(2,'done'); setStep(3,'done'); setStep(4,'done');
+      setProgress(100); setDot('success');
+      setTitle('打包完成 🎉','APK 已生成，点击下载');
+      setBusy(false);
+      renderDownloadButtons(fresh, runId);
+      addHistory(fresh);
+    } else {
+      setDot('fail');
+      setTitle('超时', '构建时间过长，请前往 GitHub Actions 查看状态');
+      showErr('构建超时，可直接前往 <a href="https://github.com/ZhangShengFan/Pakr/actions" target="_blank" style="color:#111">GitHub Actions</a> 下载 Artifact');
+      setBusy(false);
+    }
+  } catch(e){
+    setDot('fail');
+    showErr('网络错误，请稍后重试');
+    setBusy(false);
+  }
+}
+
+function renderDownloadButtons(data, runId){
+  const dlActions = document.getElementById('dlActions');
+  dlActions.innerHTML = '';
+  const artifacts = data.artifacts || (data.artifact_id ? [{id: data.artifact_id, name: data.artifact_name}] : []);
+  const firstUrl = WORKER + '/download?run_id=' + runId + (artifacts[0] ? '&artifact_id=' + artifacts[0].id : '');
+
+  if (artifacts.length === 0) {
+    // 兜底：没有 artifact 信息时直接用 run_id 下载
+    const btn = document.createElement('button');
+    btn.className = 'download-btn show';
+    btn.style.flex = '1';
+    btn.innerHTML = '<svg style="width:16px;height:16px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round" viewBox="0 0 24 24"><path d="M12 3v13M5 14l7 7 7-7"/><path d="M3 21h18"/></svg> 下载 APK';
+    btn.onclick = () => { window.location.href = firstUrl; };
+    dlActions.appendChild(btn);
+  } else {
+    // 多架构下载按钮
+    artifacts.forEach((art, i) => {
+      const dlUrl = WORKER + '/download?run_id=' + runId + '&artifact_id=' + art.id;
+      const arch = art.name.match(/arm64|armeabi|x86_64|universal/i)?.[0] || (i === 0 ? 'arm64' : 'armeabi');
+      const btn = document.createElement('button');
+      btn.className = 'download-btn show';
+      btn.style.flex = '1';
+      btn.innerHTML = `<svg style="width:16px;height:16px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round" viewBox="0 0 24 24"><path d="M12 3v13M5 14l7 7 7-7"/><path d="M3 21h18"/></svg> ${arch}`;
+      btn.onclick = () => { window.location.href = dlUrl; };
+      dlActions.appendChild(btn);
+    });
+  }
+
+  // 二维码按钮
+  const qrBtn = document.createElement('button');
+  qrBtn.className = 'download-btn show';
+  qrBtn.style.cssText = 'flex:0 0 auto;background:#f5f5f5;color:#111;border:1px solid #e0e0e0';
+  qrBtn.innerHTML = '<svg style="width:15px;height:15px;fill:none;stroke:#333;stroke-width:2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="3" height="3"/></svg> 二维码';
+  qrBtn.onclick = () => showQrModal(firstUrl);
+  dlActions.appendChild(qrBtn);
+  dlActions.style.display = 'flex';
+}
+
+function saveForm(){
+  const saved = {};
+  SAVE_KEYS.forEach(id => { saved[id] = document.getElementById(id).value; });
+  localStorage.setItem('apkbuilder_form', JSON.stringify(saved));
+}
+function loadForm(){
+  try {
+    const saved = JSON.parse(localStorage.getItem('apkbuilder_form') || '{}');
+    SAVE_KEYS.forEach(id => {
+      if(saved[id]) document.getElementById(id).value = saved[id];
+    });
+    if(saved['f_icon']) triggerIconPreview(saved['f_icon']);
+  } catch(e){}
+}
+SAVE_KEYS.forEach(id => {
+  document.getElementById(id).addEventListener('input', saveForm);
+});
+loadForm();
+
+/* ── 图标预览 ── */
+const iconInput   = document.getElementById('f_icon');
+const iconImg     = document.getElementById('iconImg');
+const iconPreview = document.getElementById('iconPreview');
+let iconTimer = null;
+
+function triggerIconPreview(url){
+  if(!url) return;
+  iconImg.style.display = 'none';
+  const tmp = new Image();
+  tmp.onload  = () => { iconImg.src = url; iconImg.style.display = 'block'; };
+  tmp.onerror = () => { iconImg.style.display = 'none'; };
+  tmp.src = url;
+}
+
+iconInput.addEventListener('input', () => {
+  clearTimeout(iconTimer);
+  iconTimer = setTimeout(() => triggerIconPreview(iconInput.value.trim()), 600);
+});
+
+/* ── 打包历史 ── */
+const HISTORY_KEY = 'apkbuilder_history';
+const historyCard = document.getElementById('historyCard');
+const historyList = document.getElementById('historyList');
+const historyClear = document.getElementById('historyClear');
+
+function getHistory(){ try{ return JSON.parse(localStorage.getItem(HISTORY_KEY)||'[]'); }catch(e){ return []; } }
+function saveHistory(h){ localStorage.setItem(HISTORY_KEY, JSON.stringify(h.slice(0,5))); }
+
+function renderHistory(){
+  const h = getHistory();
+  if(!h.length){ historyCard.classList.remove('show'); return; }
+  historyCard.classList.add('show');
+  historyList.innerHTML = h.map((item,i) => `
+    <div class="history-item" data-idx="${i}">
+      <div class="history-icon">
+        ${item.icon_url ? `<img src="${item.icon_url}" onerror="this.style.display='none'">` : ''}
+      </div>
+      <div class="history-info">
+        <div class="history-name">${item.app_name}</div>
+        <div class="history-meta">${item.package_name} · v${item.version_name}</div>
+      </div>
+      <div class="history-use">复用 ›</div>
+    </div>
+  `).join('');
+
+  historyList.querySelectorAll('.history-item').forEach(el => {
+    el.addEventListener('click', () => {
+      const item = getHistory()[+el.dataset.idx];
+      document.getElementById('f_url').value  = item.app_url;
+      document.getElementById('f_name').value = item.app_name;
+      document.getElementById('f_pkg').value  = item.package_name;
+      document.getElementById('f_ver').value  = item.version_name;
+      document.getElementById('f_icon').value = item.icon_url;
+      saveForm();
+      triggerIconPreview(item.icon_url);
+      window.scrollTo({top:0, behavior:'smooth'});
+    });
+  });
+}
+
+historyClear.addEventListener('click', () => {
+  localStorage.removeItem(HISTORY_KEY);
+  renderHistory();
+});
+
+function addHistory(data){
+  const h = getHistory().filter(x => x.package_name !== data.package_name);
+  h.unshift(data);
+  saveHistory(h);
+  renderHistory();
+}
+
+renderHistory();
+
+/* ── 构建成功时记录历史 ── */
+const _origStartPoll = startPoll;
+</script>
+
+<!-- 二维码 Modal -->
+<div id="qrModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:999;align-items:center;justify-content:center">
+  <div style="background:#fff;border-radius:20px;padding:28px 24px;text-align:center;max-width:280px;width:90%;position:relative">
+    <button onclick="document.getElementById('qrModal').style.display='none'"
+      style="position:absolute;top:12px;right:14px;background:none;border:none;font-size:20px;color:#999;cursor:pointer">✕</button>
+    <div style="font-size:14px;font-weight:600;color:#111;margin-bottom:16px">扫码下载 APK</div>
+    <div id="qrCanvas" style="display:flex;justify-content:center"></div>
+    <div style="font-size:11px;color:#999;margin-top:12px">使用手机扫描二维码直接下载安装</div>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+<script>
+function showQrModal(url) {
+  const modal = document.getElementById('qrModal');
+  const canvas = document.getElementById('qrCanvas');
+  canvas.innerHTML = '';
+  modal.style.display = 'flex';
+  QRCode.toCanvas(document.createElement('canvas'), url, {
+    width: 200, margin: 2,
+    color: { dark: '#111111', light: '#ffffff' }
+  }, (err, c) => {
+    if (!err) { c.style.borderRadius = '8px'; canvas.appendChild(c); }
+  });
+}
+// 点击背景关闭
+document.getElementById('qrModal').addEventListener('click', function(e) {
+  if (e.target === this) this.style.display = 'none';
+});
+</script>
+</body>
+</html>
+<!-- deploy trigger: 1777537959 -->
