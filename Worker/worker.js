@@ -716,35 +716,7 @@ renderHistory();
 const _origStartPoll = startPoll;
 </script>
 
-<!-- 二维码 Modal -->
-<div id="qrModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:999;align-items:center;justify-content:center">
-  <div style="background:#fff;border-radius:20px;padding:28px 24px;text-align:center;max-width:280px;width:90%;position:relative">
-    <button onclick="document.getElementById('qrModal').style.display='none'"
-      style="position:absolute;top:12px;right:14px;background:none;border:none;font-size:20px;color:#999;cursor:pointer">✕</button>
-    <div style="font-size:14px;font-weight:600;color:#111;margin-bottom:16px">扫码下载 APK</div>
-    <div id="qrCanvas" style="display:flex;justify-content:center"></div>
-    <div style="font-size:11px;color:#999;margin-top:12px">使用手机扫描二维码直接下载安装</div>
-  </div>
-</div>
-<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
-<script>
-function showQrModal(url) {
-  const modal = document.getElementById('qrModal');
-  const canvas = document.getElementById('qrCanvas');
-  canvas.innerHTML = '';
-  modal.style.display = 'flex';
-  QRCode.toCanvas(document.createElement('canvas'), url, {
-    width: 200, margin: 2,
-    color: { dark: '#111111', light: '#ffffff' }
-  }, (err, c) => {
-    if (!err) { c.style.borderRadius = '8px'; canvas.appendChild(c); }
-  });
-}
-// 点击背景关闭
-document.getElementById('qrModal').addEventListener('click', function(e) {
-  if (e.target === this) this.style.display = 'none';
-});
-</script>
+
 </body>
 </html>
 <!-- deploy trigger: 1777537959 -->
