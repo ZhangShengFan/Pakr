@@ -9,7 +9,24 @@ const GH = 'https://api.github.com';
 
 export default {
   async fetch(request, env, ctx) {
-    return handleRequest(request, env);
+    const url = new URL(request.url);
+
+    // API 路由
+    if (request.method === 'OPTIONS') {
+      return cors(new Response(null, { status: 204 }));
+    }
+    if (url.pathname === '/build' && request.method === 'POST') {
+      return cors(await handleBuild(request, env));
+    }
+    if (url.pathname === '/status' && request.method === 'GET') {
+      return cors(await handleStatus(request, env));
+    }
+    if (url.pathname === '/download' && request.method === 'GET') {
+      return cors(await handleDownload(request, env));
+    }
+
+    // 静态资源 fallback → 由 Pages 服务 index.html 等
+    return env.ASSETS.fetch(request);
   }
 };
 
