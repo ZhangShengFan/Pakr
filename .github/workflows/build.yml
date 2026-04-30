@@ -96,13 +96,10 @@ jobs:
           SAFE=$(echo "${{ github.event.inputs.app_name }}" | tr ' ' '_')
           VER="${{ github.event.inputs.version_name }}"
           mkdir -p /tmp/signed
-          # 用递归搜索，兼容多ABI构建的不同目录结构
-          APK_LIST=$(find app/build/outputs/apk -name '*.apk' -not -name '*-unsigned*' 2>/dev/null)
-          echo "Found APKs: $APK_LIST"
-          for APK in $APK_LIST; do
-            ABI=$(echo "$APK" | grep -oP '(arm64-v8a|armeabi-v7a)' || echo "universal")
+          for APK in $(find app/build/outputs/apk -name '*.apk' 2>/dev/null); do
+            ABI=$(echo "$APK" | grep -oE '(arm64-v8a|armeabi-v7a)' || echo "universal")
             OUT="/tmp/signed/${SAFE}_${VER}_${ABI}.apk"
-            $ANDROID_HOME/build-tools/$BUILD_TOOLS/zipalign -v -p 4 "$APK" /tmp/aligned_${ABI}.apk
+            $ANDROID_HOME/build-tools/$BUILD_TOOLS/zipalign -f -p 4 "$APK" /tmp/aligned_${ABI}.apk
             $ANDROID_HOME/build-tools/$BUILD_TOOLS/apksigner sign \
               --ks /tmp/release.keystore --ks-pass "pass:$KS_PASS" \
               --ks-key-alias "$KEY_ALIAS" --key-pass "pass:$KEY_PASS" \
