@@ -71,7 +71,6 @@ async function handleStatus(request, env) {
   const data = await runRes.json();
   const result = { run_id: runId, status: data.status, conclusion: data.conclusion };
 
-  // job steps 进度
   const jobsRes = await gh(env, `/repos/${env.GITHUB_OWNER}/${env.GITHUB_REPO}/actions/runs/${runId}/jobs`);
   const jobs = await jobsRes.json();
   const job = jobs.jobs?.[0];
@@ -97,18 +96,22 @@ async function handleStatus(request, env) {
 
   if (data.status === 'completed' && data.conclusion === 'success') {
     result.progress = 100;
-    const artsRes = await gh(env, `/repos/${env.GITHUB_OWNER}/${env.GITHUB_REPO}/actions/runs/${runId}/artifacts`);
-    if (artsRes.ok) {
-      const arts = await artsRes.json();
-      if (arts.artifacts?.length) {
-        result.artifacts = arts.artifacts.map(a => ({ id: a.id, name: a.name }));
-        result.artifact_id   = arts.artifacts[0].id;
-        result.artifact_name = arts.artifacts[0].name;
+    // 重试最多5次，等待artifact同步（GitHub有时延迟）
+    for (let i = 0; i < 5; i++) {
+      const artsRes = await gh(env, `/repos/${env.GITHUB_OWNER}/${env.GITHUB_REPO}/actions/runs/${runId}/artifacts`);
+      if (artsRes.ok) {
+        const arts = await artsRes.json();
+        if (arts.artifacts?.length) {
+          result.artifacts = arts.artifacts.map(a => ({ id: a.id, name: a.name }));
+          result.artifact_id   = arts.artifacts[0].id;
+          result.artifact_name = arts.artifacts[0].name;
+          break;
+        }
       }
+      if (i < 4) await sleep(2000);
     }
   }
 
-  // 失败日志
   if (data.status === 'completed' && data.conclusion === 'failure') {
     const failedStep = jobs.jobs?.[0]?.steps?.find(s => s.conclusion === 'failure');
     if (failedStep) {
@@ -138,29 +141,36 @@ async function handleDownload(request, env) {
   let artifactName = 'app';
 
   if (!resolvedId) {
-    const artsRes = await gh(env, `/repos/${env.GITHUB_OWNER}/${env.GITHUB_REPO}/actions/runs/${runId}/artifacts`);
-    if (!artsRes.ok) return json({ error: `GitHub API error: ${artsRes.status}` }, 502);
-    const arts = await artsRes.json();
-    if (!arts.artifacts?.length) return json({ error: 'Artifact not found. Build may still be uploading, please retry in a few seconds.' }, 404);
-    resolvedId   = arts.artifacts[0].id;
-    artifactName = arts.artifacts[0].name;
+    // 没有 artifact_id，重试查列表（最多5次，兼容GitHub延迟同步）
+    for (let i = 0; i < 5; i++) {
+      const artsRes = await gh(env, `/repos/${env.GITHUB_OWNER}/${env.GITHUB_REPO}/actions/runs/${runId}/artifacts`);
+      if (artsRes.ok) {
+        const arts = await artsRes.json();
+        if (arts.artifacts?.length) {
+          resolvedId   = arts.artifacts[0].id;
+          artifactName = arts.artifacts[0].name;
+          break;
+        }
+      }
+      if (i < 4) await sleep(2000);
+    }
+    if (!resolvedId) return json({ error: 'Artifact not found after retries. The build may have failed to upload the APK.' }, 404);
   }
 
-  // 获取 S3 重定向 URL（带 auth，redirect:manual 不跟随）
+  // 拿重定向 URL（redirect:manual 保留 302）
   const dlRes = await gh(env,
     `/repos/${env.GITHUB_OWNER}/${env.GITHUB_REPO}/actions/artifacts/${resolvedId}/zip`,
     { redirect: 'manual' }
   );
   const s3Url = dlRes.headers.get('location');
-  if (!s3Url) return json({ error: `Redirect failed (${dlRes.status})` }, 502);
+  if (!s3Url) return json({ error: `Redirect failed (${dlRes.status}). Artifact may have expired.` }, 502);
 
-  // Worker 直接 fetch S3（无 CORS 限制，无需 Auth 头）
+  // Worker 直接 fetch S3，流式返回给用户
   const dl = await fetch(s3Url);
   if (!dl.ok) return json({ error: `S3 download failed: ${dl.status}` }, 502);
 
   const zipBuf = await dl.arrayBuffer();
 
-  // 解压 ZIP 提取 .apk
   try {
     const apk = await extractApkFromZip(zipBuf);
     if (apk) {
@@ -175,7 +185,6 @@ async function handleDownload(request, env) {
     }
   } catch (_) {}
 
-  // 降级：直接返回 ZIP
   return new Response(zipBuf, {
     headers: {
       'Content-Type': 'application/zip',
