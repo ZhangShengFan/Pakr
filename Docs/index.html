@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pakr 文档</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#ffffff;--sidebar-bg:#f9fafb;--border:#e5e7eb;
+  --text:#111827;--muted:#6b7280;--faint:#9ca3af;
+  --primary:#059669;--primary-light:#d1fae5;
+  --surface:#f3f4f6;--code-bg:#f3f4f6;
+  --nav-h:56px;--sidebar-w:260px;
+}
+[data-theme="dark"]{
+  --bg:#0f1117;--sidebar-bg:#161b22;--border:#21262d;
+  --text:#e6edf3;--muted:#8b949e;--faint:#484f58;
+  --primary:#34d399;--primary-light:#064e3b;
+  --surface:#1c2128;--code-bg:#161b22;
+}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);font-size:15px;line-height:1.7}
+
+/* NAV */
+.topnav{position:fixed;top:0;left:0;right:0;height:var(--nav-h);background:var(--bg);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 20px;gap:12px;z-index:100}
+.topnav-logo{display:flex;align-items:center;gap:8px;font-weight:600;font-size:16px;color:var(--text);text-decoration:none}
+.topnav-logo svg{border-radius:8px}
+.topnav-spacer{flex:1}
+.nav-btn{background:none;border:1px solid var(--border);border-radius:8px;padding:6px 12px;font-size:13px;color:var(--muted);cursor:pointer;display:flex;align-items:center;gap:6px;text-decoration:none;transition:all .15s}
+.nav-btn:hover{border-color:var(--primary);color:var(--primary)}
+.theme-btn{background:none;border:none;cursor:pointer;color:var(--muted);padding:6px;border-radius:8px;display:flex;align-items:center}
+.theme-btn:hover{color:var(--text);background:var(--surface)}
+.menu-btn{display:none;background:none;border:none;cursor:pointer;color:var(--text);padding:4px}
+
+/* LAYOUT */
+.layout{display:flex;margin-top:var(--nav-h);min-height:calc(100vh - var(--nav-h))}
+
+/* SIDEBAR */
+.sidebar{width:var(--sidebar-w);flex-shrink:0;background:var(--sidebar-bg);border-right:1px solid var(--border);position:fixed;top:var(--nav-h);bottom:0;overflow-y:auto;padding:16px 12px}
+.sidebar-section{margin-bottom:20px}
+.sidebar-label{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);padding:4px 12px;margin-bottom:4px}
+.sidebar-item{display:block;padding:7px 12px;border-radius:6px;font-size:13.5px;color:var(--muted);text-decoration:none;cursor:pointer;transition:all .12s;border:none;background:none;width:100%;text-align:left}
+.sidebar-item:hover{background:var(--surface);color:var(--text)}
+.sidebar-item.active{background:var(--primary-light);color:var(--primary);font-weight:500}
+
+/* CONTENT */
+.content-wrap{margin-left:var(--sidebar-w);flex:1;min-width:0}
+.content{max-width:720px;padding:40px 48px 80px;margin:0 auto}
+.page{display:none}
+.page.active{display:block}
+
+/* TYPOGRAPHY */
+h1{font-size:26px;font-weight:700;line-height:1.3;margin-bottom:12px;color:var(--text)}
+h2{font-size:19px;font-weight:600;margin-top:40px;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border);color:var(--text)}
+h3{font-size:16px;font-weight:600;margin-top:28px;margin-bottom:8px;color:var(--text)}
+p{margin-bottom:16px;color:var(--text);max-width:65ch}
+a{color:var(--primary);text-decoration:none}
+a:hover{text-decoration:underline}
+.lead{font-size:16px;color:var(--muted);margin-bottom:28px;max-width:60ch}
+
+/* BADGES */
+.badge-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:28px}
+.badge{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:500}
+.badge-green{background:var(--primary-light);color:var(--primary)}
+.badge-gray{background:var(--surface);color:var(--muted)}
+
+/* CODE */
+pre{background:var(--code-bg);border:1px solid var(--border);border-radius:10px;padding:16px 18px;overflow-x:auto;margin:16px 0;font-size:13px;line-height:1.6}
+code{font-family:'SF Mono','Fira Code',monospace;font-size:13px}
+p code,li code,td code{background:var(--code-bg);border:1px solid var(--border);padding:1px 6px;border-radius:4px;font-size:12.5px}
+
+/* TABLE */
+table{width:100%;border-collapse:collapse;margin:20px 0;font-size:14px}
+th{text-align:left;padding:10px 14px;background:var(--surface);color:var(--muted);font-weight:500;font-size:12px;text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid var(--border)}
+td{padding:11px 14px;border-bottom:1px solid var(--border);color:var(--text)}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--surface)}
+
+/* LIST */
+ul,ol{padding-left:20px;margin-bottom:16px}
+li{margin-bottom:6px;color:var(--text)}
+
+/* CALLOUT */
+.callout{border-radius:10px;padding:14px 18px;margin:20px 0;display:flex;gap:12px;align-items:flex-start;font-size:14px}
+.callout-info{background:var(--primary-light);border:1px solid var(--primary);color:var(--text)}
+.callout-warn{background:#fef3c7;border:1px solid #f59e0b;color:#92400e}
+[data-theme="dark"] .callout-warn{background:#1c1500;border-color:#92400e;color:#fbbf24}
+.callout-icon{font-size:16px;flex-shrink:0;margin-top:1px}
+
+/* STEPS */
+.steps{counter-reset:step;margin:20px 0}
+.step{display:flex;gap:16px;margin-bottom:24px;position:relative}
+.step::before{counter-increment:step;content:counter(step);flex-shrink:0;width:28px;height:28px;border-radius:50%;background:var(--primary);color:#fff;font-size:13px;font-weight:600;display:flex;align-items:center;justify-content:center;margin-top:2px}
+.step-content{flex:1}
+.step-content h3{margin-top:0}
+
+/* FEATURE GRID */
+.feature-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;margin:24px 0}
+.feature-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;transition:border-color .15s}
+.feature-card:hover{border-color:var(--primary)}
+.feature-icon{font-size:22px;margin-bottom:8px}
+.feature-name{font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px}
+.feature-desc{font-size:12px;color:var(--muted);line-height:1.5}
+
+/* PAGE NAV */
+.page-nav{display:flex;justify-content:space-between;margin-top:56px;padding-top:24px;border-top:1px solid var(--border);gap:16px}
+.page-nav-btn{border:1px solid var(--border);border-radius:10px;padding:12px 18px;text-decoration:none;color:var(--muted);font-size:13px;transition:all .15s;flex:1;max-width:220px}
+.page-nav-btn:hover{border-color:var(--primary);color:var(--primary);text-decoration:none}
+.page-nav-prev{text-align:left}
+.page-nav-next{text-align:right;margin-left:auto}
+.page-nav-label{font-size:11px;margin-bottom:3px;opacity:.7}
+.page-nav-title{font-weight:500}
+
+/* MOBILE */
+.sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:90}
+@media(max-width:768px){
+  .sidebar{transform:translateX(-100%);transition:transform .2s;z-index:95}
+  .sidebar.open{transform:translateX(0)}
+  .sidebar-overlay.open{display:block}
+  .menu-btn{display:flex}
+  .content-wrap{margin-left:0}
+  .content{padding:24px 18px 60px}
+  h1{font-size:22px}
+  h2{font-size:17px}
+}
+</style>
+</head>
+<body>
+
+<!-- TOP NAV -->
+<nav class="topnav">
+  <button class="menu-btn" onclick="toggleSidebar()" aria-label="菜单">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+  </button>
+  <a class="topnav-logo" href="#" onclick="navigate('home');return false">
+    <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><rect width="28" height="28" rx="7" fill="#059669"/><path d="M8 20L14 8L20 20M10.5 15.5H17.5" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>
+    Pakr
+  </a>
+  <div class="topnav-spacer"></div>
+  <a class="nav-btn" href="https://apk.091224.xyz" target="_blank">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+    在线体验
+  </a>
+  <a class="nav-btn" href="https://github.com/ZhangShengFan/Pakr" target="_blank">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+    GitHub
+  </a>
+  <button class="theme-btn" onclick="toggleTheme()" id="themeBtn" aria-label="切换主题">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+  </button>
+</nav>
+
+<!-- SIDEBAR OVERLAY -->
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+<!-- LAYOUT -->
+<div class="layout">
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-label">开始</div>
+      <button class="sidebar-item active" onclick="navigate('home')">主页</button>
+      <button class="sidebar-item" onclick="navigate('intro')">介绍</button>
+      <button class="sidebar-item" onclick="navigate('quickstart')">快速开始</button>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">指南</div>
+      <button class="sidebar-item" onclick="navigate('deploy')">部署说明</button>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">参考</div>
+      <button class="sidebar-item" onclick="navigate('features')">功能特性</button>
+      <button class="sidebar-item" onclick="navigate('faq')">常见问题</button>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">其他</div>
+      <button class="sidebar-item" onclick="navigate('changelog')">更新日志</button>
+    </div>
+  </aside>
+
+  <!-- CONTENT -->
+  <main class="content-wrap">
+    <div class="content">
+
+      <!-- HOME -->
+      <div class="page active" id="page-home">
+        <h1>Pakr — 网页一键打包 APK</h1>
+        <p class="lead">填写网址和应用信息，3~5 分钟自动生成可安装的 Android APK，无需本地环境，全程云端构建。</p>
+        <div class="badge-row">
+          <span class="badge badge-green">MIT License</span>
+          <span class="badge badge-gray">Android</span>
+          <span class="badge badge-gray">Cloudflare Pages</span>
+          <span class="badge badge-gray">GitHub Actions</span>
+        </div>
+        <div class="feature-grid">
+          <div class="feature-card"><div class="feature-icon">🔨</div><div class="feature-name">全自动构建</div><div class="feature-desc">触发 GitHub Actions，自动完成编译 → 签名 → 打包</div></div>
+          <div class="feature-card"><div class="feature-icon">📊</div><div class="feature-name">实时进度</div><div class="feature-desc">显示精确百分比和当前步骤，随时掌握打包进展</div></div>
+          <div class="feature-card"><div class="feature-icon">📱</div><div class="feature-name">全屏 WebView</div><div class="feature-desc">全屏沉浸式，iOS 风格加载动画，进度条跟随主题色</div></div>
+          <div class="feature-card"><div class="feature-icon">🔏</div><div class="feature-name">Release 签名</div><div class="feature-desc">自动 Keystore 签名，支持版本升级覆盖安装</div></div>
+          <div class="feature-card"><div class="feature-icon">📦</div><div class="feature-name">多架构输出</div><div class="feature-desc">同时生成 arm64-v8a + armeabi-v7a，体积约 4MB</div></div>
+          <div class="feature-card"><div class="feature-icon">🌙</div><div class="feature-name">深色模式</div><div class="feature-desc">跟随系统深色/浅色模式，支持手动切换</div></div>
+        </div>
+        <div class="page-nav">
+          <span></span>
+          <a class="page-nav-btn page-nav-next" href="#" onclick="navigate('intro');return false">
+            <div class="page-nav-label">下一页</div>
+            <div class="page-nav-title">介绍 →</div>
+          </a>
+        </div>
+      </div>
+
+      <!-- INTRO -->
+      <div class="page" id="page-intro">
+        <h1>介绍</h1>
+        <p><strong>Pakr</strong> 是一个网页一键打包 APK 的工具。填写目标网址和应用信息后，3~5 分钟自动生成可安装的 Android APK，无需本地安装任何工具，全程云端完成编译、签名、打包。</p>
+        <h2>工作原理</h2>
+        <p>前后端合并部署在 <strong>Cloudflare Pages</strong>，无需单独部署 Worker：</p>
+        <pre><code>浏览器
+  │
+  ▼
+Cloudflare Pages（index.html + _worker.js）
+  │  前端页面 + API 接口合二为一
+  ▼
+GitHub Actions ── 触发构建 / 查询进度 / 下载 APK</code></pre>
+        <h2>构建流程</h2>
+        <pre><code>提交表单
+   │
+   ▼
+_worker.js ──→ 触发 GitHub Actions (workflow_dispatch)
+   │
+   ▼
+GitHub Actions
+   ├── 1. Inject parameters   注入 URL / 包名 / 版本号等参数
+   ├── 2. Process icon        下载图标，生成多尺寸 mipmap
+   ├── 3. Build APK           Gradle 编译（arm64 + armeabi-v7a）
+   └── 4. Sign & Upload       zipalign + apksigner 签名，上传 Artifact
+   │
+   ▼
+前端每 5 秒轮询 /status，实时更新进度和步骤状态
+   │
+   ▼
+构建完成 → 显示多架构下载按钮，记录到历史面板</code></pre>
+        <div class="page-nav">
+          <a class="page-nav-btn page-nav-prev" href="#" onclick="navigate('home');return false"><div class="page-nav-label">上一页</div><div class="page-nav-title">← 主页</div></a>
+          <a class="page-nav-btn page-nav-next" href="#" onclick="navigate('quickstart');return false"><div class="page-nav-label">下一页</div><div class="page-nav-title">快速开始 →</div></a>
+        </div>
+      </div>
+
+      <!-- QUICKSTART -->
+      <div class="page" id="page-quickstart">
+        <h1>快速开始</h1>
+        <p class="lead">3 分钟完成部署，开始使用 Pakr。</p>
+        <h2>前置要求</h2>
+        <ul>
+          <li><strong>GitHub 账号</strong> — 用于 Actions 构建</li>
+          <li><strong>Cloudflare 账号</strong> — 用于 Pages 托管</li>
+        </ul>
+        <div class="steps">
+          <div class="step"><div class="step-content"><h3>Fork 仓库</h3><p>点击右上角 <strong>Fork</strong>，将 <a href="https://github.com/ZhangShengFan/Pakr" target="_blank">ZhangShengFan/Pakr</a> Fork 到你自己的账号下。</p></div></div>
+          <div class="step"><div class="step-content"><h3>生成签名 Keystore</h3><p>进入你 Fork 的仓库 → <strong>Actions</strong> → <strong>gen-keystore</strong> → <strong>Run workflow</strong>，填写密码后运行。完成后在日志里复制输出的 Base64 Keystore 字符串，备用。</p></div></div>
+          <div class="step"><div class="step-content">
+            <h3>配置 GitHub Secrets</h3>
+            <p>进入仓库 → <strong>Settings → Secrets and variables → Actions → New repository secret</strong></p>
+            <table>
+              <tr><th>Secret 名称</th><th>说明</th></tr>
+              <tr><td><code>KEYSTORE_BASE64</code></td><td>上一步输出的 Base64 Keystore 字符串</td></tr>
+              <tr><td><code>KEYSTORE_PASSWORD</code></td><td>Keystore 密码</td></tr>
+              <tr><td><code>KEY_ALIAS</code></td><td>Key 别名（默认 <code>release</code>）</td></tr>
+              <tr><td><code>KEY_PASSWORD</code></td><td>Key 密码（同 Keystore 密码）</td></tr>
+              <tr><td><code>GH_PAT</code></td><td>GitHub PAT（需要 <code>repo</code> + <code>workflow</code> 权限）</td></tr>
+            </table>
+          </div></div>
+          <div class="step"><div class="step-content"><h3>部署到 Cloudflare Pages</h3>
+            <p>进入 <a href="https://dash.cloudflare.com" target="_blank">Cloudflare Dashboard</a> → <strong>Pages → Create a project → Connect to Git</strong>，选择你 Fork 的仓库，构建配置留空（纯静态），点击部署即可。</p>
+            <div class="callout callout-info"><span class="callout-icon">💡</span><span>部署完成后，在 Pages 项目的 <strong>Settings → Environment variables</strong> 添加 <code>GH_TOKEN</code>（同 GH_PAT），用于 Worker 调用 GitHub API。</span></div>
+          </div></div>
+        </div>
+        <div class="page-nav">
+          <a class="page-nav-btn page-nav-prev" href="#" onclick="navigate('intro');return false"><div class="page-nav-label">上一页</div><div class="page-nav-title">← 介绍</div></a>
+          <a class="page-nav-btn page-nav-next" href="#" onclick="navigate('deploy');return false"><div class="page-nav-label">下一页</div><div class="page-nav-title">部署说明 →</div></a>
+        </div>
+      </div>
+
+      <!-- DEPLOY -->
+      <div class="page" id="page-deploy">
+        <h1>部署说明</h1>
+        <h2>注意事项</h2>
+        <div class="callout callout-warn"><span class="callout-icon">⚠️</span><span>GitHub Actions 免费账号每月有 <strong>2000 分钟</strong>额度，单次构建约消耗 <strong>3~5 分钟</strong>。</span></div>
+        <ul>
+          <li>未配置 Keystore Secrets 时自动使用临时 Debug Key 签名，<strong>不同次打包签名不一致，无法升级覆盖安装</strong></li>
+          <li>打包历史记录保存在浏览器本地，清除缓存后会丢失</li>
+        </ul>
+        <h2>自定义域名</h2>
+        <p>在 Cloudflare Pages 项目设置 → <strong>Custom domains</strong> → 添加你的域名，SSL 自动配置。</p>
+        <h2>更新部署</h2>
+        <p>主仓库有新提交时，在 Cloudflare Pages 控制台手动触发重新部署，或开启 <strong>Auto Deployment</strong> 让每次 push 自动更新。</p>
+        <h2>项目结构</h2>
+        <pre><code>Pakr/
+├── .github/workflows/
+│   ├── build.yml              # 主构建流程
+│   └── gen-keystore.yml       # 生成签名 Keystore
+├── Scripts/
+│   └── process_icon.py        # 图标处理脚本
+├── index.html                 # 前端页面
+├── _worker.js                 # API 接口（与前端合并部署）
+└── app/                       # Android 项目源码</code></pre>
+        <div class="page-nav">
+          <a class="page-nav-btn page-nav-prev" href="#" onclick="navigate('quickstart');return false"><div class="page-nav-label">上一页</div><div class="page-nav-title">← 快速开始</div></a>
+          <a class="page-nav-btn page-nav-next" href="#" onclick="navigate('features');return false"><div class="page-nav-label">下一页</div><div class="page-nav-title">功能特性 →</div></a>
+        </div>
+      </div>
+
+      <!-- FEATURES -->
+      <div class="page" id="page-features">
+        <h1>功能特性</h1>
+        <table>
+          <tr><th>功能</th><th>说明</th></tr>
+          <tr><td>🔨 全自动构建</td><td>触发 GitHub Actions，自动完成编译 → 签名 → 打包</td></tr>
+          <tr><td>📊 实时进度</td><td>显示精确百分比和当前步骤</td></tr>
+          <tr><td>📱 全屏 WebView</td><td>全屏沉浸式，iOS 风格加载动画，进度条跟随网页主题色</td></tr>
+          <tr><td>🔏 Release 签名</td><td>自动 Keystore 签名，支持版本升级覆盖安装</td></tr>
+          <tr><td>📦 多架构输出</td><td>同时生成 arm64-v8a + armeabi-v7a 两个 APK，体积约 4MB</td></tr>
+          <tr><td>🌐 支持任意网址</td><td>HTTP / HTTPS 均可，支持 Cookie、文件上传、摄像头权限</td></tr>
+          <tr><td>⬇️ 系统下载</td><td>网页触发的下载通过系统 DownloadManager 保存到本地</td></tr>
+          <tr><td>🔄 下拉刷新</td><td>滚动到顶部时下拉刷新页面</td></tr>
+          <tr><td>⌨️ 键盘适配</td><td>软键盘弹出时页面自动上移，表单不被遮挡</td></tr>
+          <tr><td>🗂️ 打包历史</td><td>记录最近打包记录，支持一键重新填入</td></tr>
+          <tr><td>🌙 深色模式</td><td>跟随系统深色/浅色模式，支持手动切换</td></tr>
+        </table>
+        <div class="page-nav">
+          <a class="page-nav-btn page-nav-prev" href="#" onclick="navigate('deploy');return false"><div class="page-nav-label">上一页</div><div class="page-nav-title">← 部署说明</div></a>
+          <a class="page-nav-btn page-nav-next" href="#" onclick="navigate('faq');return false"><div class="page-nav-label">下一页</div><div class="page-nav-title">常见问题 →</div></a>
+        </div>
+      </div>
+
+      <!-- FAQ -->
+      <div class="page" id="page-faq">
+        <h1>常见问题</h1>
+        <h2>打包失败怎么办？</h2>
+        <p>进入你 Fork 的仓库 → <strong>Actions</strong>，找到对应的 workflow 运行记录，查看详细日志定位错误。</p>
+        <p>常见原因：</p>
+        <ul>
+          <li><code>GH_PAT</code> 权限不足，需要 <code>repo</code> + <code>workflow</code> 两个权限</li>
+          <li>Keystore Secrets 配置错误或未配置</li>
+          <li>目标网址无法访问</li>
+        </ul>
+        <h2>APK 安装后无法升级覆盖？</h2>
+        <p>说明两次打包使用了不同的签名。需要正确配置 Keystore Secrets（<code>KEYSTORE_BASE64</code>、<code>KEYSTORE_PASSWORD</code>、<code>KEY_ALIAS</code>、<code>KEY_PASSWORD</code>），确保每次签名一致。</p>
+        <h2>打包历史丢了？</h2>
+        <p>打包历史保存在浏览器 LocalStorage，清除浏览器缓存后会丢失，这是正常现象。</p>
+        <h2>Actions 额度用完了？</h2>
+        <p>GitHub 免费账号每月 2000 分钟，单次约 3~5 分钟，每月约可打包 400~600 次。超出后需等下月重置或升级 GitHub 套餐。</p>
+        <h2>支持 iOS 吗？</h2>
+        <p>暂不支持，目前只生成 Android APK。</p>
+        <h2>可以打包需要登录的网页吗？</h2>
+        <p>可以，WebView 支持 Cookie，登录状态会保留在应用中。</p>
+        <div class="page-nav">
+          <a class="page-nav-btn page-nav-prev" href="#" onclick="navigate('features');return false"><div class="page-nav-label">上一页</div><div class="page-nav-title">← 功能特性</div></a>
+          <a class="page-nav-btn page-nav-next" href="#" onclick="navigate('changelog');return false"><div class="page-nav-label">下一页</div><div class="page-nav-title">更新日志 →</div></a>
+        </div>
+      </div>
+
+      <!-- CHANGELOG -->
+      <div class="page" id="page-changelog">
+        <h1>更新日志</h1>
+        <h2>v1.0.0</h2>
+        <ul>
+          <li>🎉 初始版本发布</li>
+          <li>全自动 GitHub Actions 构建流程</li>
+          <li>实时进度显示</li>
+          <li>多架构 APK 输出（arm64-v8a + armeabi-v7a）</li>
+          <li>Release Keystore 签名</li>
+          <li>打包历史记录</li>
+          <li>深色模式支持</li>
+          <li>系统级文件下载</li>
+          <li>下拉刷新</li>
+          <li>键盘自适应</li>
+        </ul>
+        <div class="page-nav">
+          <a class="page-nav-btn page-nav-prev" href="#" onclick="navigate('faq');return false"><div class="page-nav-label">上一页</div><div class="page-nav-title">← 常见问题</div></a>
+          <span></span>
+        </div>
+      </div>
+
+    </div><!-- .content -->
+  </main>
+</div><!-- .layout -->
+
+<script>
+// Theme
+(function(){
+  const stored = null;
+  const dark = window.matchMedia('(prefers-color-scheme:dark)').matches;
+  document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+  updateThemeIcon(dark);
+})();
+function updateThemeIcon(isDark){
+  const btn = document.getElementById('themeBtn');
+  if(!btn) return;
+  btn.innerHTML = isDark
+    ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>'
+    : '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>';
+}
+function toggleTheme(){
+  const html = document.documentElement;
+  const isDark = html.getAttribute('data-theme') === 'dark';
+  html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+  updateThemeIcon(!isDark);
+}
+
+// Navigation
+function navigate(id){
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.sidebar-item').forEach(s => s.classList.remove('active'));
+  const page = document.getElementById('page-' + id);
+  if(page) page.classList.add('active');
+  document.querySelectorAll('.sidebar-item').forEach(s => {
+    if(s.getAttribute('onclick') && s.getAttribute('onclick').includes("'"+id+"'")) s.classList.add('active');
+  });
+  window.scrollTo(0, 0);
+  // close sidebar on mobile
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebarOverlay').classList.remove('open');
+}
+
+// Sidebar mobile
+function toggleSidebar(){
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('sidebarOverlay').classList.toggle('open');
+}
+</script>
+</body>
+</html>
