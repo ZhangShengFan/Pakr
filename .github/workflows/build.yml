@@ -56,23 +56,31 @@ jobs:
 
       - name: Inject parameters
         run: |
+          # fix(bug#2): 对 URL 中的 sed 特殊字符做转义，防止注入崩溃
           URL="${{ github.event.inputs.app_url }}"
-          sed -i "s|{{APP_URL}}|${URL}|g" app/src/main/java/com/webviewapp/MainActivity.kt
+          URL_ESC=$(printf '%s\n' "$URL" | sed 's/[&/\]/\\&/g')
+          sed -i "s|{{APP_URL}}|${URL_ESC}|g" app/src/main/java/com/webviewapp/MainActivity.kt
+
           PKG="${{ github.event.inputs.package_name }}"
           sed -i "s|{{APP_PACKAGE}}|${PKG}|g" app/src/main/AndroidManifest.xml app/build.gradle
+
           NAME="${{ github.event.inputs.app_name }}"
           NAME_XML=$(echo "$NAME" | sed 's/&/\&amp;/g; s/</\&lt;/g; s/>/\&gt;/g; s/"/\&quot;/g; s/'"'"'/\&apos;/g')
           sed -i "s|{{APP_NAME}}|${NAME_XML}|g" app/src/main/res/values/strings.xml app/src/main/AndroidManifest.xml
+
+          # fix(bug#3): VERSION_CODE 用 ($3+0) 防止 2 段版本号时 $3 为空导致冲突
           VER="${{ github.event.inputs.version_name }}"
-          VC=$(echo "$VER" | awk -F. '{ printf "%d%02d%02d", $1, $2, $3 }')
+          VC=$(echo "$VER" | awk -F. '{ printf "%d%02d%02d", $1+0, $2+0, $3+0 }')
           sed -i "s|{{VERSION_NAME}}|${VER}|g" app/build.gradle
           sed -i "s|{{VERSION_CODE}}|${VC}|g" app/build.gradle
+
           PKG_PATH=$(echo $PKG | sed 's/\./\//g')
           echo "PKG_PATH is: $PKG_PATH"
           mkdir -p app/src/main/java/$PKG_PATH
           sed -i "s|package com.webviewapp|package $PKG|g" app/src/main/java/com/webviewapp/*.kt
           mv app/src/main/java/com/webviewapp/*.kt app/src/main/java/$PKG_PATH/
           sed -i "s|com.webviewapp|$PKG|g" app/src/main/res/layout/activity_main.xml
+
           NO_SS="${{ github.event.inputs.no_screenshot }}"
           sed -i "s|{{NO_SCREENSHOT}}|${NO_SS:-false}|g" app/src/main/java/$PKG_PATH/MainActivity.kt
 
@@ -84,8 +92,10 @@ jobs:
           python3 Scripts/process_icon.py
 
       - name: Build APK
+        # fix(bug#7): 使用 ./gradlew 而非系统 gradle，保证版本与 wrapper 一致
         run: |
-          gradle assembleRelease --no-daemon
+          chmod +x gradlew
+          ./gradlew assembleRelease --no-daemon
 
       - name: Sign APK
         run: |
