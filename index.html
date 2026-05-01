@@ -161,6 +161,17 @@ input.err{border-color:#ef4444;box-shadow:0 0 0 3px rgba(239,68,68,0.08)}
 50%{opacity:.7;transform:scale(1.3)}}
 .status-title{font-size:14px;font-weight:600;color:#111}
 .status-sub{font-size:12px;color:#888;margin-top:1px}
+.log-stream{
+  max-height:120px;overflow-y:auto;
+  background:#f7f7f7;border:1px solid #efefef;border-radius:8px;
+  padding:8px 10px;margin-top:10px;
+  font-size:11px;font-family:'SFMono-Regular',Consolas,monospace;
+  color:#555;line-height:1.6;display:none;
+}
+.log-stream.show{display:block}
+.log-line{white-space:pre-wrap;word-break:break-all}
+.log-line.err{color:#e53e3e}
+.log-line.ok{color:#38a169}
 
 .progress-wrap{background:#e0e0e0;border-radius:100px;height:5px;margin-bottom:20px;overflow:hidden}
 .progress-bar{height:100%;background:linear-gradient(90deg,#111 0%,#444 100%);border-radius:100px;transition:width .6s cubic-bezier(0.25,1,0.5,1);width:0%;box-shadow:0 0 6px rgba(0,0,0,0.25)}
@@ -525,6 +536,7 @@ footer span{margin:0 8px;opacity:.4}
         <div>
           <div class="status-title" id="sTitle">等待中</div>
           <div class="status-sub" id="sSub">正在初始化构建任务</div>
+          <div class="log-stream" id="logStream"></div>
         </div>
       </div>
       <div class="progress-wrap"><div class="progress-bar" id="progFill"></div></div>
@@ -671,7 +683,7 @@ function startPoll(runId, data){
   const MAX_WAIT = 900; // 最长等 15 分钟
   currentRunId = runId;
   pollTimer = setInterval(async ()=>{
-    elapsed += 5;
+    elapsed += 0.5;
     try {
       const r    = await fetch(WORKER + '/status?run_id=' + runId);
       const data = await r.json();
@@ -701,8 +713,24 @@ function startPoll(runId, data){
         }
       }
 
+      // 拉日志并流式渲染
+      if(data.status === 'in_progress' || data.status === 'completed'){
+        fetch(WORKER + '/logs?run_id=' + runId + (data.job_id ? '&job_id=' + data.job_id : ''))
+          .then(r=>r.json()).then(ld=>{
+            if(!ld.lines||!ld.lines.length) return;
+            const box = document.getElementById('logStream');
+            box.classList.add('show');
+            box.innerHTML = ld.lines.slice(-30).map(l=>{
+              const cls = /error|failed|exception/i.test(l)?'err':/success|complete|finish/i.test(l)?'ok':'';
+              return '<div class="log-line'+(cls?' '+cls:'')+'">'+l.replace(/</g,'&lt;')+'</div>';
+            }).join('');
+            box.scrollTop = box.scrollHeight;
+          }).catch(()=>{});
+      }
+
       if(data.status === 'completed'){
         clearInterval(pollTimer);
+        document.getElementById('logStream').classList.remove('show');
         if(data.conclusion === 'success' || data.artifacts?.length || data.artifact_id){
           // 成功，或者虽然结论异常但 artifacts 存在，都给下载链接
           setStep(2,'done'); setStep(3,'done'); setStep(4,'done');
@@ -929,6 +957,22 @@ loadForm();
 
 
 /* ── 图标预览 ── */
+// 包名智能生成
+document.getElementById('f_url').addEventListener('blur', function(){
+  const pkg = document.getElementById('f_pkg');
+  if (pkg.value.trim()) return; // 已填写不覆盖
+  try {
+    const url = new URL(this.value.trim());
+    const host = url.hostname.replace(/^www\./, '');
+    const parts = host.split('.').reverse();
+    // 清理非法字符，转成合法包名段
+    const clean = parts.map(p => p.replace(/[^a-z0-9]/gi,'').replace(/^([0-9])/,'_$1').toLowerCase() || 'app');
+    if (clean.length === 1) clean.push('app');
+    pkg.value = clean.slice(0,3).join('.');
+    saveForm();
+  } catch(e){}
+});
+
 const iconInput   = document.getElementById('f_icon');
 const iconImg     = document.getElementById('iconImg');
 const iconPreview = document.getElementById('iconPreview');
