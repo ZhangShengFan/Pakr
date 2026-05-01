@@ -1,5 +1,4 @@
 name: Build APK
-run-name: "Build APK [${{ github.event.inputs.build_id }}]"
 on:
   workflow_dispatch:
     inputs:
