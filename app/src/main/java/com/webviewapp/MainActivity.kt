@@ -3,6 +3,7 @@ package com.webviewapp
 import android.annotation.SuppressLint
 import android.app.DownloadManager
 import android.content.Context
+import android.content.pm.PackageManager
 import android.os.Environment
 import android.content.Intent
 import android.graphics.Bitmap
@@ -13,6 +14,7 @@ import java.util.Date
 import java.util.Locale
 import android.net.Uri
 import android.os.Bundle
+import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.os.VibrationEffect
@@ -29,6 +31,7 @@ import android.webkit.WebView
 import android.webkit.JavascriptInterface
 import android.webkit.WebViewClient
 import androidx.appcompat.app.AppCompatActivity
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
@@ -59,7 +62,38 @@ class MainActivity : AppCompatActivity() {
     private var pendingGeoCallback: android.webkit.GeolocationPermissions.Callback? = null
     private var pendingGeoOrigin: String? = null
     private var fileChooserCallbackRef: ValueCallback<Array<Uri>>? = null
+    private var pendingFileChooserParams: WebChromeClient.FileChooserParams? = null
     private var cameraImageUri: Uri? = null
+
+    private val fileChooserLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        val results: Array<Uri>? = when {
+            result.resultCode != RESULT_OK -> null
+            result.data != null -> parseSelectedUris(result.data!!)
+            cameraImageUri != null -> arrayOf(cameraImageUri!!)
+            else -> null
+        }
+        fileChooserCallbackRef?.onReceiveValue(results)
+        fileChooserCallbackRef = null
+        pendingFileChooserParams = null
+        cameraImageUri = null
+    }
+
+    private val mediaPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { result ->
+        val allGranted = result.values.all { it }
+        if (allGranted) {
+            pendingFileChooserParams?.let { launchFileChooser(it) }
+        } else {
+            fileChooserCallbackRef?.onReceiveValue(null)
+            fileChooserCallbackRef = null
+            pendingFileChooserParams = null
+            cameraImageUri = null
+            android.widget.Toast.makeText(this, "缺少文件上传所需权限", android.widget.Toast.LENGTH_SHORT).show()
+        }
+    }
 
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -224,43 +258,16 @@ class MainActivity : AppCompatActivity() {
             ): Boolean {
                 fileChooserCallbackRef?.onReceiveValue(null)
                 fileChooserCallbackRef = filePathCallback
+                pendingFileChooserParams = fileChooserParams
                 cameraImageUri = null
-                try {
-                    val contentIntent = fileChooserParams.createIntent().apply {
-                        addCategory(Intent.CATEGORY_OPENABLE)
-                    }
-                    val chooserIntents = mutableListOf<Intent>()
-                    val acceptTypes = fileChooserParams.acceptTypes.joinToString(",").lowercase()
-                    val captureEnabled = fileChooserParams.isCaptureEnabled
-                    val wantsImage = acceptTypes.contains("image") || acceptTypes.isBlank()
-                    if (wantsImage) {
-                        val photoFile = createImageFile()
-                        cameraImageUri = FileProvider.getUriForFile(
-                            this@MainActivity,
-                            "${applicationContext.packageName}.fileprovider",
-                            photoFile
-                        )
-                        val cameraIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE).apply {
-                            putExtra(MediaStore.EXTRA_OUTPUT, cameraImageUri)
-                            addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
-                            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                        }
-                        chooserIntents.add(cameraIntent)
-                        if (captureEnabled) {
-                            startActivityForResult(cameraIntent, FILE_CHOOSER_REQUEST)
-                            return true
-                        }
-                    }
-                    val chooser = Intent(Intent.ACTION_CHOOSER).apply {
-                        putExtra(Intent.EXTRA_INTENT, contentIntent)
-                        putExtra(Intent.EXTRA_INITIAL_INTENTS, chooserIntents.toTypedArray())
-                        putExtra(Intent.EXTRA_TITLE, "选择文件")
-                    }
-                    startActivityForResult(chooser, FILE_CHOOSER_REQUEST)
-                } catch (e: Exception) {
-                    fileChooserCallbackRef?.onReceiveValue(null)
-                    fileChooserCallbackRef = null
-                    android.widget.Toast.makeText(this@MainActivity, "无法打开文件选择器", android.widget.Toast.LENGTH_SHORT).show()
+                val perms = requiredFileChooserPermissions(fileChooserParams)
+                val denied = perms.filter {
+                    ContextCompat.checkSelfPermission(this@MainActivity, it) != PackageManager.PERMISSION_GRANTED
+                }
+                if (denied.isEmpty()) {
+                    launchFileChooser(fileChooserParams)
+                } else {
+                    mediaPermissionLauncher.launch(denied.toTypedArray())
                 }
                 return true
             }
@@ -480,21 +487,83 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    @Deprecated("Deprecated in Java")
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        if (requestCode == FILE_CHOOSER_REQUEST) {
-            val results: Array<Uri>? = when {
-                resultCode != RESULT_OK -> null
-                data != null -> WebChromeClient.FileChooserParams.parseResult(resultCode, data)
-                cameraImageUri != null -> arrayOf(cameraImageUri!!)
-                else -> null
+    private fun createImageFile(): File {
+        val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
+        val storageDir = File(cacheDir, "webview_uploads").apply { if (!exists()) mkdirs() }
+        return File.createTempFile("JPEG_${timeStamp}_", ".jpg", storageDir)
+    }
+
+    private fun launchFileChooser(fileChooserParams: WebChromeClient.FileChooserParams) {
+        try {
+            val contentIntent = fileChooserParams.createIntent().apply {
+                addCategory(Intent.CATEGORY_OPENABLE)
+                putExtra(Intent.EXTRA_ALLOW_MULTIPLE, fileChooserParams.mode == WebChromeClient.FileChooserParams.MODE_OPEN_MULTIPLE)
             }
-            fileChooserCallbackRef?.onReceiveValue(results)
+            val chooserIntents = mutableListOf<Intent>()
+            val acceptTypes = fileChooserParams.acceptTypes.filter { it.isNotBlank() }
+            val acceptJoined = acceptTypes.joinToString(",").lowercase()
+            val wantsImage = acceptJoined.isBlank() || acceptJoined.contains("image")
+            if (wantsImage) {
+                val photoFile = createImageFile()
+                cameraImageUri = FileProvider.getUriForFile(
+                    this,
+                    "${applicationContext.packageName}.fileprovider",
+                    photoFile
+                )
+                val cameraIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE).apply {
+                    putExtra(MediaStore.EXTRA_OUTPUT, cameraImageUri)
+                    addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION or Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                }
+                chooserIntents.add(cameraIntent)
+                if (fileChooserParams.isCaptureEnabled && acceptTypes.all { it.isBlank() || it.startsWith("image/") }) {
+                    fileChooserLauncher.launch(cameraIntent)
+                    return
+                }
+            }
+            val chooser = Intent(Intent.ACTION_CHOOSER).apply {
+                putExtra(Intent.EXTRA_INTENT, contentIntent)
+                putExtra(Intent.EXTRA_INITIAL_INTENTS, chooserIntents.toTypedArray())
+                putExtra(Intent.EXTRA_TITLE, "选择文件")
+            }
+            fileChooserLauncher.launch(chooser)
+        } catch (e: Exception) {
+            fileChooserCallbackRef?.onReceiveValue(null)
             fileChooserCallbackRef = null
+            pendingFileChooserParams = null
             cameraImageUri = null
+            android.widget.Toast.makeText(this, "无法打开文件选择器", android.widget.Toast.LENGTH_SHORT).show()
         }
-        @Suppress("DEPRECATION")
-        super.onActivityResult(requestCode, resultCode, data)
+    }
+
+    private fun parseSelectedUris(data: Intent): Array<Uri>? {
+        val clipData = data.clipData
+        if (clipData != null && clipData.itemCount > 0) {
+            return Array(clipData.itemCount) { index -> clipData.getItemAt(index).uri }
+        }
+        val parsed = WebChromeClient.FileChooserParams.parseResult(RESULT_OK, data)
+        if (!parsed.isNullOrEmpty()) return parsed
+        data.data?.let { return arrayOf(it) }
+        return null
+    }
+
+    private fun requiredFileChooserPermissions(fileChooserParams: WebChromeClient.FileChooserParams): Array<String> {
+        val perms = linkedSetOf<String>()
+        val acceptTypes = fileChooserParams.acceptTypes.filter { it.isNotBlank() }
+        val acceptJoined = acceptTypes.joinToString(",").lowercase()
+        val wantsImage = acceptJoined.isBlank() || acceptJoined.contains("image")
+        val wantsVideo = acceptJoined.contains("video")
+        val wantsAudio = acceptJoined.contains("audio")
+        if (fileChooserParams.isCaptureEnabled && wantsImage) {
+            perms.add(android.Manifest.permission.CAMERA)
+        }
+        if (Build.VERSION.SDK_INT >= 33) {
+            if (wantsImage || acceptJoined.isBlank()) perms.add(android.Manifest.permission.READ_MEDIA_IMAGES)
+            if (wantsVideo) perms.add(android.Manifest.permission.READ_MEDIA_VIDEO)
+            if (wantsAudio) perms.add(android.Manifest.permission.READ_MEDIA_AUDIO)
+        } else {
+            perms.add(android.Manifest.permission.READ_EXTERNAL_STORAGE)
+        }
+        return perms.toTypedArray()
     }
 
     private fun createImageFile(): File {
@@ -506,7 +575,6 @@ class MainActivity : AppCompatActivity() {
     companion object {
         const val APP_URL = "{{APP_URL}}"
         const val APP_VERSION = "{{VERSION_NAME}}"
-        private const val FILE_CHOOSER_REQUEST = 1001
         const val PERMISSION_REQUEST_CODE = 1002
     }
 
