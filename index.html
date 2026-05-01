@@ -793,8 +793,7 @@ function startLogPoll(runId){
       const j = await r.json();
       const lines = Array.isArray(j.lines) ? j.lines : [];
       if(!lines.length) return;
-      const text = lines.slice(-80).join('
-');
+      const text = lines.slice(-80).join('\n');
       if(text !== lastText){
         lastText = text;
         if(logBox){
