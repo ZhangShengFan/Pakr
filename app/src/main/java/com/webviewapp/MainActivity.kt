@@ -6,6 +6,11 @@ import android.content.Context
 import android.os.Environment
 import android.content.Intent
 import android.graphics.Bitmap
+import android.provider.MediaStore
+import java.io.File
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
@@ -26,6 +31,7 @@ import android.webkit.WebViewClient
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
@@ -52,6 +58,8 @@ class MainActivity : AppCompatActivity() {
     private var pendingWebPermissionRequest: PermissionRequest? = null
     private var pendingGeoCallback: android.webkit.GeolocationPermissions.Callback? = null
     private var pendingGeoOrigin: String? = null
+    private var fileChooserCallbackRef: ValueCallback<Array<Uri>>? = null
+    private var cameraImageUri: Uri? = null
 
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -214,11 +222,45 @@ class MainActivity : AppCompatActivity() {
                 filePathCallback: ValueCallback<Array<Uri>>,
                 fileChooserParams: WebChromeClient.FileChooserParams
             ): Boolean {
+                fileChooserCallbackRef?.onReceiveValue(null)
+                fileChooserCallbackRef = filePathCallback
+                cameraImageUri = null
                 try {
-                    startActivityForResult(fileChooserParams.createIntent(), FILE_CHOOSER_REQUEST)
-                    fileChooserCallbackRef = filePathCallback
+                    val contentIntent = fileChooserParams.createIntent().apply {
+                        addCategory(Intent.CATEGORY_OPENABLE)
+                    }
+                    val chooserIntents = mutableListOf<Intent>()
+                    val acceptTypes = fileChooserParams.acceptTypes.joinToString(",").lowercase()
+                    val captureEnabled = fileChooserParams.isCaptureEnabled
+                    val wantsImage = acceptTypes.contains("image") || acceptTypes.isBlank()
+                    if (wantsImage) {
+                        val photoFile = createImageFile()
+                        cameraImageUri = FileProvider.getUriForFile(
+                            this@MainActivity,
+                            "${applicationContext.packageName}.fileprovider",
+                            photoFile
+                        )
+                        val cameraIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE).apply {
+                            putExtra(MediaStore.EXTRA_OUTPUT, cameraImageUri)
+                            addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
+                            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                        }
+                        chooserIntents.add(cameraIntent)
+                        if (captureEnabled) {
+                            startActivityForResult(cameraIntent, FILE_CHOOSER_REQUEST)
+                            return true
+                        }
+                    }
+                    val chooser = Intent(Intent.ACTION_CHOOSER).apply {
+                        putExtra(Intent.EXTRA_INTENT, contentIntent)
+                        putExtra(Intent.EXTRA_INITIAL_INTENTS, chooserIntents.toTypedArray())
+                        putExtra(Intent.EXTRA_TITLE, "选择文件")
+                    }
+                    startActivityForResult(chooser, FILE_CHOOSER_REQUEST)
                 } catch (e: Exception) {
-                    filePathCallback.onReceiveValue(null)
+                    fileChooserCallbackRef?.onReceiveValue(null)
+                    fileChooserCallbackRef = null
+                    android.widget.Toast.makeText(this@MainActivity, "无法打开文件选择器", android.widget.Toast.LENGTH_SHORT).show()
                 }
                 return true
             }
@@ -441,15 +483,24 @@ class MainActivity : AppCompatActivity() {
     @Deprecated("Deprecated in Java")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         if (requestCode == FILE_CHOOSER_REQUEST) {
-            fileChooserCallbackRef?.onReceiveValue(
-                if (resultCode == RESULT_OK && data != null)
-                    WebChromeClient.FileChooserParams.parseResult(resultCode, data)
-                else null
-            )
+            val results: Array<Uri>? = when {
+                resultCode != RESULT_OK -> null
+                data != null -> WebChromeClient.FileChooserParams.parseResult(resultCode, data)
+                cameraImageUri != null -> arrayOf(cameraImageUri!!)
+                else -> null
+            }
+            fileChooserCallbackRef?.onReceiveValue(results)
             fileChooserCallbackRef = null
+            cameraImageUri = null
         }
         @Suppress("DEPRECATION")
         super.onActivityResult(requestCode, resultCode, data)
+    }
+
+    private fun createImageFile(): File {
+        val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
+        val storageDir = File(cacheDir, "webview_uploads").apply { if (!exists()) mkdirs() }
+        return File.createTempFile("JPEG_${timeStamp}_", ".jpg", storageDir)
     }
 
     companion object {
