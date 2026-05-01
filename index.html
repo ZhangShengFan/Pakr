@@ -650,14 +650,14 @@ const JAVA_RESERVED_WORDS = new Set([
 function normalizePkgSegment(s, fallback='app'){
   let seg = (s || '')
     .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '_')
-    .replace(/^_+|_+$/g, '');
+    .replace(/[^a-z0-9]+/g, '')
+    .trim();
 
   if(!seg) seg = fallback;
-  if(/^[0-9]/.test(seg)) seg = '_' + seg;
-  if(!/^[a-z_]/.test(seg)) seg = fallback;
-  if(JAVA_RESERVED_WORDS.has(seg)) seg = '_' + seg;
-  if(seg.length > 24) seg = seg.slice(0, 24).replace(/_+$/g, '') || fallback;
+  if(/^[0-9]/.test(seg)) seg = 'a' + seg;
+  if(!/^[a-z]/.test(seg)) seg = fallback;
+  if(JAVA_RESERVED_WORDS.has(seg)) seg = 'app' + seg;
+  if(seg.length > 24) seg = seg.slice(0, 24) || fallback;
   return seg;
 }
 
@@ -669,7 +669,7 @@ function uniquePkgSegments(segments){
     let next = seg;
     let i = 2;
     while(used.has(next)){
-      const suffix = '_' + i;
+      const suffix = String(i);
       const base = seg.length + suffix.length > 24 ? seg.slice(0, 24 - suffix.length) : seg;
       next = (base || 'app') + suffix;
       i++;
