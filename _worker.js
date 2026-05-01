@@ -20,7 +20,7 @@ export default {
 
 async function handleBuild(request, env) {
   const { app_url, app_name, package_name, version_name, icon_url, no_screenshot } = await request.json();
-  const buildId = Date.now().toString(36) + Math.random().toString(36).slice(2,8);
+  const buildId = Date.now().toString(36) + Math.random().toString(36).slice(2,6);
   if (!app_url || !app_name || !package_name || !version_name)
     return json({ error: 'Missing required fields' }, 400);
   const pkgRe = /^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*){1,}$/;
@@ -36,10 +36,10 @@ async function handleBuild(request, env) {
     return json({ error: 'version_name must be 1-32 characters' }, 400);
 
   const r = await gh(env,
-    `/repos/${env.GITHUB_OWNER}/${env.GITHUB_REPO}/dispatches`,
+    `/repos/${env.GITHUB_OWNER}/${env.GITHUB_REPO}/actions/workflows/build.yml/dispatches`,
     { method: 'POST', body: JSON.stringify({
-        event_type: 'build_apk',
-        client_payload: { app_url, app_name, package_name, version_name, icon_url: icon_url || 'https://apk.091224.xyz/logo.jpg', no_screenshot: no_screenshot||'false', distinct_id: buildId }
+        ref: 'main',
+        inputs: { app_url, app_name, package_name, version_name, icon_url: icon_url || 'https://apk.091224.xyz/logo.jpg', no_screenshot: no_screenshot||'false', build_id: buildId }
     })}
   );
   if (r.status !== 204) return json({ error: 'Trigger failed', detail: await r.text() }, 500);
@@ -49,9 +49,13 @@ async function handleBuild(request, env) {
   for (let i = 0; i < 40; i++) {  // 500ms × 40 = 20s
     await sleep(500);
     const runs = await (await gh(env,
-      `/repos/${env.GITHUB_OWNER}/${env.GITHUB_REPO}/actions/workflows/build.yml/runs?per_page=20&event=repository_dispatch`
+      `/repos/${env.GITHUB_OWNER}/${env.GITHUB_REPO}/actions/workflows/build.yml/runs?per_page=5`
     )).json();
-    const match = runs.workflow_runs?.find(r => r.name && r.name.includes(buildId));
+    const fresh = runs.workflow_runs?.find(r => new Date(r.created_at) >= triggeredAt);
+    if (fresh) { runId = fresh.id; break; }
+  }
+  if (!runId) return json({ error: 'Could not get run_id after 10s' }, 500);
+  return json({ run_id: runId, status: 'queued' });
     if (match) { runId = match.id; break; }
   }
   if (!runId) return json({ error: 'Could not find run with build_id=' + buildId + ' after 20s' }, 500);
