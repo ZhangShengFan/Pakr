@@ -627,6 +627,7 @@ footer{border-top-color:var(--border);color:var(--faint)}
         </div>
       </div>
       <div class="err-msg" id="errBox"></div>
+      <div class="log-stream" id="logStream" style="display:none;margin-top:14px;padding:12px;border:1px solid #eee;border-radius:12px;white-space:pre-wrap;font:12px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;max-height:220px;overflow:auto">等待日志输出…</div>
       <div id="dlActions"></div>
       </div>
     </div>
@@ -744,6 +745,7 @@ const progFill  = document.getElementById('progFill');
 const errBox    = document.getElementById('errBox');
 
 let pollTimer = null;
+let logTimer = null;
 let busy = false;
 let buildStartTime = 0;
 let currentRunId = null;
@@ -826,12 +828,14 @@ async function handleBuildClick(){
 
     setStep(1,'done'); setStep(2,'active'); setProgress(18);
     setTitle('排队中','等待 GitHub Actions 启动…');
+    startLogPoll(json.run_id);
     startPoll(json.run_id, data);
 
   } catch(err){
     const msg = err.message.includes('fetch') || err.message.includes('network') || err.message === 'Failed to fetch'
       ? '网络连接失败，请检查网络后重试'
       : err.message;
+    stopLogPoll();
     showErr(msg);
   }
 }
@@ -873,6 +877,7 @@ function startPoll(runId, data){
 
       if(data.status === 'completed'){
         clearInterval(pollTimer);
+        stopLogPoll();
         if(data.conclusion === 'success' || data.artifacts?.length || data.artifact_id){
           // 成功，或者虽然结论异常但 artifacts 存在，都给下载链接
           setStep(2,'done'); setStep(3,'done'); setStep(4,'done');
@@ -906,6 +911,7 @@ function startPoll(runId, data){
       // 超时保护：15 分钟后先查一次 artifacts
       if(elapsed >= MAX_WAIT){
         clearInterval(pollTimer);
+        stopLogPoll();
         tryFetchArtifacts(runId, data);
       }
 
