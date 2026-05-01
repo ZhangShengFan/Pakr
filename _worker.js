@@ -44,23 +44,33 @@ async function handleBuild(request, env) {
   );
   if (r.status !== 204) return json({ error: 'Trigger failed', detail: await r.text() }, 500);
 
-  // 最初方案：固定等待 5 秒，再取最近一次 run 作为 run_id
-  await sleep(5000);
-  const runs = await (await gh(env,
-    `/repos/${env.GITHUB_OWNER}/${env.GITHUB_REPO}/actions/workflows/build.yml/runs?per_page=1`
-  )).json();
-  const runId = runs.workflow_runs?.[0]?.id;
-  if (!runId) return json({ error: 'Could not get latest run_id after 5s' }, 500);
-  return json({ run_id: runId, status: 'queued' });
+  // 立即返回，避免在 Worker 请求链路中等待 run_id 导致前端卡住
+  return json({ status: 'queued', build_id: buildId });
 }
 
 async function handleStatus(request, env) {
-  const runId = new URL(request.url).searchParams.get('run_id');
+  const u = new URL(request.url);
+  let runId = u.searchParams.get('run_id');
+  const buildId = u.searchParams.get('build_id');
+
+  if (!runId && buildId) {
+    const runsRes = await gh(env,
+      `/repos/${env.GITHUB_OWNER}/${env.GITHUB_REPO}/actions/workflows/build.yml/runs?per_page=10`
+    );
+    const runs = await runsRes.json();
+    const matched = (runs.workflow_runs || []).find(r =>
+      (r.display_title && r.display_title.includes(buildId)) ||
+      (r.name && r.name.includes(buildId))
+    );
+    if (!matched) return json({ status: 'queued', waiting_run_id: true, build_id: buildId });
+    runId = matched.id;
+  }
+
   if (!runId) return json({ error: 'Missing run_id' }, 400);
   const data = await (await gh(env,
     `/repos/${env.GITHUB_OWNER}/${env.GITHUB_REPO}/actions/runs/${runId}`
   )).json();
-  const result = { run_id: runId, status: data.status, conclusion: data.conclusion, job_id: null, step_index: 0, step_total: 0 };
+  const result = { run_id: runId, build_id: buildId || null, status: data.status, conclusion: data.conclusion, job_id: null, step_index: 0, step_total: 0 };
 
   // 解析 job steps 获取精确进度
   const jobsRes = await gh(env,
