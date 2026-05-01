@@ -742,17 +742,17 @@ function renderDownloadButtons(data, runId){
     cpBtn.title='复制下载链接';
     cpBtn.innerHTML=COPY_ICO+' 复制链接';
     cpBtn.onclick=()=>{
-      navigator.clipboard.writeText(dlUrl).then(()=>{
+      const fullUrl = new URL(dlUrl, window.location.href).href;
+      const doCopy = () => {
         cpBtn.innerHTML=OK_ICO+' 已复制';
         cpBtn.classList.add('copied');
         setTimeout(()=>{ cpBtn.innerHTML=COPY_ICO+' 复制链接'; cpBtn.classList.remove('copied'); }, 2000);
-      }).catch(()=>{
-        // 降级：创建临时 input 复制
+      };
+      navigator.clipboard?.writeText(fullUrl).then(doCopy).catch(()=>{
         const tmp=document.createElement('input');
-        tmp.value=dlUrl; document.body.appendChild(tmp);
+        tmp.value=fullUrl; document.body.appendChild(tmp);
         tmp.select(); document.execCommand('copy'); document.body.removeChild(tmp);
-        cpBtn.innerHTML=OK_ICO+' 已复制'; cpBtn.classList.add('copied');
-        setTimeout(()=>{ cpBtn.innerHTML=COPY_ICO+' 复制链接'; cpBtn.classList.remove('copied'); }, 2000);
+        doCopy();
       });
     };
     dlActions.appendChild(btn);
