@@ -813,20 +813,24 @@ const iconPreview = document.getElementById('iconPreview');
 let iconTimer = null;
 
 function triggerIconPreview(url){
-  const previewUrl = url || '/logo.jpg';
-  const placeholder = iconPreview.querySelector('svg');
+  iconPreview.className = 'icon-preview';
   iconImg.style.display = 'none';
+  if(!url || (!url.startsWith('http://') && !url.startsWith('https://'))){
+    // 空或非 URL，回到默认占位
+    return;
+  }
+  iconPreview.classList.add('loading');
   const tmp = new Image();
   tmp.onload  = () => {
-    iconImg.src = previewUrl;
+    iconImg.src = tmp.src;
     iconImg.style.display = 'block';
-    if(placeholder) placeholder.style.display = 'none';
+    iconPreview.className = 'icon-preview ok';
   };
   tmp.onerror = () => {
     iconImg.style.display = 'none';
-    if(placeholder) placeholder.style.display = '';
+    iconPreview.className = 'icon-preview err';
   };
-  tmp.src = previewUrl;
+  tmp.src = url;
 }
 
 iconInput.addEventListener('input', () => {
