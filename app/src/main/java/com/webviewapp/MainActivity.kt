@@ -137,14 +137,13 @@ class MainActivity : AppCompatActivity() {
                     failedUrl = request.url.toString()
                     val errDesc = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
                         when (error.errorCode) {
-                            android.webkit.WebViewClient.ERROR_HOST_LOOKUP       -> "域名解析失败，请检查网络连接"
-                            android.webkit.WebViewClient.ERROR_INTERNET_DISCONNECTED -> "网络未连接，请打开 Wi-Fi 或移动数据"
+                            android.webkit.WebViewClient.ERROR_HOST_LOOKUP        -> "域名解析失败，请检查网络连接"
+                            -11 /* ERROR_INTERNET_DISCONNECTED */                 -> "网络未连接，请打开 Wi-Fi 或移动数据"
                             android.webkit.WebViewClient.ERROR_CONNECT            -> "无法连接到服务器"
                             android.webkit.WebViewClient.ERROR_TIMEOUT            -> "连接超时，请稍后重试"
                             android.webkit.WebViewClient.ERROR_FAILED_SSL_HANDSHAKE -> "SSL 握手失败，证书可能有问题"
-                            android.webkit.WebViewClient.ERROR_TOO_MANY_REQUESTS  -> "请求过多，请稍后重试"
                             android.webkit.WebViewClient.ERROR_UNKNOWN            -> "未知错误"
-                            else -> error.description?.toString()?.takeIf { it.isNotBlank() } ?: "加载失败（错误码 ${error.errorCode}）"
+                            else -> error.description?.toString()?.takeIf { it.isNotBlank() } ?: "加载失败（错误码 \${error.errorCode}）"
                         }
                     } else {
                         "网络连接失败，请检查网络后重试"
