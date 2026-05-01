@@ -259,11 +259,92 @@ footer span{margin:0 8px;opacity:.4}
 .history-name{font-size:13px;font-weight:600;color:#111;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .history-meta{font-size:11px;color:#999;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .history-use{font-size:11px;color:#888;flex-shrink:0}
+.history-dl{display:flex;gap:5px;margin-top:5px;flex-wrap:wrap}
+.history-dl-btn{
+  font-size:10px;font-weight:500;color:#555;
+  background:#f5f5f5;border:1px solid #e0e0e0;
+  border-radius:5px;padding:2px 8px;
+  text-decoration:none;white-space:nowrap;
+  transition:background .15s,color .15s;
+}
+.history-dl-btn:hover{background:#111;color:#fff;border-color:#111}
+
 
 
 .err-detail{margin-top:10px;background:#fff5f5;border:1px solid #fecaca;border-radius:8px;padding:10px 12px;text-align:left}
 .err-detail-title{font-size:12px;font-weight:600;color:#dc2626;margin-bottom:4px}
 .err-detail-log{font-size:11px;color:#7f1d1d;font-family:monospace;white-space:pre-wrap;word-break:break-all;max-height:120px;overflow-y:auto;line-height:1.5}
+
+
+
+.perm-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%}
+.perm-item{
+  display:flex;align-items:center;gap:8px;
+  padding:9px 12px;border-radius:8px;
+  border:1px solid #efefef;background:#f9f9f9;
+  cursor:pointer;font-size:13px;color:#333;
+  transition:background .15s,border-color .15s;
+  user-select:none;
+}
+.perm-item:has(input:checked){background:#f0f0f0;border-color:#d0d0d0}
+.perm-item input{width:15px;height:15px;accent-color:#111;flex-shrink:0}
+.perm-icon{font-size:15px}
+
+/* ── Toggle Switch ── */
+.toggle-row{display:flex;align-items:center;justify-content:space-between;
+  padding:12px 0;border-top:1px solid #f0f0f0;margin-top:4px}
+.toggle-label{font-size:13px;font-weight:500;color:#333}
+.toggle-desc{font-size:11px;color:#aaa;margin-top:1px}
+.toggle-switch{position:relative;width:40px;height:22px;flex-shrink:0}
+.toggle-switch input{opacity:0;width:0;height:0;position:absolute}
+.toggle-track{position:absolute;inset:0;border-radius:11px;background:#e0e0e0;cursor:pointer;transition:background .2s}
+.toggle-switch input:checked+.toggle-track{background:#111}
+.toggle-thumb{position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,0.2);pointer-events:none;transition:left .2s}
+.toggle-switch input:checked~.toggle-thumb{left:21px}
+
+/* ── Dark Mode ── */
+@media(prefers-color-scheme:dark){
+  body{background:#111;color:#e8e8e8}
+  nav{background:rgba(17,17,17,0.85);border-bottom-color:#2a2a2a}
+  .nav-logo{color:#e8e8e8}
+  .nav-badge{background:#1e1e1e;border-color:#2a2a2a;color:#888}
+  .github-link{color:#aaa;background:#1e1e1e;border-color:#2a2a2a}
+  .github-link:hover{background:#e8e8e8;color:#111;border-color:#e8e8e8}
+  .hero h1{color:#e8e8e8}
+  .hero h1 span{color:#888}
+  .hero p{color:#888}
+  .hero-tag{background:#1e1e1e;border-color:#2a2a2a;color:#aaa}
+  .card{background:#1a1a1a;border-color:#2a2a2a;box-shadow:0 4px 24px rgba(0,0,0,0.3)}
+  label{color:#aaa}
+  .input-wrap input,.input-wrap select{background:#111;border-color:#2a2a2a;color:#e8e8e8}
+  .input-wrap input::placeholder{color:#555}
+  .input-wrap input:focus,.input-wrap select:focus{border-color:#555;box-shadow:0 0 0 3px rgba(255,255,255,0.06)}
+  .btn-primary{background:#e8e8e8;color:#111}
+  .btn-primary:hover{background:#fff}
+  .step-item{background:#1a1a1a}
+  .step-label{color:#aaa}
+  .status-box{background:#1a1a1a;border-color:#2a2a2a}
+  .status-title{color:#e8e8e8}
+  .log-block{background:#1a1a1a;border-color:#2a2a2a}
+  pre{background:#111;color:#ccc}
+  .history-card{background:#1a1a1a;border-color:#2a2a2a}
+  .history-name{color:#e8e8e8}
+  .history-item{background:#222;border-color:#2a2a2a}
+  .history-item:hover{background:#2a2a2a}
+  .dl-btn{background:#1a1a1a;border-color:#2a2a2a;color:#e8e8e8}
+  .dl-btn:hover{background:#2a2a2a}
+  .history-dl-btn{background:#2a2a2a;color:#ccc;border-color:#333}
+  .history-dl-btn:hover{background:#333;color:#fff}
+  .toggle-row{border-top-color:#2a2a2a}
+  .toggle-label{color:#ccc}
+  .toggle-track{background:#333}
+  .toggle-switch input:checked+.toggle-track{background:#e8e8e8}
+  .toggle-thumb{background:#fff}
+  .toggle-switch input:checked~.toggle-thumb{background:#111}
+  .perm-item{background:#222;border-color:#2a2a2a;color:#ccc}
+  .perm-item:has(input:checked){background:#2a2a2a;border-color:#444}
+
+}
 </style>
 </head>
 <body>
@@ -310,14 +391,26 @@ footer span{margin:0 8px;opacity:.4}
           </div>
           <div class="icon-field">
             <div class="field">
-              <label for="f_icon">图标 URL</label>
-              <input type="url" id="f_icon" placeholder="" required>
+              <label for="f_icon">图标 URL <span style="font-weight:400;color:#bbb;font-size:11px">（可选）</span></label>
+              <input type="url" id="f_icon" placeholder="留空则使用默认 Android 图标">
             </div>
             <div class="icon-preview" id="iconPreview">
               <svg class="icon-preview-placeholder" viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
               <img id="iconImg" alt="icon">
             </div>
           </div>
+
+        <div class="toggle-row">
+          <div>
+            <div class="toggle-label">禁止截图</div>
+            <div class="toggle-desc">开启后 App 内无法截图/录屏</div>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="f_no_screenshot">
+            <span class="toggle-track"></span>
+            <span class="toggle-thumb"></span>
+          </label>
+        </div>
         <button type="submit" class="btn" id="submitBtn">
           <svg class="btn-icon" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
           开始打包
@@ -359,10 +452,7 @@ footer span{margin:0 8px;opacity:.4}
           <svg style="width:16px;height:16px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round" viewBox="0 0 24 24"><path d="M12 3v13M5 14l7 7 7-7"/><path d="M3 21h18"/></svg>
           下载 APK
         </button>
-        <button class="download-btn" id="copyBtn" style="flex:0 0 auto;background:#f5f5f5;color:#111;border:1px solid #e0e0e0">
-          <svg style="width:15px;height:15px;fill:none;stroke:#333;stroke-width:2;stroke-linecap:round" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
-          复制链接
-        </button>
+
       </div>
     </div>
   </div>
@@ -398,6 +488,8 @@ const dlBtn     = document.getElementById('dlBtn');
 
 let pollTimer = null;
 let busy = false;
+let buildStartTime = 0;
+let currentRunId = null;
 
 function setBusy(v){ busy=v; submitBtn.disabled=v; }
 
@@ -455,10 +547,13 @@ form.addEventListener('submit', async e => {
     app_name:     document.getElementById('f_name').value.trim(),
     package_name: document.getElementById('f_pkg').value.trim(),
     version_name: document.getElementById('f_ver').value.trim(),
-    icon_url:     document.getElementById('f_icon').value.trim(),
+    icon_url:      document.getElementById('f_icon').value.trim(),
+    no_screenshot: document.getElementById('f_no_screenshot').checked ? 'true' : 'false',
+
   };
 
   setBusy(true);
+  buildStartTime = Date.now();
   showStatus();
   setDot('running');
   setTitle('提交中', '正在触发 GitHub Actions…');
@@ -488,6 +583,7 @@ form.addEventListener('submit', async e => {
 function startPoll(runId, data){
   let elapsed = 0;
   const MAX_WAIT = 900; // 最长等 15 分钟
+  currentRunId = runId;
   pollTimer = setInterval(async ()=>{
     elapsed += 5;
     try {
@@ -506,15 +602,18 @@ function startPoll(runId, data){
         const pct = data.progress || est;
         setProgress(Math.min(pct, 95));
         const step = data.current_step || '';
+        const si = data.step_index||0, st = data.step_total||5;
+        const stepLabel = st>0 ? ` · 步骤 ${si}/${st}` : '';
         if(step.includes('Inject') || pct < 20){
-          setStep(2,'active'); setTitle('构建中','注入参数 & 处理图标…');
+          setStep(2,'active'); setTitle('构建中','注入参数 & 处理图标…'+stepLabel);
         } else if(step.includes('Process') || pct < 35){
-          setStep(2,'done'); setStep(3,'active'); setTitle('构建中','处理图标资源…');
+          setStep(2,'done'); setStep(3,'active'); setTitle('构建中','处理图标资源…'+stepLabel);
         } else if(step.includes('Build') || pct < 85){
-          setStep(2,'done'); setStep(3,'active'); setTitle('编译中','Gradle 正在编译 APK…');
+          setStep(2,'done'); setStep(3,'active'); setTitle('编译中','Gradle 正在编译 APK…'+stepLabel);
         } else {
-          setStep(3,'done'); setStep(4,'active'); setTitle('签名中','正在签名打包…');
+          setStep(3,'done'); setStep(4,'active'); setTitle('签名中','正在签名打包…'+stepLabel);
         }
+        fetchLogs(runId, data.job_id);
       }
 
       if(data.status === 'completed'){
@@ -523,10 +622,14 @@ function startPoll(runId, data){
           // 成功，或者虽然结论异常但 artifacts 存在，都给下载链接
           setStep(2,'done'); setStep(3,'done'); setStep(4,'done');
           setProgress(100); setDot('success');
-          setTitle('打包完成 🎉','APK 已生成，点击下载');
+          const _elapsed = buildStartTime ? Math.round((Date.now()-buildStartTime)/1000) : 0;
+          const _min = Math.floor(_elapsed/60), _sec = _elapsed%60;
+          const _timeStr = _min>0 ? `${_min}分${_sec}秒` : `${_elapsed}秒`;
+          setTitle('打包完成 🎉', `APK 已生成，点击下载 · 耗时 ${_timeStr}`);
           setBusy(false);
           renderDownloadButtons(data, runId);
           addHistory(data);
+          fetchLogs(runId, data.job_id);
         } else if(data.conclusion === 'failure'){
           setStep(4,'fail');
           const failStep = data.failed_step ? \`步骤「\${data.failed_step}」失败\` : '构建失败';
@@ -563,7 +666,10 @@ async function tryFetchArtifacts(runId, data){
     if(fresh.artifacts?.length || fresh.artifact_id){
       setStep(2,'done'); setStep(3,'done'); setStep(4,'done');
       setProgress(100); setDot('success');
-      setTitle('打包完成 🎉','APK 已生成，点击下载');
+      const _elapsed = buildStartTime ? Math.round((Date.now()-buildStartTime)/1000) : 0;
+          const _min = Math.floor(_elapsed/60), _sec = _elapsed%60;
+          const _timeStr = _min>0 ? `${_min}分${_sec}秒` : `${_elapsed}秒`;
+          setTitle('打包完成 🎉', `APK 已生成，点击下载 · 耗时 ${_timeStr}`);
       setBusy(false);
       renderDownloadButtons(fresh, runId);
       addHistory(fresh);
@@ -583,39 +689,29 @@ async function tryFetchArtifacts(runId, data){
 function renderDownloadButtons(data, runId){
   const dlActions = document.getElementById('dlActions');
   dlActions.innerHTML = '';
-  const artifacts = data.artifacts || (data.artifact_id ? [{id: data.artifact_id, name: data.artifact_name}] : []);
-  const firstUrl = WORKER + '/download?run_id=' + runId + (artifacts[0] ? '&artifact_id=' + artifacts[0].id : '');
+  const artifacts = data.artifacts || (data.artifact_id ? [{id:data.artifact_id,name:data.artifact_name||'APK'}] : []);
+  const DL_ICO = '<svg style="width:14px;height:14px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round" viewBox="0 0 24 24"><path d="M12 3v13M5 14l7 7 7-7"/><path d="M3 21h18"/></svg>';
 
-  if (artifacts.length === 0) {
-    // 兜底：没有 artifact 信息时直接用 run_id 下载
+  if(artifacts.length === 0){
     const btn = document.createElement('button');
-    btn.className = 'download-btn show';
-    btn.style.flex = '1';
-    btn.innerHTML = '<svg style="width:16px;height:16px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round" viewBox="0 0 24 24"><path d="M12 3v13M5 14l7 7 7-7"/><path d="M3 21h18"/></svg> 下载 APK';
-    btn.onclick = () => { window.location.href = firstUrl; };
+    btn.className='download-btn show'; btn.style.flex='1';
+    btn.innerHTML=DL_ICO+' 下载 APK';
+    btn.onclick=()=>{ window.location.href=WORKER+'/download?run_id='+runId; };
     dlActions.appendChild(btn);
   } else {
-    // 多架构下载按钮
-    artifacts.forEach((art, i) => {
-      const dlUrl = WORKER + '/download?run_id=' + runId + '&artifact_id=' + art.id;
-      const arch = art.name.match(/arm64|armeabi|x86_64|universal/i)?.[0] || (i === 0 ? 'arm64' : 'armeabi');
+    artifacts.forEach(art => {
+      const isArm64   = art.name && /arm64/i.test(art.name);
+      const isArmeabi = art.name && /armeabi/i.test(art.name);
+      const label = isArm64 ? '64 Bit' : isArmeabi ? '32 Bit' : '下载 APK';
+      const dlUrl = WORKER+'/download?run_id='+runId+'&artifact_id='+art.id;
       const btn = document.createElement('button');
-      btn.className = 'download-btn show';
-      btn.style.flex = '1';
-      btn.innerHTML = \`<svg style="width:16px;height:16px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round" viewBox="0 0 24 24"><path d="M12 3v13M5 14l7 7 7-7"/><path d="M3 21h18"/></svg> \${arch}\`;
-      btn.onclick = () => { window.location.href = dlUrl; };
+      btn.className='download-btn show'; btn.style.flex='1';
+      btn.innerHTML=DL_ICO+' ↓ '+label;
+      btn.onclick=()=>{ window.location.href=dlUrl; };
       dlActions.appendChild(btn);
     });
   }
-
-  // 二维码按钮
-  const qrBtn = document.createElement('button');
-  qrBtn.className = 'download-btn show';
-  qrBtn.style.cssText = 'flex:0 0 auto;background:#f5f5f5;color:#111;border:1px solid #e0e0e0';
-  qrBtn.innerHTML = '<svg style="width:15px;height:15px;fill:none;stroke:#333;stroke-width:2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="3" height="3"/></svg> 二维码';
-  qrBtn.onclick = () => showQrModal(firstUrl);
-  dlActions.appendChild(qrBtn);
-  dlActions.style.display = 'flex';
+  dlActions.style.display='flex';
 }
 
 function saveForm(){
@@ -677,7 +773,8 @@ function renderHistory(){
       </div>
       <div class="history-info">
         <div class="history-name">\${item.app_name}</div>
-        <div class="history-meta">\${item.package_name} · v\${item.version_name}</div>
+        <div class=\"history-meta\">\${item.package_name} · v\${item.version_name}\${item.elapsed ? ` · ⏱ \${item.elapsed>=60?Math.floor(item.elapsed/60)+'分'+(item.elapsed%60)+'秒':item.elapsed+'秒'}` : ''}</div>
+        \${item.artifacts && item.artifacts.length ? `<div class=\"history-dl\">\${item.artifacts.map(a=>{const l=/arm64/i.test(a.name)?'64 Bit':/armeabi/i.test(a.name)?'32 Bit':'APK';return `<a class=\"history-dl-btn\" href=\"\${WORKER}/download?artifact_id=\${a.id}\" target=\"_blank\" onclick=\"event.stopPropagation()\">\${l}</a>`;}).join('')}</div>` : ''}
       </div>
       <div class="history-use">复用 ›</div>
     </div>
@@ -689,7 +786,9 @@ function renderHistory(){
       document.getElementById('f_url').value  = item.app_url;
       document.getElementById('f_name').value = item.app_name;
       document.getElementById('f_pkg').value  = item.package_name;
-      document.getElementById('f_ver').value  = item.version_name;
+      const _vp = (item.version_name||'1.0.0').split('.');
+      _vp[_vp.length-1] = String((parseInt(_vp[_vp.length-1])||0)+1);
+      document.getElementById('f_ver').value = _vp.join('.');
       document.getElementById('f_icon').value = item.icon_url;
       saveForm();
       triggerIconPreview(item.icon_url);
@@ -704,13 +803,48 @@ historyClear.addEventListener('click', () => {
 });
 
 function addHistory(data){
-  const h = getHistory().filter(x => x.package_name !== data.package_name);
-  h.unshift(data);
+  const item = {
+    run_id:       data.run_id || currentRunId,
+    app_name:     document.getElementById('f_name').value.trim(),
+    package_name: document.getElementById('f_pkg').value.trim(),
+    version_name: document.getElementById('f_ver').value.trim(),
+    icon_url:     document.getElementById('f_icon').value.trim(),
+    app_url:      document.getElementById('f_url').value.trim(),
+    artifacts:    data.artifacts || (data.artifact_id ? [{id:data.artifact_id,name:data.artifact_name||'APK'}] : []),
+    ts: Date.now(),
+    elapsed: buildStartTime ? Math.round((Date.now()-buildStartTime)/1000) : 0,
+  };
+  const h = getHistory().filter(x => x.package_name !== item.package_name);
+  h.unshift(item);
   saveHistory(h);
   renderHistory();
 }
 
 renderHistory();
+
+/* ── 日志实时流 ── */
+let logLines = [];
+function toggleLog(){
+  const pre = document.getElementById('logContent');
+  const ico = document.getElementById('logToggleIcon');
+  const show = pre.style.display==='none';
+  pre.style.display = show ? 'block' : 'none';
+  ico.textContent   = show ? '▲ 收起' : '▼ 展开';
+}
+async function fetchLogs(runId, jobId){
+  if(!runId) return;
+  try{
+    const url = WORKER+'/logs?run_id='+runId+(jobId?'&job_id='+jobId:'');
+    const d = await (await fetch(url)).json();
+    if(!d.lines||!d.lines.length) return;
+    const panel = document.getElementById('logPanel');
+    const pre   = document.getElementById('logContent');
+    panel.style.display='block';
+    const newLines = d.lines.slice(logLines.length);
+    logLines = d.lines;
+    if(newLines.length){ pre.textContent=logLines.join('\n'); pre.scrollTop=pre.scrollHeight; }
+  }catch(_){}
+}
 
 /* ── 构建成功时记录历史 ── */
 const _origStartPoll = startPoll;
@@ -737,6 +871,7 @@ export default {
       let res;
       if      (url.pathname === '/build'    && request.method === 'POST') res = await handleBuild(request, env);
       else if (url.pathname === '/status'   && request.method === 'GET')  res = await handleStatus(request, env);
+      else if (url.pathname === '/logs'     && request.method === 'GET')  res = await handleLogs(request, env);
       else if (url.pathname === '/download' && request.method === 'GET')  res = await handleDownload(request, env);
       else res = json({ error: 'Not found' }, 404);
       return cors(res, env);
@@ -747,7 +882,7 @@ export default {
 };
 
 async function handleBuild(request, env) {
-  const { app_url, app_name, package_name, version_name, icon_url } = await request.json();
+  const { app_url, app_name, package_name, version_name, icon_url, no_screenshot } = await request.json();
   if (!app_url || !app_name || !package_name || !version_name || !icon_url)
     return json({ error: 'Missing required fields' }, 400);
   const pkgRe = /^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*){2,}$/;
@@ -758,7 +893,7 @@ async function handleBuild(request, env) {
     `/repos/${env.GITHUB_OWNER}/${env.GITHUB_REPO}/actions/workflows/build.yml/dispatches`,
     { method: 'POST', body: JSON.stringify({
         ref: 'main',
-        inputs: { app_url, app_name, package_name, version_name, icon_url }
+        inputs: { app_url, app_name, package_name, version_name, icon_url, no_screenshot: no_screenshot||'false' }
     })}
   );
   if (r.status !== 204) return json({ error: 'Trigger failed', detail: await r.text() }, 500);
@@ -784,7 +919,7 @@ async function handleStatus(request, env) {
   const data = await (await gh(env,
     `/repos/${env.GITHUB_OWNER}/${env.GITHUB_REPO}/actions/runs/${runId}`
   )).json();
-  const result = { run_id: runId, status: data.status, conclusion: data.conclusion };
+  const result = { run_id: runId, status: data.status, conclusion: data.conclusion, job_id: null, step_index: 0, step_total: 0 };
 
   // 解析 job steps 获取精确进度
   const jobsRes = await gh(env,
@@ -793,18 +928,14 @@ async function handleStatus(request, env) {
   const jobs = await jobsRes.json();
   const job = jobs.jobs?.[0];
   if (job) {
+    result.job_id = job.id;
     const steps = job.steps || [];
-    const stepMap = {
-      'Inject parameters': 15,
-      'Process icon':      30,
-      'Build APK':         70,
-      'Sign APK':          90,
-      'Upload APK':        100,
-    };
-    let progress = 5;
-    let currentStep = '';
-    for (const step of steps) {
+    const userSteps = steps.filter(s => !['Set up job','Post','Complete job','Cache'].some(k => s.name.includes(k)));
+    const stepMap = { 'Inject':15,'Process':30,'Build':70,'Sign':90,'Upload':100 };
+    let progress = 5, currentStep = '', stepIndex = 0;
+    for (const step of userSteps) {
       if (step.status === 'completed' && step.conclusion === 'success') {
+        stepIndex++;
         for (const [name, pct] of Object.entries(stepMap)) {
           if (step.name.includes(name)) progress = Math.max(progress, pct);
         }
@@ -815,8 +946,10 @@ async function handleStatus(request, env) {
         if (base) progress = Math.max(progress, base[1] - 10);
       }
     }
-    result.progress = progress;
+    result.progress    = progress;
     result.current_step = currentStep;
+    result.step_index  = stepIndex;
+    result.step_total  = userSteps.length || 5;
   }
 
   if (data.status === 'completed' && data.conclusion === 'success') {
@@ -864,6 +997,32 @@ async function handleStatus(request, env) {
   }
 
   return json(result);
+}
+
+async function handleLogs(request, env) {
+  const p = new URL(request.url).searchParams;
+  const runId = p.get('run_id'), jobId = p.get('job_id');
+  if (!runId) return json({ lines: [] });
+  let jid = jobId;
+  if (!jid) {
+    const jr = await gh(env, `/repos/${env.GITHUB_OWNER}/${env.GITHUB_REPO}/actions/runs/${runId}/jobs`);
+    const jd = await jr.json();
+    jid = jd.jobs?.[0]?.id;
+  }
+  if (!jid) return json({ lines: [] });
+  try {
+    const lr = await gh(env, `/repos/${env.GITHUB_OWNER}/${env.GITHUB_REPO}/actions/jobs/${jid}/logs`);
+    if (!lr.ok) return json({ lines: [] });
+    const raw = await lr.text();
+    const lines = raw.split('\n')
+      .map(l => l.replace(/^\d{4}-\d{2}-\d{2}T[\d:.]+Z /, '').replace(/\x1b\[[\d;]*m/g,'').trim())
+      .filter(l => l &&
+        !/^##\[group|^##\[endgroup/i.test(l) &&
+        !/California|MIPS|Evaluation|Recipient|UL or FCC|Pre-Release|GOOGLE_|LIMITATION|LICENSE|jurisdic/i.test(l) &&
+        !/^shell:|^env:|^with:|JAVA_HOME|ANDROID_HOME|GRADLE_USER/i.test(l)
+      );
+    return json({ lines: lines.slice(-150) });
+  } catch(_) { return json({ lines: [] }); }
 }
 
 async function handleDownload(request, env) {
