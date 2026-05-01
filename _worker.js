@@ -21,7 +21,7 @@ async function handleBuild(request, env) {
   const { app_url, app_name, package_name, version_name, icon_url, no_screenshot } = await request.json();
   if (!app_url || !app_name || !package_name || !version_name)
     return json({ error: 'Missing required fields' }, 400);
-  const pkgRe = /^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*){2,}$/;
+  const pkgRe = /^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*){1,}$/;
   if (!pkgRe.test(package_name))
     return json({ error: 'Invalid package name' }, 400);
 
@@ -35,7 +35,7 @@ async function handleBuild(request, env) {
   if (r.status !== 204) return json({ error: 'Trigger failed', detail: await r.text() }, 500);
 
   // 记录触发时间，轮询直到出现比此时间更新的 run，避免拿到上一次的 run_id
-  const triggeredAt = new Date(Date.now() - 3000); // 3秒容差，避免时间精度问题
+  const triggeredAt = new Date(Date.now() - 8000); // 8秒容差：往前留余量，避免漏匹配新run
   let runId = null;
   for (let i = 0; i < 30; i++) {  // 最多等60秒
     await sleep(2000);
@@ -245,7 +245,10 @@ async function extractApkFromZip(buf) {
         return new Response(ds.readable).arrayBuffer();
       }
     }
-    offset = dataOffset + compSize;
+    // fix(bug#5): 跳过可能存在的 data descriptor (0x08074b50, 最多16字节)
+    let nextOffset = dataOffset + compSize;
+    if (view.getUint32(nextOffset, true) === 0x08074b50) nextOffset += 16;
+    offset = nextOffset;
   }
   return null;
 }
