@@ -20,14 +20,16 @@ import android.os.Bundle
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.view.View
 import android.webkit.CookieManager
 import android.webkit.PermissionRequest
+import android.webkit.ConsoleMessage
+import android.webkit.WebChromeClient
 import android.webkit.SslErrorHandler
 import android.webkit.ValueCallback
-import android.webkit.WebChromeClient
 import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
@@ -69,6 +71,7 @@ class MainActivity : AppCompatActivity() {
     private var isShowingError = false
     private var failedUrl: String? = null
     private var lastBlockedHint: String? = null
+    private var lastConsoleError: String? = null
 
     // 按需权限：存储待处理的 web 权限请求
     private var pendingWebPermissionRequest: PermissionRequest? = null
@@ -150,6 +153,44 @@ class MainActivity : AppCompatActivity() {
         }
         showOverlay()
         setupWebView()
+    }
+
+    private fun showBlankPageError(url: String, detail: String) {
+        showWebErrorPage(url, "页面未正常显示：$detail")
+    }
+
+    private fun inspectBlankPage(view: WebView, url: String) {
+        if (isShowingError) return
+        view.postVisualStateCallback(System.currentTimeMillis()) {
+            view.evaluateJavascript(
+                """
+                (function(){
+                  try{
+                    var body=document.body;
+                    var text=(body&&body.innerText?body.innerText:'').trim();
+                    var html=(document.documentElement&&document.documentElement.outerHTML?document.documentElement.outerHTML:'');
+                    var bg=window.getComputedStyle(document.body||document.documentElement).backgroundColor||'';
+                    return JSON.stringify({
+                      textLength:text.length,
+                      htmlLength:html.length,
+                      title:document.title||'',
+                      bg:bg
+                    });
+                  }catch(e){
+                    return JSON.stringify({error:String(e)});
+                  }
+                })();
+                """.trimIndent()
+            ) { raw ->
+                val payload = raw.orEmpty()
+                val looksBlank = payload.contains(""textLength":0") && !payload.contains(""htmlLength":0")
+                val jsError = lastConsoleError
+                if (!isShowingError && (looksBlank || !jsError.isNullOrBlank())) {
+                    val detail = jsError ?: "页面内容为空或未渲染完成"
+                    showBlankPageError(url, detail)
+                }
+            }
+        }
     }
 
     private fun showBlockedBySitePage(url: String, reason: String) {
@@ -251,6 +292,7 @@ class MainActivity : AppCompatActivity() {
                     isShowingError = false
                     failedUrl = null
                     lastBlockedHint = null
+                    lastConsoleError = null
                 }
                 pageVisibleCommitted = false
                 handler.removeCallbacks(renderTimeoutRunnable)
@@ -276,6 +318,7 @@ class MainActivity : AppCompatActivity() {
                             showBlockedBySitePage(url, hint)
                         } else if (!isShowingError) {
                             fetchThemeColor(view)
+                            inspectBlankPage(view, url)
                         }
                     }
                 }
@@ -354,6 +397,13 @@ class MainActivity : AppCompatActivity() {
             }
         }
         webView.webChromeClient = object : WebChromeClient() {
+            override fun onConsoleMessage(consoleMessage: ConsoleMessage): Boolean {
+                if (consoleMessage.messageLevel() == ConsoleMessage.MessageLevel.ERROR) {
+                    lastConsoleError = consoleMessage.message()
+                    Log.e("PakrWebView", consoleMessage.message() + " @" + consoleMessage.sourceId() + ":" + consoleMessage.lineNumber())
+                }
+                return super.onConsoleMessage(consoleMessage)
+            }
             override fun onProgressChanged(view: WebView, newProgress: Int) {
                 progressBar.setProgress(newProgress)
                 if (newProgress >= 75 && isFirstLoad) {
@@ -531,6 +581,7 @@ class MainActivity : AppCompatActivity() {
                     isShowingError = false
                     failedUrl = null
                     lastBlockedHint = null
+                    lastConsoleError = null
                     webView.reload()
                 }
             }
