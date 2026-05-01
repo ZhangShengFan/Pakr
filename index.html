@@ -317,6 +317,15 @@ footer span{margin:0 8px;opacity:.4}
 
 .history-use{font-size:11px;color:#888;flex-shrink:0}
 .history-dl{display:flex;gap:5px;margin-top:5px;flex-wrap:wrap}
+.history-cp-btn{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:22px;height:22px;padding:0;
+  background:#f0f0f0;color:#666;border:none;border-radius:5px;
+  cursor:pointer;vertical-align:middle;margin-left:2px;
+  transition:background .15s,color .15s;
+  -webkit-tap-highlight-color:transparent;
+}
+.history-cp-btn:hover{background:#e0e0e0;color:#111}
 .history-dl-btn{
   font-size:10px;font-weight:500;color:#555;
   background:#f5f5f5;border:1px solid #e0e0e0;
@@ -393,7 +402,16 @@ footer span{margin:0 8px;opacity:.4}
   .history-item:hover{background:#2a2a2a}
   .dl-btn{background:#1a1a1a;border-color:#2a2a2a;color:#e8e8e8}
   .dl-btn:hover{background:#2a2a2a}
-  .history-dl-btn{background:#2a2a2a;color:#ccc;border-color:#333}
+  .history-cp-btn{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:22px;height:22px;padding:0;
+  background:#f0f0f0;color:#666;border:none;border-radius:5px;
+  cursor:pointer;vertical-align:middle;margin-left:2px;
+  transition:background .15s,color .15s;
+  -webkit-tap-highlight-color:transparent;
+}
+.history-cp-btn:hover{background:#e0e0e0;color:#111}
+.history-dl-btn{background:#2a2a2a;color:#ccc;border-color:#333}
   .history-dl-btn:hover{background:#333;color:#fff}
   .toggle-row{border-top-color:#2a2a2a}
   .toggle-label{color:#ccc}
@@ -972,7 +990,7 @@ function renderHistory(){
       </div>
       <div class="history-info">
         <div class="history-name">${item.app_name}</div>
-        <div class=\"history-meta\">${item.package_name} · v${item.version_name}${item.elapsed ? ' · <span class="css-clock"></span>' + (item.elapsed>=60 ? Math.floor(item.elapsed/60)+'分'+(item.elapsed%60)+'秒' : item.elapsed+'秒') : ''}</div>
+        <div class=\"history-meta\">${item.package_name} · v${item.version_name}${item.elapsed ? ' · <span class="css-clock"></span>' + (item.elapsed+'秒') : ''}</div>
         ${item.artifacts && item.artifacts.length ? '<div class=\"history-dl\">' + item.artifacts.map(a=>{const l=/arm64/i.test(a.name)?'64 Bit':/armeabi/i.test(a.name)?'32 Bit':'APK';return '<a class=\"history-dl-btn\" href=\"'+WORKER+'/download?artifact_id='+a.id+'\" target=\"_blank\" onclick=\"event.stopPropagation()\">'+l+'</a>';}).join('') + '</div>' : ''}
       </div>
       <div class="history-use">复用 ›</div>
@@ -1000,6 +1018,15 @@ historyClear.addEventListener('click', () => {
   localStorage.removeItem(HISTORY_KEY);
   renderHistory();
 });
+
+function histCopy(btn, url){
+  const ok = () => {
+    btn.innerHTML = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+    setTimeout(()=>{ btn.innerHTML='<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>'; }, 1500);
+  };
+  if(navigator.clipboard){ navigator.clipboard.writeText(url).then(ok).catch(()=>{ const t=document.createElement('textarea');t.value=url;document.body.appendChild(t);t.select();document.execCommand('copy');document.body.removeChild(t);ok(); }); }
+  else{ const t=document.createElement('textarea');t.value=url;document.body.appendChild(t);t.select();document.execCommand('copy');document.body.removeChild(t);ok(); }
+}
 
 function addHistory(data){
   const item = {
