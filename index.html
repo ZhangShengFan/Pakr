@@ -694,7 +694,7 @@ function generatePackageName(rawUrl, appName=''){
     const appSeg = normalizePkgSegment(appName, 'app');
 
     if(JAVA_RESERVED_WORDS.has(rawTld)){
-      return uniquePkgSegments(['com', mergedDomain || normalizePkgSegment(rootDomain, 'app'), appSeg || 'app']).join('.');
+      return uniquePkgSegments(['zsfan', mergedDomain || normalizePkgSegment(rootDomain, 'app'), appSeg || 'app']).join('.');
     }
 
     const tld = normalizePkgSegment(rawTld, 'com');
