@@ -10,22 +10,44 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
+    <!-- 首屏 overlay：logo + spinner + 加载中 -->
     <FrameLayout android:id="@+id/overlay"
         android:layout_width="match_parent" android:layout_height="match_parent"
         android:background="#FFFFFF">
         <LinearLayout
             android:layout_width="wrap_content" android:layout_height="wrap_content"
-            android:layout_gravity="center" android:orientation="vertical"
-            android:gravity="center">
-            <com.webviewapp.IOSSpinnerView android:id="@+id/spinner"
-                android:layout_width="44dp" android:layout_height="44dp" />
-            <TextView android:id="@+id/loadingText"
+            android:layout_gravity="center"
+            android:orientation="vertical"
+            android:gravity="center_horizontal">
+
+            <!-- App Logo -->
+            <ImageView
+                android:layout_width="80dp" android:layout_height="80dp"
+                android:src="@mipmap/ic_launcher"
+                android:contentDescription="@string/app_name"
+                android:scaleType="fitCenter" />
+
+            <!-- Spinner -->
+            <ProgressBar
+                style="?android:attr/progressBarStyle"
+                android:layout_width="36dp" android:layout_height="36dp"
+                android:layout_marginTop="24dp"
+                android:indeterminate="true"
+                android:indeterminateTint="#444444" />
+
+            <!-- 加载中 -->
+            <TextView
                 android:layout_width="wrap_content" android:layout_height="wrap_content"
-                android:layout_marginTop="14dp" android:text="加载中"
-                android:textColor="#000000" android:textSize="13sp"
-                android:fontFamily="sans-serif" />
+                android:layout_marginTop="12dp"
+                android:text="加载中"
+                android:textSize="13sp"
+                android:textColor="#444444"
+                android:letterSpacing="0.06" />
+
         </LinearLayout>
     </FrameLayout>
+
     <com.webviewapp.TopProgressBar android:id="@+id/progressBar"
         android:layout_width="match_parent" android:layout_height="4dp"
         android:layout_gravity="top" android:elevation="8dp"
