@@ -135,7 +135,23 @@ class MainActivity : AppCompatActivity() {
                     hideOverlay()
                     isShowingError = true
                     failedUrl = request.url.toString()
-                    view.loadDataWithBaseURL(failedUrl, errorHtml(failedUrl), "text/html", "UTF-8", null)
+                    val errDesc = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+                        when (error.errorCode) {
+                            android.webkit.WebViewClient.ERROR_HOST_LOOKUP       -> "域名解析失败，请检查网络连接"
+                            android.webkit.WebViewClient.ERROR_INTERNET_DISCONNECTED -> "网络未连接，请打开 Wi-Fi 或移动数据"
+                            android.webkit.WebViewClient.ERROR_CONNECT            -> "无法连接到服务器"
+                            android.webkit.WebViewClient.ERROR_TIMEOUT            -> "连接超时，请稍后重试"
+                            android.webkit.WebViewClient.ERROR_CONNECTION_RESET   -> "连接被重置"
+                            android.webkit.WebViewClient.ERROR_FAILED_SSL_HANDSHAKE -> "SSL 握手失败，证书可能有问题"
+                            android.webkit.WebViewClient.ERROR_SSL_FAILED         -> "SSL 连接失败"
+                            android.webkit.WebViewClient.ERROR_TOO_MANY_REQUESTS  -> "请求过多，请稍后重试"
+                            android.webkit.WebViewClient.ERROR_UNKNOWN            -> "未知错误"
+                            else -> error.description?.toString()?.takeIf { it.isNotBlank() } ?: "加载失败（错误码 ${error.errorCode}）"
+                        }
+                    } else {
+                        "网络连接失败，请检查网络后重试"
+                    }
+                    view.loadDataWithBaseURL(failedUrl, errorHtml(failedUrl, errDesc), "text/html", "UTF-8", null)
                 }
             }
         }
@@ -337,20 +353,21 @@ class MainActivity : AppCompatActivity() {
         }.start()
     }
 
-    private fun errorHtml(url: String?) = """
+    private fun errorHtml(url: String?, errDesc: String? = null) = """
         <!DOCTYPE html>
         <html><head><meta name="viewport" content="width=device-width,initial-scale=1"></head>
         <body style="margin:0;display:flex;align-items:center;justify-content:center;
-        height:100vh;font-family:-apple-system,sans-serif;flex-direction:column;background:#fff;color:#333;padding:24px;box-sizing:border-box;">
-        <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="1.5" style="margin-bottom:4px">
-          <path d="M3 12a9 9 0 1 0 18 0 9 9 0 0 0-18 0"/>
-          <path d="M12 8v4l3 3"/>
+        height:100vh;font-family:-apple-system,sans-serif;flex-direction:column;background:#fff;color:#1a1a1a;padding:32px;box-sizing:border-box;text-align:center;">
+        <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="#d1d5db" stroke-width="1.5" style="margin-bottom:8px;flex-shrink:0">
+          <circle cx="12" cy="12" r="9"/>
+          <path d="M4.93 4.93l14.14 14.14"/>
         </svg>
-        <p style="margin:16px 0 4px;font-size:16px;font-weight:600;">加载失败</p>
-        <p style="margin:0 0 24px;font-size:13px;color:#999;text-align:center;max-width:280px">网络连接不可用，请检查网络后重试</p>
+        <p style="margin:12px 0 6px;font-size:17px;font-weight:600;color:#111;">网页加载失败</p>
+        <p style="margin:0 0 28px;font-size:13px;color:#888;max-width:260px;line-height:1.6">${errDesc ?: "网络连接失败，请检查网络后重试"}</p>
         <button onclick="window.location.replace('${url ?: "about:blank"}')"
-          style="padding:12px 32px;border:none;border-radius:999px;
-          background:#111;color:#fff;font-size:15px;cursor:pointer;font-family:inherit;">重试</button>
+          style="padding:13px 36px;border:none;border-radius:999px;
+          background:#111;color:#fff;font-size:15px;cursor:pointer;font-family:-apple-system,sans-serif;font-weight:500;
+          -webkit-tap-highlight-color:transparent;active:opacity:0.8;">重试</button>
         </body></html>
     """.trimIndent()
 
