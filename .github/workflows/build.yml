@@ -56,11 +56,13 @@ jobs:
 
       - name: Inject parameters
         run: |
-          sed -i 's|{{APP_URL}}|${{ github.event.inputs.app_url }}|g' app/src/main/java/com/webviewapp/MainActivity.kt
+          URL="${{ github.event.inputs.app_url }}"
+          sed -i "s|{{APP_URL}}|${URL}|g" app/src/main/java/com/webviewapp/MainActivity.kt
           PKG="${{ github.event.inputs.package_name }}"
           sed -i "s|{{APP_PACKAGE}}|${PKG}|g" app/src/main/AndroidManifest.xml app/build.gradle
           NAME="${{ github.event.inputs.app_name }}"
-          sed -i "s|{{APP_NAME}}|${NAME}|g" app/src/main/res/values/strings.xml app/src/main/AndroidManifest.xml
+          NAME_XML=$(echo "$NAME" | sed 's/&/\&amp;/g; s/</\&lt;/g; s/>/\&gt;/g; s/"/\&quot;/g; s/'"'"'/\&apos;/g')
+          sed -i "s|{{APP_NAME}}|${NAME_XML}|g" app/src/main/res/values/strings.xml app/src/main/AndroidManifest.xml
           VER="${{ github.event.inputs.version_name }}"
           VC=$(echo "$VER" | awk -F. '{ printf "%d%02d%02d", $1, $2, $3 }')
           sed -i "s|{{VERSION_NAME}}|${VER}|g" app/build.gradle
