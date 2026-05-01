@@ -499,13 +499,7 @@ footer span{margin:0 8px;opacity:.4}
         </div>
       </div>
       <div class="err-msg" id="errBox"></div>
-      <div id="dlActions" style="display:flex;gap:8px;flex-wrap:wrap">
-        <button class="download-btn" id="dlBtn" style="flex:1">
-          <svg style="width:16px;height:16px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round" viewBox="0 0 24 24"><path d="M12 3v13M5 14l7 7 7-7"/><path d="M3 21h18"/></svg>
-          下载 APK
-        </button>
-
-      </div>
+      <div id="dlActions"></div>
       </div>
     </div>
   </div>
@@ -530,7 +524,6 @@ const sTitle    = document.getElementById('sTitle');
 const sSub      = document.getElementById('sSub');
 const progFill  = document.getElementById('progFill');
 const errBox    = document.getElementById('errBox');
-const dlBtn     = document.getElementById('dlBtn');
 
 let pollTimer = null;
 let busy = false;
@@ -585,7 +578,6 @@ async function handleBuildClick(){
   const e = { preventDefault:()=>{} };
   if(busy) return;
   errBox.classList.remove('show');
-  dlBtn.classList.remove('show');
   if(!validate()) return;
 
   const data = {
