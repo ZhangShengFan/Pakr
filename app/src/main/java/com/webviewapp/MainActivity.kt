@@ -68,6 +68,7 @@ class MainActivity : AppCompatActivity() {
     // 错误页状态：防止 onPageFinished 在错误页上执行主题色注入
     private var isShowingError = false
     private var failedUrl: String? = null
+    private var lastBlockedHint: String? = null
 
     // 按需权限：存储待处理的 web 权限请求
     private var pendingWebPermissionRequest: PermissionRequest? = null
@@ -151,6 +152,69 @@ class MainActivity : AppCompatActivity() {
         setupWebView()
     }
 
+    private fun showBlockedBySitePage(url: String, reason: String) {
+        hideOverlay()
+        handler.removeCallbacks(renderTimeoutRunnable)
+        pageVisibleCommitted = false
+        isShowingError = true
+        failedUrl = url
+        lastBlockedHint = reason
+        swipeRefresh.isRefreshing = false
+        val safeUrl = url.replace("'", "&#39;")
+        val safeReason = reason.replace("'", "&#39;")
+        val html = """
+            <!doctype html>
+            <html lang="zh-CN">
+            <head>
+                <meta charset="utf-8" />
+                <meta name="viewport" content="width=device-width,initial-scale=1" />
+                <title>当前网站不支持内置打开</title>
+                <style>
+                    body{margin:0;padding:24px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'PingFang SC','Microsoft YaHei',sans-serif;background:#0f172a;color:#e5e7eb;display:flex;align-items:center;justify-content:center;min-height:100vh}
+                    .card{max-width:560px;width:100%;background:#111827;border:1px solid rgba(255,255,255,.08);border-radius:20px;padding:24px;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+                    h1{margin:0 0 12px;font-size:24px;color:#fff}
+                    p{margin:0 0 12px;line-height:1.7;color:#cbd5e1;word-break:break-word}
+                    .url{font-size:13px;color:#93c5fd;background:rgba(59,130,246,.12);padding:10px 12px;border-radius:12px}
+                    .actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:18px}
+                    button{border:0;border-radius:12px;padding:12px 16px;font-size:15px;font-weight:600;cursor:pointer}
+                    .primary{background:#2563eb;color:#fff}
+                    .secondary{background:#1f2937;color:#e5e7eb;border:1px solid rgba(255,255,255,.08)}
+                </style>
+            </head>
+            <body>
+                <div class="card">
+                    <h1>该网站可能限制 WebView 打开</h1>
+                    <p>这个网站在当前 App 内置浏览环境中未正常显示，常见原因包括登录风控、OAuth 限制、支付安全策略，或网站主动禁止 WebView。</p>
+                    <p>检测结果：""" + safeReason + """</p>
+                    <p class="url">""" + safeUrl + """</p>
+                    <div class="actions">
+                        <button class="primary" onclick="Android.openExternal('""" + safeUrl + """')">在系统浏览器打开</button>
+                        <button class="secondary" onclick="location.reload()">重试</button>
+                    </div>
+                </div>
+            </body>
+            </html>
+        """.trimIndent()
+        webView.loadDataWithBaseURL(url, html, "text/html", "UTF-8", url)
+    }
+
+    private fun looksLikeWebViewBlocked(url: String, title: String?, html: String?): String? {
+        val target = listOf(url, title.orEmpty(), html.orEmpty()).joinToString("
+").lowercase()
+        val patterns = listOf(
+            "disallowed_useragent" to "检测到 OAuth / 登录流程禁止嵌入式浏览器",
+            "unsupported-browser" to "网站提示当前内置浏览器不受支持",
+            "browser not supported" to "网站提示当前浏览器不受支持",
+            "open in your browser" to "网站要求在外部浏览器中打开",
+            "open in browser" to "网站要求在系统浏览器中打开",
+            "not supported in webview" to "网站明确提示不支持 WebView",
+            "embedded browser" to "网站检测到嵌入式浏览器",
+            "couldn't sign you in" to "当前登录流程可能禁止 WebView",
+            "403 forbidden" to "网站拒绝了当前内置访问请求"
+        )
+        return patterns.firstOrNull { target.contains(it.first) }?.second
+    }
+
     private fun showWebErrorPage(url: String, message: String) {
         hideOverlay()
         handler.removeCallbacks(renderTimeoutRunnable)
@@ -186,6 +250,7 @@ class MainActivity : AppCompatActivity() {
                 if (url != "about:blank" && url != failedUrl) {
                     isShowingError = false
                     failedUrl = null
+                    lastBlockedHint = null
                 }
                 pageVisibleCommitted = false
                 handler.removeCallbacks(renderTimeoutRunnable)
@@ -196,7 +261,24 @@ class MainActivity : AppCompatActivity() {
             override fun onPageFinished(view: WebView, url: String) {
                 swipeRefresh.isRefreshing = false
                 handler.removeCallbacks(renderTimeoutRunnable)
-                if (!isShowingError) fetchThemeColor(view)
+                if (!isShowingError) {
+                    view.evaluateJavascript("(function(){try{return document.documentElement.outerHTML.slice(0,4000)}catch(e){return ''}})();") { raw ->
+                        val html = raw
+                            ?.removePrefix(""")
+                            ?.removeSuffix(""")
+                            ?.replace("\u003C", "<")
+                            ?.replace("\u003E", ">")
+                            ?.replace("\n", "
+")
+                            ?.replace("\"", """)
+                        val hint = looksLikeWebViewBlocked(url, view.title, html)
+                        if (!hint.isNullOrBlank() && !isShowingError) {
+                            showBlockedBySitePage(url, hint)
+                        } else if (!isShowingError) {
+                            fetchThemeColor(view)
+                        }
+                    }
+                }
             }
 
             override fun onPageCommitVisible(view: WebView, url: String) {
@@ -448,6 +530,7 @@ class MainActivity : AppCompatActivity() {
                 runOnUiThread {
                     isShowingError = false
                     failedUrl = null
+                    lastBlockedHint = null
                     webView.reload()
                 }
             }
