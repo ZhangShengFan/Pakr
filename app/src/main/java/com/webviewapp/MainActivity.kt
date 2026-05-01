@@ -83,6 +83,8 @@ class MainActivity : AppCompatActivity() {
             android.graphics.Color.parseColor("#6366F1")
         )
         swipeRefresh.setOnRefreshListener {
+            isShowingError = false
+            failedUrl = null
             webView.reload()
         }
         showOverlay()
@@ -109,11 +111,9 @@ class MainActivity : AppCompatActivity() {
         }
         webView.webViewClient = object : WebViewClient() {
             override fun onPageStarted(view: WebView, url: String, favicon: Bitmap?) {
-                // 用户重试或跳转新页面时，重置错误状态
-                if (url != failedUrl) {
-                    isShowingError = false
-                    failedUrl = null
-                }
+                // 只要开始加载新页面，就重置错误状态（包括重试同一 URL 的情况）
+                isShowingError = false
+                failedUrl = null
                 if (isFirstLoad) showOverlay()
             }
 
@@ -229,7 +229,9 @@ class MainActivity : AppCompatActivity() {
                     addRequestHeader("User-Agent", userAgent)
                     setDescription("正在下载...")
                     setTitle(filename)
-                    allowScanningByMediaScanner()
+                    if (android.os.Build.VERSION.SDK_INT < 29) {
+                        @Suppress("DEPRECATION") allowScanningByMediaScanner()
+                    }
                     setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
                     setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, filename)
                 }
@@ -264,10 +266,19 @@ class MainActivity : AppCompatActivity() {
             @JavascriptInterface
             fun vibrate(ms: Long) {
                 try {
-                    val v = getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
-                    if (android.os.Build.VERSION.SDK_INT >= 26)
-                        v.vibrate(VibrationEffect.createOneShot(ms.coerceIn(1,2000), VibrationEffect.DEFAULT_AMPLITUDE))
-                    else @Suppress("DEPRECATION") v.vibrate(ms.coerceIn(1,2000))
+                    val dur = ms.coerceIn(1, 2000)
+                    if (android.os.Build.VERSION.SDK_INT >= 31) {
+                        val vm = getSystemService(android.os.VibratorManager::class.java)
+                        vm?.defaultVibrator?.vibrate(
+                            VibrationEffect.createOneShot(dur, VibrationEffect.DEFAULT_AMPLITUDE))
+                    } else {
+                        @Suppress("DEPRECATION")
+                        val v = getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+                        if (android.os.Build.VERSION.SDK_INT >= 26)
+                            v.vibrate(VibrationEffect.createOneShot(dur, VibrationEffect.DEFAULT_AMPLITUDE))
+                        else
+                            @Suppress("DEPRECATION") v.vibrate(dur)
+                    }
                 } catch (e: Exception) {}
             }
 
@@ -350,23 +361,19 @@ class MainActivity : AppCompatActivity() {
         }.start()
     }
 
-    private fun errorHtml(url: String?, errDesc: String? = null) = """
-        <!DOCTYPE html>
-        <html><head><meta name="viewport" content="width=device-width,initial-scale=1"></head>
-        <body style="margin:0;display:flex;align-items:center;justify-content:center;
-        height:100vh;font-family:-apple-system,sans-serif;flex-direction:column;background:#fff;color:#1a1a1a;padding:32px;box-sizing:border-box;text-align:center;">
-        <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="#d1d5db" stroke-width="1.5" style="margin-bottom:8px;flex-shrink:0">
-          <circle cx="12" cy="12" r="9"/>
-          <path d="M4.93 4.93l14.14 14.14"/>
-        </svg>
-        <p style="margin:12px 0 6px;font-size:17px;font-weight:600;color:#111;">网页加载失败</p>
-        <p style="margin:0 0 28px;font-size:13px;color:#888;max-width:260px;line-height:1.6">${errDesc ?: "网络连接失败，请检查网络后重试"}</p>
-        <button onclick="window.location.replace('${url ?: "about:blank"}')"
-          style="padding:13px 36px;border:none;border-radius:999px;
-          background:#111;color:#fff;font-size:15px;cursor:pointer;font-family:-apple-system,sans-serif;font-weight:500;
-          -webkit-tap-highlight-color:transparent;active:opacity:0.8;">重试</button>
-        </body></html>
-    """.trimIndent()
+    private fun errorHtml(url: String?, errDesc: String? = null): String {
+        val safeUrl  = url?.replace("'", "\'") ?: "about:blank"
+        val safeDesc = (errDesc ?: "网络连接失败，请检查网络后重试")
+            .replace("&", "&amp;").replace("<", "&lt;")
+        return """<!DOCTYPE html>
+<html><head><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;display:flex;align-items:center;justify-content:center;height:100vh;font-family:-apple-system,sans-serif;flex-direction:column;background:#fff;color:#1a1a1a;padding:32px;box-sizing:border-box;text-align:center;">
+<svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="#d1d5db" stroke-width="1.5" style="margin-bottom:8px;flex-shrink:0"><circle cx="12" cy="12" r="9"/><path d="M4.93 4.93l14.14 14.14"/></svg>
+<p style="margin:12px 0 6px;font-size:17px;font-weight:600;color:#111;">网页加载失败</p>
+<p style="margin:0 0 28px;font-size:13px;color:#888;max-width:260px;line-height:1.6">${"$"}{safeDesc}</p>
+<button onclick="window.location.replace('${"$"}{safeUrl}')" style="padding:13px 36px;border:none;border-radius:999px;background:#111;color:#fff;font-size:15px;cursor:pointer;font-family:-apple-system,sans-serif;font-weight:500;-webkit-tap-highlight-color:transparent;">重试</button>
+</body></html>""".trimIndent()
+    }
 
     private var backPressedTime = 0L
     @Deprecated("Deprecated in Java")
