@@ -24,6 +24,9 @@ async function handleBuild(request, env) {
   const pkgRe = /^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*){1,}$/;
   if (!pkgRe.test(package_name))
     return json({ error: 'Invalid package name' }, 400);
+  // version_name 支持任意字符（1.0、2.0-beta、v3.1.0-rc1 等），仅限制长度
+  if (!version_name || version_name.length > 32)
+    return json({ error: 'version_name must be 1-32 characters' }, 400);
 
   const r = await gh(env,
     `/repos/${env.GITHUB_OWNER}/${env.GITHUB_REPO}/actions/workflows/build.yml/dispatches`,
