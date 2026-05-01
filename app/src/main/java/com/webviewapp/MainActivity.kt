@@ -64,6 +64,7 @@ class MainActivity : AppCompatActivity() {
     private var fileChooserCallbackRef: ValueCallback<Array<Uri>>? = null
     private var pendingFileChooserParams: WebChromeClient.FileChooserParams? = null
     private var cameraImageUri: Uri? = null
+    private var cameraVideoUri: Uri? = null
 
     private val fileChooserLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
@@ -71,6 +72,7 @@ class MainActivity : AppCompatActivity() {
         val results: Array<Uri>? = when {
             result.resultCode != RESULT_OK -> null
             result.data != null -> parseSelectedUris(result.data!!)
+            cameraVideoUri != null -> arrayOf(cameraVideoUri!!)
             cameraImageUri != null -> arrayOf(cameraImageUri!!)
             else -> null
         }
@@ -78,6 +80,7 @@ class MainActivity : AppCompatActivity() {
         fileChooserCallbackRef = null
         pendingFileChooserParams = null
         cameraImageUri = null
+        cameraVideoUri = null
     }
 
     private val mediaPermissionLauncher = registerForActivityResult(
@@ -91,6 +94,7 @@ class MainActivity : AppCompatActivity() {
             fileChooserCallbackRef = null
             pendingFileChooserParams = null
             cameraImageUri = null
+            cameraVideoUri = null
             android.widget.Toast.makeText(this, "缺少文件上传所需权限", android.widget.Toast.LENGTH_SHORT).show()
         }
     }
@@ -260,6 +264,7 @@ class MainActivity : AppCompatActivity() {
                 fileChooserCallbackRef = filePathCallback
                 pendingFileChooserParams = fileChooserParams
                 cameraImageUri = null
+                cameraVideoUri = null
                 val perms = requiredFileChooserPermissions(fileChooserParams)
                 val denied = perms.filter {
                     ContextCompat.checkSelfPermission(this@MainActivity, it) != PackageManager.PERMISSION_GRANTED
@@ -493,6 +498,12 @@ class MainActivity : AppCompatActivity() {
         return File.createTempFile("JPEG_${timeStamp}_", ".jpg", storageDir)
     }
 
+    private fun createVideoFile(): File {
+        val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
+        val storageDir = File(cacheDir, "webview_uploads").apply { if (!exists()) mkdirs() }
+        return File.createTempFile("VIDEO_${timeStamp}_", ".mp4", storageDir)
+    }
+
     private fun launchFileChooser(fileChooserParams: WebChromeClient.FileChooserParams) {
         try {
             val contentIntent = fileChooserParams.createIntent().apply {
@@ -503,6 +514,9 @@ class MainActivity : AppCompatActivity() {
             val acceptTypes = fileChooserParams.acceptTypes.filter { it.isNotBlank() }
             val acceptJoined = acceptTypes.joinToString(",").lowercase()
             val wantsImage = acceptJoined.isBlank() || acceptJoined.contains("image")
+            val wantsVideo = acceptJoined.contains("video")
+            val wantsAudio = acceptJoined.contains("audio")
+
             if (wantsImage) {
                 val photoFile = createImageFile()
                 cameraImageUri = FileProvider.getUriForFile(
@@ -520,6 +534,34 @@ class MainActivity : AppCompatActivity() {
                     return
                 }
             }
+
+            if (wantsVideo) {
+                val videoFile = createVideoFile()
+                cameraVideoUri = FileProvider.getUriForFile(
+                    this,
+                    "${applicationContext.packageName}.fileprovider",
+                    videoFile
+                )
+                val videoIntent = Intent(MediaStore.ACTION_VIDEO_CAPTURE).apply {
+                    putExtra(MediaStore.EXTRA_OUTPUT, cameraVideoUri)
+                    addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION or Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                }
+                chooserIntents.add(videoIntent)
+                if (fileChooserParams.isCaptureEnabled && acceptTypes.all { it.startsWith("video/") }) {
+                    fileChooserLauncher.launch(videoIntent)
+                    return
+                }
+            }
+
+            if (wantsAudio) {
+                val audioIntent = Intent(MediaStore.Audio.Media.RECORD_SOUND_ACTION)
+                chooserIntents.add(audioIntent)
+                if (fileChooserParams.isCaptureEnabled && acceptTypes.all { it.startsWith("audio/") }) {
+                    fileChooserLauncher.launch(audioIntent)
+                    return
+                }
+            }
+
             val chooser = Intent(Intent.ACTION_CHOOSER).apply {
                 putExtra(Intent.EXTRA_INTENT, contentIntent)
                 putExtra(Intent.EXTRA_INITIAL_INTENTS, chooserIntents.toTypedArray())
@@ -531,6 +573,7 @@ class MainActivity : AppCompatActivity() {
             fileChooserCallbackRef = null
             pendingFileChooserParams = null
             cameraImageUri = null
+            cameraVideoUri = null
             android.widget.Toast.makeText(this, "无法打开文件选择器", android.widget.Toast.LENGTH_SHORT).show()
         }
     }
@@ -570,6 +613,12 @@ class MainActivity : AppCompatActivity() {
         val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
         val storageDir = File(cacheDir, "webview_uploads").apply { if (!exists()) mkdirs() }
         return File.createTempFile("JPEG_${timeStamp}_", ".jpg", storageDir)
+    }
+
+    private fun createVideoFile(): File {
+        val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
+        val storageDir = File(cacheDir, "webview_uploads").apply { if (!exists()) mkdirs() }
+        return File.createTempFile("VIDEO_${timeStamp}_", ".mp4", storageDir)
     }
 
     companion object {
