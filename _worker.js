@@ -24,6 +24,11 @@ async function handleBuild(request, env) {
   const pkgRe = /^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*){1,}$/;
   if (!pkgRe.test(package_name))
     return json({ error: 'Invalid package name' }, 400);
+  // 校验包名各段不能是 Java 关键字
+  const JAVA_KEYWORDS = new Set(["abstract","assert","boolean","break","byte","case","catch","char","class","const","continue","default","do","double","else","enum","extends","final","finally","float","for","goto","if","implements","import","instanceof","int","interface","long","native","new","package","private","protected","public","return","short","static","strictfp","super","switch","synchronized","this","throw","throws","transient","try","void","volatile","while"]);
+  const invalidSeg = package_name.split('.').find(seg => JAVA_KEYWORDS.has(seg));
+  if (invalidSeg)
+    return json({ error: `Package segment '${invalidSeg}' is a Java keyword and cannot be used in a package name` }, 400);
   // version_name 支持任意字符（1.0、2.0-beta、v3.1.0-rc1 等），仅限制长度
   if (!version_name || version_name.length > 32)
     return json({ error: 'version_name must be 1-32 characters' }, 400);
