@@ -282,7 +282,7 @@ tr:hover td{background:var(--surface)}
       <button class="nav-item" onclick="goPage('deploy')"><span class="nav-dot"></span>快速部署</button>
       <button class="nav-item" onclick="goPage('keystore')"><span class="nav-dot"></span>配置签名</button>
       <button class="nav-item" onclick="goPage('secrets')"><span class="nav-dot"></span>配置 Secrets</button>
-      <button class="nav-item" onclick="goPage('cfpages')"><span class="nav-dot"></span>部署到 CF Pages</button>
+      <button class="nav-item" onclick="goPage('cfpages')"><span class="nav-dot"></span>部署到 Cloudflare Pages</button>
     </div>
     <div class="sidebar-group">
       <span class="sidebar-grouplabel">参考</span>
@@ -435,7 +435,7 @@ tr:hover td{background:var(--surface)}
 
   <h2>文件结构</h2>
   <pre><code>Pakr/
-├── index.html          # 前端主页（CF Pages 托管）
+├── index.html          # 前端主页（Cloudflare Pages 托管）
 ├── _worker.js          # CF Worker 入口
 ├── Docs/
 │   └── index.html      # 文档页
@@ -667,13 +667,13 @@ tr:hover td{background:var(--surface)}
       <div class="step-left"><div class="step-num">4</div><div class="step-line"></div></div>
       <div class="step-body">
         <div class="step-title">部署到 Cloudflare Pages</div>
-        <div class="step-desc"><p>CF Dashboard → <strong>Pages → Create → Connect to Git</strong>，选择 Fork 的仓库，构建配置留空，点击 <strong>Save and Deploy</strong>。</p></div>
+        <div class="step-desc"><p>Cloudflare Dashboard → <strong>Pages → Create → Connect to Git</strong>，选择 Fork 的仓库，构建配置留空，点击 <strong>Save and Deploy</strong>。</p></div>
       </div>
     </div>
     <div class="step">
       <div class="step-left"><div class="step-num">5</div></div>
       <div class="step-body">
-        <div class="step-title">添加 CF 环境变量</div>
+        <div class="step-title">添加 Cloudflare 环境变量</div>
         <div class="step-desc">
           <p>Pages 项目 → <strong>Settings → Environment variables → Add variable</strong>：</p>
           <div class="table-wrap"><table>
@@ -746,20 +746,20 @@ base64 -i release.jks | tr -d '\n'</code></pre>
 
   <div class="pager">
     <a class="pager-btn" href="#" onclick="goPage('keystore');return false"><div class="pager-label">上一页</div><div class="pager-name">← 配置签名</div></a>
-    <a class="pager-btn next" href="#" onclick="goPage('cfpages');return false"><div class="pager-label">下一步</div><div class="pager-name">部署到 CF Pages →</div></a>
+    <a class="pager-btn next" href="#" onclick="goPage('cfpages');return false"><div class="pager-label">下一步</div><div class="pager-name">部署到 Cloudflare Pages →</div></a>
   </div>
 </div>
 
-<!-- ════════════════ CF Pages ════════════════ -->
+<!-- ════════════════ Cloudflare Pages ════════════════ -->
 <div class="page" id="page-cfpages">
   <h1>部署到 Cloudflare Pages</h1>
-  <p class="page-subtitle">Pakr 是纯静态文件，直接托管在 CF Pages，无需额外服务器。</p>
+  <p class="page-subtitle">Pakr 是纯静态文件，直接托管在 Cloudflare Pages，无需额外服务器。</p>
 
   <div class="steps">
     <div class="step">
       <div class="step-left"><div class="step-num">1</div><div class="step-line"></div></div>
       <div class="step-body"><div class="step-title">连接 GitHub 仓库</div>
-        <div class="step-desc"><p><a href="https://dash.cloudflare.com" target="_blank">CF Dashboard</a> → <strong>Workers &amp; Pages → Create → Pages → Connect to Git</strong>，选择 Fork 的仓库 → <strong>Begin setup</strong>。</p></div>
+        <div class="step-desc"><p><a href="https://dash.cloudflare.com" target="_blank">Cloudflare Dashboard</a> → <strong>Workers &amp; Pages → Create → Pages → Connect to Git</strong>，选择 Fork 的仓库 → <strong>Begin setup</strong>。</p></div>
       </div>
     </div>
     <div class="step">
@@ -797,7 +797,7 @@ base64 -i release.jks | tr -d '\n'</code></pre>
   </div>
 
   <h2>自动更新</h2>
-  <p>CF Pages 默认开启 Auto Deployment，每次 push 自动重新部署，无需手动操作。</p>
+  <p>Cloudflare Pages 默认开启 Auto Deployment，每次 push 自动重新部署，无需手动操作。</p>
 
   <div class="pager">
     <a class="pager-btn" href="#" onclick="goPage('secrets');return false"><div class="pager-label">上一页</div><div class="pager-name">← 配置 Secrets</div></a>
@@ -896,7 +896,7 @@ base64 -i release.jks | tr -d '\n'</code></pre>
   </div>
 
   <div class="pager">
-    <a class="pager-btn" href="#" onclick="goPage('cfpages');return false"><div class="pager-label">上一页</div><div class="pager-name">← 部署到 CF Pages</div></a>
+    <a class="pager-btn" href="#" onclick="goPage('cfpages');return false"><div class="pager-label">上一页</div><div class="pager-name">← 部署到 Cloudflare Pages</div></a>
     <a class="pager-btn next" href="#" onclick="goPage('faq');return false"><div class="pager-label">下一页</div><div class="pager-name">常见问题 →</div></a>
   </div>
 </div>
@@ -925,7 +925,7 @@ base64 -i release.jks | tr -d '\n'</code></pre>
   </div>
   <div class="faq-item" onclick="toggleFaq(this)">
     <div class="faq-q">Worker 环境变量加了但不生效？<span class="faq-arrow"></span></div>
-    <div class="faq-a"><p>CF Pages 的环境变量需要重新部署才生效。进入 <strong>Deployments → 最新记录 → Retry deployment</strong>，等待重新部署完成即可。</p></div>
+    <div class="faq-a"><p>Cloudflare Pages 的环境变量需要重新部署才生效。进入 <strong>Deployments → 最新记录 → Retry deployment</strong>，等待重新部署完成即可。</p></div>
   </div>
   <div class="faq-item" onclick="toggleFaq(this)">
     <div class="faq-q">支持 iOS 吗？<span class="faq-arrow"></span></div>
