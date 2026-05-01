@@ -189,7 +189,7 @@ input.err{border-color:#ef4444;box-shadow:0 0 0 3px rgba(239,68,68,0.08)}
 .err-msg.show{display:block}
 
 .download-btn{
-  display:none;width:100%;height:46px;margin-top:16px;
+  display:none;height:46px;margin-top:16px;
   background:#22c55e;color:#fff;border:none;border-radius:8px;
   font-size:14px;font-weight:600;font-family:inherit;
   cursor:pointer;align-items:center;justify-content:center;gap:8px;
@@ -198,6 +198,17 @@ input.err{border-color:#ef4444;box-shadow:0 0 0 3px rgba(239,68,68,0.08)}
 .download-btn.show{display:flex}
 .download-btn:hover{background:#16a34a}
 .download-btn:active{transform:scale(0.98)}
+.copy-link-btn{
+  display:none;height:46px;margin-top:16px;padding:0 14px;
+  background:#f0fdf4;color:#16a34a;border:1.5px solid #86efac;border-radius:8px;
+  font-size:13px;font-weight:600;font-family:inherit;white-space:nowrap;
+  cursor:pointer;align-items:center;justify-content:center;gap:6px;
+  transition:background .15s,border-color .15s,transform .12s;flex-shrink:0;
+}
+.copy-link-btn.show{display:flex}
+.copy-link-btn:hover{background:#dcfce7;border-color:#4ade80}
+.copy-link-btn:active{transform:scale(0.97)}
+.copy-link-btn.copied{background:#dcfce7;color:#15803d;border-color:#4ade80}
 
 /* ── Footer ── */
 footer{
@@ -723,28 +734,52 @@ function renderDownloadButtons(data, runId){
   const dlActions = document.getElementById('dlActions');
   dlActions.innerHTML = '';
   const artifacts = data.artifacts || (data.artifact_id ? [{id:data.artifact_id,name:data.artifact_name||'APK'}] : []);
-  const DL_ICO = '<svg style="width:14px;height:14px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round" viewBox="0 0 24 24"><path d="M12 3v13M5 14l7 7 7-7"/><path d="M3 21h18"/></svg>';
+  const DL_ICO   = '<svg style="width:14px;height:14px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round" viewBox="0 0 24 24"><path d="M12 3v13M5 14l7 7 7-7"/><path d="M3 21h18"/></svg>';
+  const COPY_ICO = '<svg style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
+  const OK_ICO   = '<svg style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>';
 
-  if(artifacts.length === 0){
+  function makePair(dlUrl, label){
+    // 下载按钮
     const btn = document.createElement('button');
     btn.className='download-btn show'; btn.style.flex='1';
-    btn.innerHTML=DL_ICO+' 下载 APK';
-    btn.onclick=()=>{ window.location.href=WORKER+'/download?run_id='+runId; };
+    btn.innerHTML=DL_ICO+' '+label;
+    btn.onclick=()=>{ window.location.href=dlUrl; };
+    // 复制链接按钮
+    const cpBtn = document.createElement('button');
+    cpBtn.className='copy-link-btn show';
+    cpBtn.title='复制下载链接';
+    cpBtn.innerHTML=COPY_ICO+' 复制链接';
+    cpBtn.onclick=()=>{
+      navigator.clipboard.writeText(dlUrl).then(()=>{
+        cpBtn.innerHTML=OK_ICO+' 已复制';
+        cpBtn.classList.add('copied');
+        setTimeout(()=>{ cpBtn.innerHTML=COPY_ICO+' 复制链接'; cpBtn.classList.remove('copied'); }, 2000);
+      }).catch(()=>{
+        // 降级：创建临时 input 复制
+        const tmp=document.createElement('input');
+        tmp.value=dlUrl; document.body.appendChild(tmp);
+        tmp.select(); document.execCommand('copy'); document.body.removeChild(tmp);
+        cpBtn.innerHTML=OK_ICO+' 已复制'; cpBtn.classList.add('copied');
+        setTimeout(()=>{ cpBtn.innerHTML=COPY_ICO+' 复制链接'; cpBtn.classList.remove('copied'); }, 2000);
+      });
+    };
     dlActions.appendChild(btn);
+    dlActions.appendChild(cpBtn);
+  }
+
+  if(artifacts.length === 0){
+    makePair(WORKER+'/download?run_id='+runId, '下载 APK');
   } else {
     artifacts.forEach(art => {
       const isArm64   = art.name && /arm64/i.test(art.name);
       const isArmeabi = art.name && /armeabi/i.test(art.name);
       const label = isArm64 ? '64 Bit' : isArmeabi ? '32 Bit' : '下载 APK';
       const dlUrl = WORKER+'/download?run_id='+runId+'&artifact_id='+art.id;
-      const btn = document.createElement('button');
-      btn.className='download-btn show'; btn.style.flex='1';
-      btn.innerHTML=DL_ICO+' '+label;
-      btn.onclick=()=>{ window.location.href=dlUrl; };
-      dlActions.appendChild(btn);
+      makePair(dlUrl, label);
     });
   }
   dlActions.style.display='flex';
+  dlActions.style.flexWrap='wrap';
 }
 
 const SAVE_KEYS = ['f_url','f_name','f_pkg','f_ver','f_icon'];
