@@ -44,6 +44,10 @@ class MainActivity : AppCompatActivity() {
 
     private val timeoutRunnable = Runnable { hideOverlay() }
 
+    // 错误页状态：防止 onPageFinished 在错误页上执行主题色注入
+    private var isShowingError = false
+    private var failedUrl: String? = null
+
     // 按需权限：存储待处理的 web 权限请求
     private var pendingWebPermissionRequest: PermissionRequest? = null
     private var pendingGeoCallback: android.webkit.GeolocationPermissions.Callback? = null
@@ -105,12 +109,17 @@ class MainActivity : AppCompatActivity() {
         }
         webView.webViewClient = object : WebViewClient() {
             override fun onPageStarted(view: WebView, url: String, favicon: Bitmap?) {
+                // 用户重试或跳转新页面时，重置错误状态
+                if (url != failedUrl) {
+                    isShowingError = false
+                    failedUrl = null
+                }
                 if (isFirstLoad) showOverlay()
             }
 
             override fun onPageFinished(view: WebView, url: String) {
                 swipeRefresh.isRefreshing = false
-                fetchThemeColor(view)
+                if (!isShowingError) fetchThemeColor(view)
             }
 
             override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
@@ -124,7 +133,9 @@ class MainActivity : AppCompatActivity() {
             override fun onReceivedError(view: WebView, request: WebResourceRequest, error: WebResourceError) {
                 if (request.isForMainFrame) {
                     hideOverlay()
-                    view.loadData(errorHtml(), "text/html", "UTF-8")
+                    isShowingError = true
+                    failedUrl = request.url.toString()
+                    view.loadDataWithBaseURL(failedUrl, errorHtml(failedUrl), "text/html", "UTF-8", null)
                 }
             }
         }
@@ -326,18 +337,20 @@ class MainActivity : AppCompatActivity() {
         }.start()
     }
 
-    private fun errorHtml() = """
-        <html><body style="margin:0;display:flex;align-items:center;justify-content:center;
-        height:100vh;font-family:sans-serif;flex-direction:column;background:#fff;color:#333;">
-        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="1.5">
-          <circle cx="12" cy="12" r="10"/>
-          <line x1="12" y1="8" x2="12" y2="12"/>
-          <line x1="12" y1="16" x2="12.01" y2="16"/>
+    private fun errorHtml(url: String?) = """
+        <!DOCTYPE html>
+        <html><head><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+        <body style="margin:0;display:flex;align-items:center;justify-content:center;
+        height:100vh;font-family:-apple-system,sans-serif;flex-direction:column;background:#fff;color:#333;padding:24px;box-sizing:border-box;">
+        <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="1.5" style="margin-bottom:4px">
+          <path d="M3 12a9 9 0 1 0 18 0 9 9 0 0 0-18 0"/>
+          <path d="M12 8v4l3 3"/>
         </svg>
-        <p style="margin-top:16px;font-size:15px;">网络连接失败</p>
-        <button onclick="location.reload()"
-          style="margin-top:12px;padding:10px 24px;border:none;border-radius:999px;
-          background:#000;color:#fff;font-size:14px;cursor:pointer;">重试</button>
+        <p style="margin:16px 0 4px;font-size:16px;font-weight:600;">加载失败</p>
+        <p style="margin:0 0 24px;font-size:13px;color:#999;text-align:center;max-width:280px">网络连接不可用，请检查网络后重试</p>
+        <button onclick="window.location.replace('${url ?: "about:blank"}')"
+          style="padding:12px 32px;border:none;border-radius:999px;
+          background:#111;color:#fff;font-size:15px;cursor:pointer;font-family:inherit;">重试</button>
         </body></html>
     """.trimIndent()
 
