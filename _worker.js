@@ -44,9 +44,9 @@ async function handleBuild(request, env) {
   );
   if (r.status !== 204) return json({ error: 'Trigger failed', detail: await r.text() }, 500);
 
-  // 精确匹配：通过 run-name 中的 build_id 找到对应 run
+  // dispatch 触发后立即用精确时间戳快速匹配 run_id，最多 10 秒
   let runId = null;
-  for (let i = 0; i < 40; i++) {  // 500ms × 40 = 20s
+  for (let i = 0; i < 20; i++) {  // 500ms × 20 = 10s
     await sleep(500);
     const runs = await (await gh(env,
       `/repos/${env.GITHUB_OWNER}/${env.GITHUB_REPO}/actions/workflows/build.yml/runs?per_page=5`
@@ -55,10 +55,6 @@ async function handleBuild(request, env) {
     if (fresh) { runId = fresh.id; break; }
   }
   if (!runId) return json({ error: 'Could not get run_id after 10s' }, 500);
-  return json({ run_id: runId, status: 'queued' });
-    if (match) { runId = match.id; break; }
-  }
-  if (!runId) return json({ error: 'Could not find run with build_id=' + buildId + ' after 20s' }, 500);
   return json({ run_id: runId, status: 'queued' });
 }
 
