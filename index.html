@@ -816,11 +816,13 @@ async function handleBuildClick(){
   buildStartTime = Date.now();
   showStatus();
   setDot('running');
-  setTitle('提交中', '正在触发 GitHub Actions…');
+  setTitle('提交中', '正在触发 GitHub Actions，并等待回执…');
   setProgress(6);
   [1,2,3,4].forEach(n => setStep(n, ''));
 
   try {
+    const ctl = new AbortController();
+    const buildTimeout = setTimeout(() => ctl.abort(), 25000);
     const res  = await fetch(WORKER + '/build', {
       method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify(data),
