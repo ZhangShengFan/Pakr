@@ -33,13 +33,8 @@
 html{scroll-behavior:smooth}
 body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);font-size:14.5px;line-height:1.75;-webkit-font-smoothing:antialiased}
 
-/* ── NAV ── */
-.topnav{
-  position:fixed;top:0;left:0;right:0;height:var(--nav-h);
-  background:var(--bg);border-bottom:1px solid var(--border);
-  display:flex;align-items:center;padding:0 18px;gap:10px;z-index:200;
-  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
-}
+/* NAV */
+.topnav{position:fixed;top:0;left:0;right:0;height:var(--nav-h);background:var(--bg);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 18px;gap:10px;z-index:200;backdrop-filter:blur(12px)}
 .logo{display:flex;align-items:center;gap:9px;font-weight:650;font-size:15px;color:var(--text);text-decoration:none;flex-shrink:0}
 .logo-icon{width:28px;height:28px;background:var(--primary);border-radius:var(--r-md);display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(5,150,105,.35)}
 .nav-spacer{flex:1}
@@ -49,113 +44,67 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);font-
 .theme-btn:hover{color:var(--text);border-color:var(--faint)}
 .menu-btn{display:none;background:none;border:none;cursor:pointer;color:var(--text);padding:5px;border-radius:var(--r-md);flex-shrink:0}
 
-/* ── LAYOUT ── */
+/* LAYOUT */
 .layout{display:flex;margin-top:var(--nav-h);min-height:calc(100vh - var(--nav-h))}
 
-/* ── SIDEBAR ── */
-.sidebar{
-  width:var(--sidebar-w);flex-shrink:0;border-right:1px solid var(--border);
-  position:fixed;top:var(--nav-h);bottom:0;overflow-y:auto;
-  padding:18px 10px;background:var(--sidebar-bg);
-}
-.sidebar-group{margin-bottom:24px}
+/* SIDEBAR */
+.sidebar{width:var(--sidebar-w);flex-shrink:0;border-right:1px solid var(--border);position:fixed;top:var(--nav-h);bottom:0;overflow-y:auto;padding:18px 10px;background:var(--sidebar-bg)}
+.sidebar-group{margin-bottom:22px}
 .sidebar-grouplabel{font-size:10.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);padding:2px 12px 7px;display:block}
-.nav-item{
-  display:flex;align-items:center;gap:8px;width:100%;
-  padding:7px 12px;border-radius:var(--r-md);
-  font-size:13.5px;color:var(--muted);text-decoration:none;
-  cursor:pointer;background:none;border:none;text-align:left;
-  transition:all .15s;line-height:1.4;
-}
+.nav-item{display:flex;align-items:center;gap:8px;width:100%;padding:7px 12px;border-radius:var(--r-md);font-size:13.5px;color:var(--muted);text-decoration:none;cursor:pointer;background:none;border:none;text-align:left;transition:all .15s;line-height:1.4}
 .nav-item:hover{background:var(--surface);color:var(--text)}
 .nav-item.active{background:var(--primary-bg);color:var(--primary);font-weight:500}
-/* CSS dot */
 .nav-dot{width:6px;height:6px;border-radius:50%;background:var(--faint);flex-shrink:0;transition:background .15s}
 .nav-item.active .nav-dot{background:var(--primary)}
 .nav-item:hover .nav-dot{background:var(--muted)}
 
-/* ── CONTENT ── */
+/* CONTENT */
 .main{margin-left:var(--sidebar-w);flex:1;min-width:0}
-.content{max-width:680px;padding:36px 40px 80px;margin:0 auto}
+.content{max-width:700px;padding:36px 40px 80px;margin:0 auto}
 .page{display:none}.page.active{display:block}
 
-/* ── TYPOGRAPHY ── */
+/* TYPOGRAPHY */
 h1{font-size:23px;font-weight:700;line-height:1.25;color:var(--text);margin-bottom:8px}
 .page-subtitle{font-size:14.5px;color:var(--muted);margin-bottom:28px;line-height:1.65;max-width:56ch}
 h2{font-size:16.5px;font-weight:600;color:var(--text);margin:36px 0 14px;padding-bottom:8px;border-bottom:1px solid var(--border)}
-h3{font-size:14px;font-weight:600;color:var(--text);margin:18px 0 7px}
+h3{font-size:14px;font-weight:600;color:var(--text);margin:20px 0 8px}
 p{margin-bottom:13px;max-width:64ch;color:var(--text)}
 a{color:var(--primary);text-decoration:none}
 a:hover{text-decoration:underline}
 ul,ol{padding-left:20px;margin-bottom:14px}
 li{margin-bottom:5px;color:var(--muted)}
+li strong{color:var(--text)}
 
-/* ── CODE ── */
-pre{
-  background:var(--code-bg);border:1px solid var(--code-border);
-  border-radius:var(--r-lg);padding:16px 18px;overflow-x:auto;
-  margin:14px 0;font-size:12.5px;line-height:1.7;
-  box-shadow:var(--shadow-sm);
-}
+/* CODE */
+pre{background:var(--code-bg);border:1px solid var(--code-border);border-radius:var(--r-lg);padding:16px 18px;overflow-x:auto;margin:14px 0;font-size:12.5px;line-height:1.7;box-shadow:var(--shadow-sm)}
 code{font-family:'SF Mono','Fira Code','Cascadia Code',monospace;font-size:12.5px}
-:not(pre)>code{
-  background:var(--code-bg);border:1px solid var(--code-border);
-  padding:1.5px 5px;border-radius:5px;font-size:12px;
-}
+:not(pre)>code{background:var(--code-bg);border:1px solid var(--code-border);padding:1.5px 5px;border-radius:5px;font-size:12px}
 
-/* ── TABLE ── */
-.table-wrap{
-  overflow-x:auto;margin:14px 0;border-radius:var(--r-lg);
-  border:1px solid var(--border);box-shadow:var(--shadow-sm);
-}
+/* TABLE */
+.table-wrap{overflow-x:auto;margin:14px 0;border-radius:var(--r-lg);border:1px solid var(--border);box-shadow:var(--shadow-sm)}
 table{width:100%;border-collapse:collapse;font-size:13.5px}
-th{
-  text-align:left;padding:9px 14px;background:var(--surface);
-  color:var(--muted);font-weight:500;font-size:11px;
-  text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--border);
-}
+th{text-align:left;padding:9px 14px;background:var(--surface);color:var(--muted);font-weight:500;font-size:11px;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--border)}
 td{padding:10px 14px;border-bottom:1px solid var(--border);color:var(--text);vertical-align:top}
 tr:last-child td{border-bottom:none}
 tr:hover td{background:var(--surface)}
 
-/* ── CALLOUTS ── */
-.callout{
-  border-radius:var(--r-lg);padding:13px 16px;margin:16px 0;
-  display:flex;gap:11px;font-size:13.5px;line-height:1.65;
-}
+/* CALLOUTS */
+.callout{border-radius:var(--r-lg);padding:13px 16px;margin:16px 0;display:flex;gap:11px;font-size:13.5px;line-height:1.65}
 .callout-warn{background:var(--warn-bg);border:1px solid var(--warn-border);color:var(--warn-text)}
 .callout-tip{background:var(--tip-bg);border:1px solid var(--tip-border);color:var(--tip-text)}
 .callout p{margin:0;color:inherit;max-width:none}
-
-/* CSS icons for callouts */
+.callout ul{margin:6px 0 0;padding-left:16px}
+.callout li{color:inherit;margin-bottom:3px}
 .icon-warn{width:16px;height:16px;flex-shrink:0;margin-top:2px;position:relative}
-.icon-warn::before{
-  content:'';display:block;width:0;height:0;
-  border-left:8px solid transparent;border-right:8px solid transparent;
-  border-bottom:14px solid #f59e0b;border-radius:2px;
-}
-.icon-warn::after{
-  content:'!';position:absolute;left:50%;top:4px;
-  transform:translateX(-50%);font-size:8px;font-weight:700;
-  color:#fff;line-height:1;
-}
-.icon-tip{width:16px;height:16px;flex-shrink:0;margin-top:2px;
-  border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;
-  font-size:9px;font-weight:700;color:#fff;font-family:'Inter',sans-serif;
-}
+.icon-warn::before{content:'';display:block;width:0;height:0;border-left:8px solid transparent;border-right:8px solid transparent;border-bottom:14px solid #f59e0b;border-radius:2px}
+.icon-warn::after{content:'!';position:absolute;left:50%;top:4px;transform:translateX(-50%);font-size:8px;font-weight:700;color:#fff;line-height:1}
+.icon-tip{width:16px;height:16px;flex-shrink:0;margin-top:2px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff;font-family:'Inter',sans-serif}
 
-/* ── STEP TIMELINE ── */
+/* STEPS */
 .steps{margin:20px 0;display:flex;flex-direction:column}
-.step{display:flex;gap:0;position:relative}
+.step{display:flex;position:relative}
 .step-left{display:flex;flex-direction:column;align-items:center;width:34px;flex-shrink:0}
-.step-num{
-  width:30px;height:30px;border-radius:50%;
-  background:var(--primary);color:#fff;
-  font-size:12px;font-weight:700;
-  display:flex;align-items:center;justify-content:center;
-  flex-shrink:0;z-index:1;position:relative;
-  box-shadow:0 2px 8px rgba(5,150,105,.3);
-}
+.step-num{width:30px;height:30px;border-radius:50%;background:var(--primary);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;z-index:1;box-shadow:0 2px 8px rgba(5,150,105,.3)}
 .step-line{width:2px;background:var(--border);flex:1;margin:5px 0;min-height:12px}
 .step:last-child .step-line{display:none}
 .step-body{padding:0 0 28px 16px;flex:1;min-width:0}
@@ -165,55 +114,31 @@ tr:hover td{background:var(--surface)}
 .step-desc ul{padding-left:16px;margin-bottom:10px}
 .step-desc li{color:var(--muted);margin-bottom:4px;font-size:13.5px}
 
-/* ── REQS CARDS ── */
+/* REQ CARDS */
 .req-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:16px 0 24px}
-.req-card{
-  background:var(--surface);border:1px solid var(--border);
-  border-radius:var(--r-lg);padding:14px 16px;
-  display:flex;align-items:flex-start;gap:12px;
-  transition:border-color .15s;
-}
+.req-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:14px 16px;display:flex;align-items:flex-start;gap:12px;transition:border-color .15s}
 .req-card:hover{border-color:var(--primary)}
 .req-icon{width:32px;height:32px;border-radius:var(--r-md);flex-shrink:0;display:flex;align-items:center;justify-content:center}
-/* GitHub icon */
-.req-icon-gh{background:#1a1a1a}
-[data-theme="dark"] .req-icon-gh{background:#2d333b}
-/* CF icon */
+.req-icon-gh{background:#1a1a1a}[data-theme="dark"] .req-icon-gh{background:#2d333b}
 .req-icon-cf{background:#f6821f}
 .req-card-label{font-size:10.5px;color:var(--faint);font-weight:500;text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px}
 .req-card-title{font-size:13.5px;font-weight:600;color:var(--text)}
 .req-card-sub{font-size:12px;color:var(--muted);margin-top:1px}
 
-/* ── PAGER ── */
+/* PAGER */
 .pager{display:flex;gap:10px;margin-top:48px;padding-top:20px;border-top:1px solid var(--border)}
-.pager-btn{
-  border:1px solid var(--border);border-radius:var(--r-lg);
-  padding:12px 18px;text-decoration:none;color:var(--muted);
-  font-size:13px;transition:all .18s;display:block;max-width:200px;
-  background:var(--bg);box-shadow:var(--shadow-sm);
-}
+.pager-btn{border:1px solid var(--border);border-radius:var(--r-lg);padding:12px 18px;text-decoration:none;color:var(--muted);font-size:13px;transition:all .18s;display:block;max-width:200px;background:var(--bg);box-shadow:var(--shadow-sm)}
 .pager-btn:hover{border-color:var(--primary);color:var(--primary);text-decoration:none;box-shadow:var(--shadow-md)}
 .pager-btn.next{margin-left:auto;text-align:right}
 .pager-label{font-size:11px;opacity:.65;margin-bottom:2px}
 .pager-name{font-weight:500;color:inherit}
 
-/* ── FAQ ITEMS ── */
+/* FAQ */
 .faq-item{border:1px solid var(--border);border-radius:var(--r-lg);margin-bottom:10px;overflow:hidden;box-shadow:var(--shadow-sm)}
-.faq-q{
-  display:flex;align-items:center;justify-content:space-between;
-  padding:14px 18px;cursor:pointer;font-size:14px;font-weight:500;
-  color:var(--text);user-select:none;transition:background .15s;gap:10px;
-}
+.faq-q{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;cursor:pointer;font-size:14px;font-weight:500;color:var(--text);user-select:none;transition:background .15s;gap:10px}
 .faq-q:hover{background:var(--surface)}
-.faq-arrow{
-  width:18px;height:18px;flex-shrink:0;position:relative;
-  border:1.5px solid var(--faint);border-radius:50%;
-  transition:transform .2s,border-color .15s;
-}
-.faq-arrow::before,.faq-arrow::after{
-  content:'';position:absolute;background:var(--muted);
-  border-radius:2px;transition:background .15s;
-}
+.faq-arrow{width:18px;height:18px;flex-shrink:0;position:relative;border:1.5px solid var(--faint);border-radius:50%;transition:transform .2s,border-color .15s}
+.faq-arrow::before,.faq-arrow::after{content:'';position:absolute;background:var(--muted);border-radius:2px;transition:background .15s}
 .faq-arrow::before{width:8px;height:1.5px;top:50%;left:50%;transform:translate(-50%,-50%)}
 .faq-arrow::after{width:1.5px;height:8px;top:50%;left:50%;transform:translate(-50%,-50%);transition:transform .2s,opacity .2s}
 .faq-item.open .faq-q{background:var(--surface)}
@@ -225,7 +150,61 @@ tr:hover td{background:var(--surface)}
 .faq-a ul{padding-left:16px;margin-bottom:8px}
 .faq-a li{color:var(--muted);margin-bottom:4px}
 
-/* ── MOBILE ── */
+/* BADGE (changelog) */
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:var(--r-full);font-size:11.5px;font-weight:500;margin-right:6px;margin-bottom:2px}
+.badge-green{background:#dcfce7;color:#166534}[data-theme="dark"] .badge-green{background:#052e16;color:#4ade80}
+.badge-blue{background:#dbeafe;color:#1e40af}[data-theme="dark"] .badge-blue{background:#0c1a3a;color:#93c5fd}
+.badge-orange{background:#ffedd5;color:#9a3412}[data-theme="dark"] .badge-orange{background:#3a1500;color:#fb923c}
+.badge-gray{background:var(--surface);color:var(--muted);border:1px solid var(--border)}
+
+/* VERSION BLOCK */
+.version-block{border:1px solid var(--border);border-radius:var(--r-xl);padding:20px 22px;margin-bottom:18px;background:var(--bg);box-shadow:var(--shadow-sm)}
+.version-header{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+.version-num{font-size:15px;font-weight:700;color:var(--text)}
+.version-date{font-size:12px;color:var(--muted)}
+.version-block ul{padding-left:18px;margin:0}
+.version-block li{margin-bottom:6px;font-size:13.5px;color:var(--muted)}
+
+/* ARCH DIAGRAM */
+.arch-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-xl);padding:24px 20px;margin:16px 0;overflow-x:auto}
+.arch-row{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+.arch-box{background:var(--bg);border:1px solid var(--border);border-radius:var(--r-lg);padding:12px 18px;text-align:center;box-shadow:var(--shadow-sm);min-width:100px}
+.arch-box-title{font-size:12px;font-weight:600;color:var(--text)}
+.arch-box-sub{font-size:11px;color:var(--muted);margin-top:2px}
+.arch-box.highlight{border-color:var(--primary);background:var(--primary-bg)}
+.arch-box.highlight .arch-box-title{color:var(--primary)}
+.arch-arrow{color:var(--faint);font-size:18px;flex-shrink:0;font-weight:300;line-height:1}
+.arch-label{font-size:11px;color:var(--faint);text-align:center;margin-top:4px}
+
+/* API ENDPOINT */
+.endpoint{border:1px solid var(--border);border-radius:var(--r-lg);margin-bottom:14px;overflow:hidden;box-shadow:var(--shadow-sm)}
+.endpoint-header{display:flex;align-items:center;gap:10px;padding:12px 16px;background:var(--surface);cursor:pointer;user-select:none;transition:background .15s}
+.endpoint-header:hover{background:var(--code-bg)}
+.method{padding:3px 8px;border-radius:var(--r-sm);font-size:11px;font-weight:700;letter-spacing:.04em;flex-shrink:0}
+.method-post{background:#dbeafe;color:#1e40af}[data-theme="dark"] .method-post{background:#0c1a3a;color:#93c5fd}
+.method-get{background:#dcfce7;color:#166534}[data-theme="dark"] .method-get{background:#052e16;color:#4ade80}
+.endpoint-path{font-size:13px;font-family:'SF Mono','Fira Code',monospace;color:var(--text);font-weight:500}
+.endpoint-desc{font-size:12.5px;color:var(--muted);margin-left:auto}
+.endpoint-body{padding:16px;display:none}
+.endpoint.open .endpoint-body{display:block}
+.endpoint-body h4{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--faint);margin-bottom:8px}
+
+/* PARAM TABLE */
+.param-table{width:100%;border-collapse:collapse;font-size:12.5px;margin-bottom:14px}
+.param-table th{text-align:left;padding:6px 10px;background:var(--surface);color:var(--muted);font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid var(--border)}
+.param-table td{padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top}
+.param-table tr:last-child td{border-bottom:none}
+.param-required{color:#ef4444;font-size:10px;font-weight:600;margin-left:4px}
+
+/* USAGE CARDS */
+.use-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:16px 0}
+.use-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:16px;transition:all .15s}
+.use-card:hover{border-color:var(--primary);box-shadow:var(--shadow-md)}
+.use-card-icon{width:36px;height:36px;border-radius:var(--r-md);background:var(--primary-bg);border:1px solid var(--primary-border);display:flex;align-items:center;justify-content:center;margin-bottom:10px}
+.use-card-title{font-size:13.5px;font-weight:600;color:var(--text);margin-bottom:4px}
+.use-card-desc{font-size:12.5px;color:var(--muted);line-height:1.55}
+
+/* MOBILE */
 .sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:190;backdrop-filter:blur(2px)}
 @media(max-width:768px){
   :root{--nav-h:52px}
@@ -237,8 +216,11 @@ tr:hover td{background:var(--surface)}
   .content{padding:22px 16px 60px}
   h1{font-size:20px}
   h2{font-size:15px}
-  .req-grid{grid-template-columns:1fr}
+  .req-grid,.use-grid{grid-template-columns:1fr}
   .nav-link span{display:none}
+  .arch-row{gap:5px}
+  .arch-box{min-width:80px;padding:10px 12px}
+  .endpoint-desc{display:none}
 }
 </style>
 </head>
@@ -273,14 +255,21 @@ tr:hover td{background:var(--surface)}
 <div class="layout">
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-group">
-      <span class="sidebar-grouplabel">部署</span>
+      <span class="sidebar-grouplabel">入门</span>
       <button class="nav-item active" onclick="goPage('deploy')"><span class="nav-dot"></span>快速部署</button>
+      <button class="nav-item" onclick="goPage('usage')"><span class="nav-dot"></span>使用指南</button>
+    </div>
+    <div class="sidebar-group">
+      <span class="sidebar-grouplabel">部署</span>
       <button class="nav-item" onclick="goPage('keystore')"><span class="nav-dot"></span>配置签名</button>
       <button class="nav-item" onclick="goPage('secrets')"><span class="nav-dot"></span>配置 Secrets</button>
       <button class="nav-item" onclick="goPage('cfpages')"><span class="nav-dot"></span>部署到 CF Pages</button>
     </div>
     <div class="sidebar-group">
       <span class="sidebar-grouplabel">参考</span>
+      <button class="nav-item" onclick="goPage('arch')"><span class="nav-dot"></span>架构说明</button>
+      <button class="nav-item" onclick="goPage('api')"><span class="nav-dot"></span>API 文档</button>
+      <button class="nav-item" onclick="goPage('changelog')"><span class="nav-dot"></span>更新日志</button>
       <button class="nav-item" onclick="goPage('faq')"><span class="nav-dot"></span>常见问题</button>
     </div>
   </aside>
@@ -288,257 +277,395 @@ tr:hover td{background:var(--surface)}
   <main class="main">
     <div class="content">
 
-      <!-- 快速部署 -->
+      <!-- ═══ 快速部署 ═══ -->
       <div class="page active" id="page-deploy">
         <h1>快速部署</h1>
         <p class="page-subtitle">按以下步骤操作，约 5 分钟即可完成部署，获得你自己的 APK 打包服务。</p>
-
         <h2>前置要求</h2>
         <div class="req-grid">
           <div class="req-card">
-            <div class="req-icon req-icon-gh">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
-            </div>
-            <div>
-              <div class="req-card-label">必需</div>
-              <div class="req-card-title">GitHub 账号</div>
-              <div class="req-card-sub">用于 Actions 构建，免费</div>
-            </div>
+            <div class="req-icon req-icon-gh"><svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg></div>
+            <div><div class="req-card-label">必需</div><div class="req-card-title">GitHub 账号</div><div class="req-card-sub">用于 Actions 构建，免费</div></div>
           </div>
           <div class="req-card">
-            <div class="req-icon req-icon-cf">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M16.5 14.3c-.1-.4-.5-.7-1-.7H6.8c-.4 0-.5.5-.1.6l1.5.4c.4.1.7.5.7.9 0 .6-.5 1.1-1.1 1.1H5.3c-.4 0-.5.5-.1.6l1.1.3c.3.1.5.4.5.7 0 .4-.4.8-.9.8H4.5c-.3 0-.4.4-.1.5C5.6 20.4 7.1 21 8.8 21c3.3 0 5.9-2.6 5.9-5.9 0-.2 0-.4-.1-.6l1.2-.1c.5-.1.8-.5.8-1l-.1-.1zM20.1 8.5c0-.1 0-.3-.1-.4-.3-2.3-2.2-4-4.5-4-1.8 0-3.4 1-4.2 2.6-.4-.3-.9-.4-1.4-.4-1.3 0-2.3 1-2.3 2.3 0 .1 0 .2.1.3C6.4 9.1 5.5 10.1 5.5 11.3c0 1.3 1.1 2.4 2.4 2.4h9.8c1.3 0 2.3-1 2.3-2.3 0-.9-.5-1.7-1.3-2.1.1-.3.1-.6 0-.8z"/></svg>
-            </div>
-            <div>
-              <div class="req-card-label">必需</div>
-              <div class="req-card-title">Cloudflare 账号</div>
-              <div class="req-card-sub">用于 Pages 托管，免费</div>
-            </div>
+            <div class="req-icon req-icon-cf"><svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M16.5 14.3c-.1-.4-.5-.7-1-.7H6.8c-.4 0-.5.5-.1.6l1.5.4c.4.1.7.5.7.9 0 .6-.5 1.1-1.1 1.1H5.3c-.4 0-.5.5-.1.6l1.1.3c.3.1.5.4.5.7 0 .4-.4.8-.9.8H4.5c-.3 0-.4.4-.1.5C5.6 20.4 7.1 21 8.8 21c3.3 0 5.9-2.6 5.9-5.9 0-.2 0-.4-.1-.6l1.2-.1c.5-.1.8-.5.8-1l-.1-.1zM20.1 8.5c0-.1 0-.3-.1-.4-.3-2.3-2.2-4-4.5-4-1.8 0-3.4 1-4.2 2.6-.4-.3-.9-.4-1.4-.4-1.3 0-2.3 1-2.3 2.3 0 .1 0 .2.1.3C6.4 9.1 5.5 10.1 5.5 11.3c0 1.3 1.1 2.4 2.4 2.4h9.8c1.3 0 2.3-1 2.3-2.3 0-.9-.5-1.7-1.3-2.1.1-.3.1-.6 0-.8z"/></svg></div>
+            <div><div class="req-card-label">必需</div><div class="req-card-title">Cloudflare 账号</div><div class="req-card-sub">用于 Pages 托管，免费</div></div>
           </div>
         </div>
-
         <h2>部署步骤</h2>
         <div class="steps">
-          <div class="step">
-            <div class="step-left"><div class="step-num">1</div><div class="step-line"></div></div>
-            <div class="step-body">
-              <div class="step-title">Fork 仓库</div>
-              <div class="step-desc">
-                <p>打开 <a href="https://github.com/ZhangShengFan/Pakr" target="_blank">ZhangShengFan/Pakr</a>，点击右上角 <strong>Fork</strong> 按钮，将仓库复制到你自己的账号下。</p>
-              </div>
-            </div>
+          <div class="step"><div class="step-left"><div class="step-num">1</div><div class="step-line"></div></div><div class="step-body"><div class="step-title">Fork 仓库</div><div class="step-desc"><p>打开 <a href="https://github.com/ZhangShengFan/Pakr" target="_blank">ZhangShengFan/Pakr</a>，点击右上角 <strong>Fork</strong>，将仓库复制到自己的账号。</p></div></div></div>
+          <div class="step"><div class="step-left"><div class="step-num">2</div><div class="step-line"></div></div><div class="step-body"><div class="step-title">生成签名 Keystore</div><div class="step-desc"><p>进入你 Fork 的仓库 → <strong>Actions → gen-keystore → Run workflow</strong>，填写密码后运行。完成后复制日志中的 Base64 字符串。</p><div class="callout callout-tip"><div class="icon-tip">i</div><p>Keystore 决定 APK 签名身份，同一 Keystore 签的包才能升级覆盖安装。</p></div></div></div></div>
+          <div class="step"><div class="step-left"><div class="step-num">3</div><div class="step-line"></div></div><div class="step-body"><div class="step-title">配置 GitHub Secrets</div><div class="step-desc"><p>仓库 → <strong>Settings → Secrets and variables → Actions → New repository secret</strong>，依次添加 5 个 Secret：</p><div class="table-wrap"><table><tr><th>名称</th><th>值</th></tr><tr><td><code>KEYSTORE_BASE64</code></td><td>上一步 Base64 字符串</td></tr><tr><td><code>KEYSTORE_PASSWORD</code></td><td>gen-keystore 设置的密码</td></tr><tr><td><code>KEY_ALIAS</code></td><td><code>release</code></td></tr><tr><td><code>KEY_PASSWORD</code></td><td>同 KEYSTORE_PASSWORD</td></tr><tr><td><code>GH_PAT</code></td><td>GitHub PAT（需要 repo + workflow 权限）</td></tr></table></div></div></div></div>
+          <div class="step"><div class="step-left"><div class="step-num">4</div><div class="step-line"></div></div><div class="step-body"><div class="step-title">部署到 Cloudflare Pages</div><div class="step-desc"><p><a href="https://dash.cloudflare.com" target="_blank">Cloudflare Dashboard</a> → <strong>Pages → Create → Connect to Git</strong>，选择 Fork 的仓库，构建配置留空，点击 <strong>Save and Deploy</strong>。</p><p>部署后 → <strong>Settings → Environment variables</strong>，添加 <code>GH_TOKEN</code>（值同 GH_PAT），然后手动触发一次 Retry deployment。</p></div></div></div>
+          <div class="step"><div class="step-left"><div class="step-num">5</div></div><div class="step-body"><div class="step-title">绑定自定义域名（可选）</div><div class="step-desc"><p>Pages 项目 → <strong>Custom domains</strong> → 添加域名，Cloudflare 自动配置 SSL。</p></div></div></div>
+        </div>
+        <div class="pager"><span></span><a class="pager-btn next" href="#" onclick="goPage('usage');return false"><div class="pager-label">下一页</div><div class="pager-name">使用指南 →</div></a></div>
+      </div>
+
+      <!-- ═══ 使用指南 ═══ -->
+      <div class="page" id="page-usage">
+        <h1>使用指南</h1>
+        <p class="page-subtitle">了解如何填写表单、设置图标和配置打包参数，让打出的 APK 更符合你的需求。</p>
+
+        <h2>基本使用流程</h2>
+        <div class="steps">
+          <div class="step"><div class="step-left"><div class="step-num">1</div><div class="step-line"></div></div><div class="step-body"><div class="step-title">填写应用信息</div><div class="step-desc"><p>打开你部署的站点，在表单中依次填写：</p><ul><li><strong>应用名称</strong> — 显示在桌面的名字，支持中文，建议不超过 10 个字</li><li><strong>网站 URL</strong> — 需包含 <code>https://</code>，支持带路径的子页面</li><li><strong>包名</strong> — 格式为 <code>com.example.app</code>，安装后不可更改</li></ul></div></div></div>
+          <div class="step"><div class="step-left"><div class="step-num">2</div><div class="step-line"></div></div><div class="step-body"><div class="step-title">上传图标</div><div class="step-desc"><p>点击图标上传区域，选择图片文件。推荐规格：</p><ul><li>尺寸：<strong>512×512px</strong>（最低 192×192px）</li><li>格式：PNG，带透明通道效果更好</li><li>内容：避免图标四周留太多空白，否则桌面显示会很小</li></ul><div class="callout callout-tip"><div class="icon-tip">i</div><p>不上传图标时，系统会自动使用目标网站的 favicon 作为图标。</p></div></div></div></div>
+          <div class="step"><div class="step-left"><div class="step-num">3</div><div class="step-line"></div></div><div class="step-body"><div class="step-title">选择 APK 架构</div><div class="step-desc"><p>默认生成 <strong>arm64-v8a + armeabi-v7a</strong> 通用包，覆盖 99% 的 Android 设备。如需生成体积更小的包，可在高级设置中选择单一架构。</p><div class="table-wrap"><table><tr><th>架构</th><th>适用设备</th><th>APK 体积</th></tr><tr><td><code>arm64-v8a</code></td><td>2017 年后所有安卓手机</td><td>约 3.5 MB</td></tr><tr><td><code>armeabi-v7a</code></td><td>老机型兼容包</td><td>约 2.8 MB</td></tr><tr><td>通用（默认）</td><td>全部设备</td><td>约 4 MB</td></tr></table></div></div></div></div>
+          <div class="step"><div class="step-left"><div class="step-num">4</div><div class="step-line"></div></div><div class="step-body"><div class="step-title">提交打包</div><div class="step-desc"><p>点击「开始打包」，系统会触发 GitHub Actions，页面实时显示构建进度。一般 3～5 分钟完成。</p></div></div></div>
+          <div class="step"><div class="step-left"><div class="step-num">5</div></div><div class="step-body"><div class="step-title">下载 APK</div><div class="step-desc"><p>构建完成后，页面显示下载按钮。APK 默认保存 7 天，请及时下载。下载后直接发送到手机安装即可。</p><div class="callout callout-warn"><div class="icon-warn"></div><p>Android 默认不允许安装未知来源应用，安装前需在「设置 → 安全 → 未知来源」中允许。</p></div></div></div></div>
+        </div>
+
+        <h2>功能卡片说明</h2>
+        <div class="use-grid">
+          <div class="use-card">
+            <div class="use-card-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg></div>
+            <div class="use-card-title">全自动构建</div>
+            <div class="use-card-desc">提交后自动触发 GitHub Actions，全程无需本地环境，云端完成编译签名打包。</div>
           </div>
-          <div class="step">
-            <div class="step-left"><div class="step-num">2</div><div class="step-line"></div></div>
-            <div class="step-body">
-              <div class="step-title">生成签名 Keystore</div>
-              <div class="step-desc">
-                <p>进入你 Fork 的仓库 → <strong>Actions → gen-keystore → Run workflow</strong>，填写密码后运行。完成后在日志里复制输出的 Base64 字符串备用。</p>
-                <div class="callout callout-tip"><div class="icon-tip">i</div><p>Keystore 决定了 APK 的签名身份。同一个 Keystore 签的包才能互相升级覆盖安装。</p></div>
-              </div>
-            </div>
+          <div class="use-card">
+            <div class="use-card-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+            <div class="use-card-title">实时进度</div>
+            <div class="use-card-desc">显示精确百分比和当前步骤，可随时掌握打包进度，无需刷新页面。</div>
           </div>
-          <div class="step">
-            <div class="step-left"><div class="step-num">3</div><div class="step-line"></div></div>
-            <div class="step-body">
-              <div class="step-title">配置 GitHub Secrets</div>
-              <div class="step-desc">
-                <p>进入仓库 → <strong>Settings → Secrets and variables → Actions → New repository secret</strong>，依次添加 5 个 Secret：</p>
-                <div class="table-wrap">
-                  <table>
-                    <tr><th>名称</th><th>值</th></tr>
-                    <tr><td><code>KEYSTORE_BASE64</code></td><td>上一步复制的 Base64 字符串</td></tr>
-                    <tr><td><code>KEYSTORE_PASSWORD</code></td><td>gen-keystore 时设置的密码</td></tr>
-                    <tr><td><code>KEY_ALIAS</code></td><td><code>release</code></td></tr>
-                    <tr><td><code>KEY_PASSWORD</code></td><td>同 KEYSTORE_PASSWORD</td></tr>
-                    <tr><td><code>GH_PAT</code></td><td>GitHub PAT（需要 <code>repo</code> + <code>workflow</code> 权限）</td></tr>
-                  </table>
-                </div>
-              </div>
-            </div>
+          <div class="use-card">
+            <div class="use-card-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+            <div class="use-card-title">Release 签名</div>
+            <div class="use-card-desc">使用你自己的 Keystore 正式签名，可上架应用商店，支持 APK 升级覆盖安装。</div>
           </div>
-          <div class="step">
-            <div class="step-left"><div class="step-num">4</div><div class="step-line"></div></div>
-            <div class="step-body">
-              <div class="step-title">部署到 Cloudflare Pages</div>
-              <div class="step-desc">
-                <p>登录 <a href="https://dash.cloudflare.com" target="_blank">Cloudflare Dashboard</a> → <strong>Pages → Create → Connect to Git</strong>，选择你 Fork 的仓库，构建配置留空，点击 <strong>Save and Deploy</strong>。</p>
-                <p>部署成功后，进入 <strong>Settings → Environment variables</strong> 添加：</p>
-                <div class="table-wrap">
-                  <table>
-                    <tr><th>变量名</th><th>值</th></tr>
-                    <tr><td><code>GH_TOKEN</code></td><td>同 GH_PAT 的值</td></tr>
-                  </table>
-                </div>
-                <div class="callout callout-warn"><div class="icon-warn"></div><p>添加变量后需在 Deployments 页面手动 <strong>Retry deployment</strong> 一次才生效。</p></div>
-              </div>
-            </div>
-          </div>
-          <div class="step">
-            <div class="step-left"><div class="step-num">5</div></div>
-            <div class="step-body">
-              <div class="step-title">绑定自定义域名（可选）</div>
-              <div class="step-desc">
-                <p>在 Pages 项目 → <strong>Custom domains</strong> → 添加你的域名，Cloudflare 自动配置 SSL。</p>
-              </div>
-            </div>
+          <div class="use-card">
+            <div class="use-card-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></div>
+            <div class="use-card-title">系统下载管理</div>
+            <div class="use-card-desc">通过系统 DownloadManager 下载，支持后台下载，下载失败自动重试。</div>
           </div>
         </div>
 
         <div class="pager">
-          <span></span>
-          <a class="pager-btn next" href="#" onclick="goPage('faq');return false">
-            <div class="pager-label">参考</div>
-            <div class="pager-name">常见问题 →</div>
-          </a>
+          <a class="pager-btn" href="#" onclick="goPage('deploy');return false"><div class="pager-label">上一页</div><div class="pager-name">← 快速部署</div></a>
+          <a class="pager-btn next" href="#" onclick="goPage('arch');return false"><div class="pager-label">下一页</div><div class="pager-name">架构说明 →</div></a>
         </div>
       </div>
 
-      <!-- 配置签名 -->
+      <!-- ═══ 配置签名 ═══ -->
       <div class="page" id="page-keystore">
         <h1>配置签名 Keystore</h1>
         <p class="page-subtitle">Keystore 正确配置后，每次打包签名一致，可以升级覆盖安装。</p>
-
         <h2>生成 Keystore</h2>
         <p>进入你 Fork 的仓库 → <strong>Actions</strong> → 左侧 <strong>gen-keystore</strong> → 点击 <strong>Run workflow</strong>，填写密码，等待约 30 秒完成。</p>
-
         <h2>获取 Base64 字符串</h2>
         <p>运行完成后，点击该次运行 → 展开 <strong>Generate Keystore</strong> 步骤 → 找到 <code>KEYSTORE_BASE64:</code> 行，复制后面的完整字符串。</p>
         <div class="callout callout-warn"><div class="icon-warn"></div><p>这段字符串是签名凭证，不要泄露。丢失后无法找回，重新生成后已安装的 APK 将无法升级覆盖。</p></div>
-
+        <h2>Keystore 参数说明</h2>
+        <div class="table-wrap"><table><tr><th>参数</th><th>说明</th><th>默认值</th></tr><tr><td>Key Alias</td><td>密钥别名，填入 Secret 时固定为</td><td><code>release</code></td></tr><tr><td>Validity</td><td>有效期，单位年</td><td>100 年</td></tr><tr><td>Algorithm</td><td>签名算法</td><td>RSA 2048</td></tr></table></div>
         <div class="pager">
           <a class="pager-btn" href="#" onclick="goPage('deploy');return false"><div class="pager-label">上一页</div><div class="pager-name">← 快速部署</div></a>
           <a class="pager-btn next" href="#" onclick="goPage('secrets');return false"><div class="pager-label">下一步</div><div class="pager-name">配置 Secrets →</div></a>
         </div>
       </div>
 
-      <!-- 配置 Secrets -->
+      <!-- ═══ 配置 Secrets ═══ -->
       <div class="page" id="page-secrets">
         <h1>配置 GitHub Secrets</h1>
         <p class="page-subtitle">Secrets 向 Actions 传递敏感信息，不会出现在代码或日志中。</p>
-
-        <h2>创建 PAT</h2>
-        <p>前往 <a href="https://github.com/settings/tokens/new" target="_blank">GitHub → Settings → Developer settings → Personal access tokens → Tokens (classic) → Generate new token</a>。</p>
-        <p>勾选权限：</p>
-        <ul>
-          <li><code>repo</code> — 访问仓库</li>
-          <li><code>workflow</code> — 触发 Actions</li>
-        </ul>
-        <p>生成后复制 Token（只显示一次）。</p>
-
+        <h2>创建 Personal Access Token</h2>
+        <p>前往 <a href="https://github.com/settings/tokens/new" target="_blank">GitHub → Settings → Developer settings → Personal access tokens → Tokens (classic)</a>，点击 <strong>Generate new token</strong>。</p>
+        <p>勾选以下权限：</p>
+        <ul><li><code>repo</code> — 访问私有仓库</li><li><code>workflow</code> — 触发和管理 Actions</li></ul>
+        <p>生成后立即复制 Token（离开页面后不再显示）。</p>
         <h2>添加 Secrets</h2>
-        <p>进入仓库 → <strong>Settings → Secrets and variables → Actions → New repository secret</strong>：</p>
-        <div class="table-wrap">
-          <table>
-            <tr><th>名称</th><th>值</th></tr>
-            <tr><td><code>KEYSTORE_BASE64</code></td><td>gen-keystore 输出的 Base64</td></tr>
-            <tr><td><code>KEYSTORE_PASSWORD</code></td><td>gen-keystore 时的密码</td></tr>
-            <tr><td><code>KEY_ALIAS</code></td><td><code>release</code></td></tr>
-            <tr><td><code>KEY_PASSWORD</code></td><td>同 KEYSTORE_PASSWORD</td></tr>
-            <tr><td><code>GH_PAT</code></td><td>刚生成的 Personal Access Token</td></tr>
-          </table>
-        </div>
-
+        <p>仓库 → <strong>Settings → Secrets and variables → Actions → New repository secret</strong>：</p>
+        <div class="table-wrap"><table><tr><th>名称</th><th>值</th><th>说明</th></tr><tr><td><code>KEYSTORE_BASE64</code></td><td>gen-keystore 输出的 Base64</td><td>签名文件</td></tr><tr><td><code>KEYSTORE_PASSWORD</code></td><td>gen-keystore 时的密码</td><td>Keystore 密码</td></tr><tr><td><code>KEY_ALIAS</code></td><td><code>release</code></td><td>密钥别名，固定值</td></tr><tr><td><code>KEY_PASSWORD</code></td><td>同 KEYSTORE_PASSWORD</td><td>密钥密码</td></tr><tr><td><code>GH_PAT</code></td><td>刚生成的 Personal Access Token</td><td>触发 Actions</td></tr></table></div>
+        <div class="callout callout-tip"><div class="icon-tip">i</div><p>Secrets 添加后无法查看原始值，只能覆盖。建议将 4 个 Keystore 相关 Secret 备份到安全位置。</p></div>
         <div class="pager">
           <a class="pager-btn" href="#" onclick="goPage('keystore');return false"><div class="pager-label">上一页</div><div class="pager-name">← 配置签名</div></a>
           <a class="pager-btn next" href="#" onclick="goPage('cfpages');return false"><div class="pager-label">下一步</div><div class="pager-name">部署到 CF Pages →</div></a>
         </div>
       </div>
 
-      <!-- CF Pages -->
+      <!-- ═══ CF Pages ═══ -->
       <div class="page" id="page-cfpages">
         <h1>部署到 Cloudflare Pages</h1>
-        <p class="page-subtitle">Pakr 是纯静态文件，直接托管在 Cloudflare Pages，无需服务器。</p>
-
+        <p class="page-subtitle">Pakr 是纯静态项目，托管在 Cloudflare Pages，全球 CDN 加速，免费无限流量。</p>
         <div class="steps">
-          <div class="step">
-            <div class="step-left"><div class="step-num">1</div><div class="step-line"></div></div>
-            <div class="step-body">
-              <div class="step-title">连接 GitHub 仓库</div>
-              <div class="step-desc"><p><a href="https://dash.cloudflare.com" target="_blank">Cloudflare Dashboard</a> → <strong>Workers & Pages → Create → Pages → Connect to Git</strong>，选择你 Fork 的仓库，点击 <strong>Begin setup</strong>。</p></div>
-            </div>
+          <div class="step"><div class="step-left"><div class="step-num">1</div><div class="step-line"></div></div><div class="step-body"><div class="step-title">连接 GitHub 仓库</div><div class="step-desc"><p><a href="https://dash.cloudflare.com" target="_blank">Cloudflare Dashboard</a> → <strong>Workers & Pages → Create → Pages → Connect to Git</strong>，选择你 Fork 的仓库，点击 <strong>Begin setup</strong>。</p></div></div></div>
+          <div class="step"><div class="step-left"><div class="step-num">2</div><div class="step-line"></div></div><div class="step-body"><div class="step-title">构建配置留空</div><div class="step-desc"><div class="table-wrap"><table><tr><th>配置项</th><th>值</th></tr><tr><td>Build command</td><td>留空</td></tr><tr><td>Build output directory</td><td>留空</td></tr><tr><td>Root directory</td><td>留空</td></tr></table></div><p>直接点击 <strong>Save and Deploy</strong>。</p></div></div></div>
+          <div class="step"><div class="step-left"><div class="step-num">3</div><div class="step-line"></div></div><div class="step-body"><div class="step-title">添加环境变量</div><div class="step-desc"><p>部署完成后 → <strong>Settings → Environment variables → Add variable</strong>：</p><div class="table-wrap"><table><tr><th>变量名</th><th>值</th></tr><tr><td><code>GH_TOKEN</code></td><td>与 GH_PAT 相同</td></tr></table></div><div class="callout callout-warn"><div class="icon-warn"></div><p>添加后需在 <strong>Deployments</strong> 手动点击 <strong>Retry deployment</strong> 才能生效。</p></div></div></div></div>
+          <div class="step"><div class="step-left"><div class="step-num">4</div></div><div class="step-body"><div class="step-title">绑定自定义域名（可选）</div><div class="step-desc"><p>项目 → <strong>Custom domains → Set up a custom domain</strong>，输入域名按提示配置 DNS，SSL 自动颁发。</p></div></div></div>
+        </div>
+        <h2>自动更新</h2>
+        <p>CF Pages 默认开启 Auto Deployment，每次向主分支 push 代码后自动重新部署，无需手动操作。</p>
+        <div class="pager">
+          <a class="pager-btn" href="#" onclick="goPage('secrets');return false"><div class="pager-label">上一页</div><div class="pager-name">← 配置 Secrets</div></a>
+          <a class="pager-btn next" href="#" onclick="goPage('arch');return false"><div class="pager-label">下一页</div><div class="pager-name">架构说明 →</div></a>
+        </div>
+      </div>
+
+      <!-- ═══ 架构说明 ═══ -->
+      <div class="page" id="page-arch">
+        <h1>架构说明</h1>
+        <p class="page-subtitle">Pakr 采用三层无服务器架构，所有计算资源均来自免费托管平台，零成本运行。</p>
+
+        <h2>整体架构</h2>
+        <div class="arch-wrap">
+          <div class="arch-row">
+            <div class="arch-box"><div class="arch-box-title">浏览器</div><div class="arch-box-sub">用户 / 表单输入</div></div>
+            <div class="arch-arrow">→</div>
+            <div class="arch-box highlight"><div class="arch-box-title">CF Pages</div><div class="arch-box-sub">静态前端 + Worker</div></div>
+            <div class="arch-arrow">→</div>
+            <div class="arch-box"><div class="arch-box-title">GitHub API</div><div class="arch-box-sub">触发 Actions</div></div>
           </div>
-          <div class="step">
-            <div class="step-left"><div class="step-num">2</div><div class="step-line"></div></div>
-            <div class="step-body">
-              <div class="step-title">构建配置留空</div>
-              <div class="step-desc">
-                <div class="table-wrap">
-                  <table>
-                    <tr><th>配置项</th><th>值</th></tr>
-                    <tr><td>Build command</td><td>留空</td></tr>
-                    <tr><td>Build output directory</td><td>留空</td></tr>
-                  </table>
-                </div>
-                <p>直接点击 <strong>Save and Deploy</strong>。</p>
-              </div>
-            </div>
-          </div>
-          <div class="step">
-            <div class="step-left"><div class="step-num">3</div><div class="step-line"></div></div>
-            <div class="step-body">
-              <div class="step-title">添加环境变量</div>
-              <div class="step-desc">
-                <p>部署完成后 → <strong>Settings → Environment variables → Add variable</strong>：</p>
-                <div class="table-wrap">
-                  <table>
-                    <tr><th>变量名</th><th>值</th></tr>
-                    <tr><td><code>GH_TOKEN</code></td><td>与 GH_PAT 相同</td></tr>
-                  </table>
-                </div>
-                <div class="callout callout-warn"><div class="icon-warn"></div><p>添加后需在 <strong>Deployments</strong> 手动触发 <strong>Retry deployment</strong> 才生效。</p></div>
-              </div>
-            </div>
-          </div>
-          <div class="step">
-            <div class="step-left"><div class="step-num">4</div></div>
-            <div class="step-body">
-              <div class="step-title">绑定域名（可选）</div>
-              <div class="step-desc"><p>项目 → <strong>Custom domains → Set up a custom domain</strong>，输入域名，按提示添加 DNS 记录，SSL 自动颁发。</p></div>
+          <div style="display:flex;justify-content:center;padding:0 0 8px 180px">
+            <div style="display:flex;flex-direction:column;align-items:center;gap:6px">
+              <div class="arch-arrow" style="transform:rotate(90deg)">→</div>
+              <div class="arch-box"><div class="arch-box-title">GitHub Actions</div><div class="arch-box-sub">编译 · 签名 · 打包</div></div>
+              <div class="arch-arrow" style="transform:rotate(90deg)">→</div>
+              <div class="arch-box"><div class="arch-box-title">GitHub Releases</div><div class="arch-box-sub">存储 APK 文件</div></div>
             </div>
           </div>
         </div>
 
-        <h2>自动更新</h2>
-        <p>CF Pages 默认开启 Auto Deployment，每次 push 自动重新部署，无需手动操作。</p>
+        <h2>各层说明</h2>
+        <h3>Cloudflare Pages（前端层）</h3>
+        <p>承载所有静态资源（HTML/CSS/JS），全球 CDN 分发，访问速度极快。同时挂载 Cloudflare Worker 作为 API 网关，处理前端与 GitHub API 之间的请求转发和鉴权。</p>
+
+        <h3>Cloudflare Worker（网关层）</h3>
+        <p>Worker 运行在 CF 边缘节点，主要职责：</p>
+        <ul>
+          <li>接收前端提交的打包参数</li>
+          <li>将 <code>GH_TOKEN</code> 注入请求头，安全调用 GitHub API</li>
+          <li>轮询 Actions 运行状态并返回实时进度</li>
+          <li>构建完成后获取 Release 下载链接</li>
+        </ul>
+
+        <h3>GitHub Actions（构建层）</h3>
+        <p>接收到触发后，按以下顺序执行构建流程：</p>
+        <div class="steps">
+          <div class="step"><div class="step-left"><div class="step-num">1</div><div class="step-line"></div></div><div class="step-body"><div class="step-title">准备环境</div><div class="step-desc"><p>安装 JDK 17 和 Android SDK Build Tools，配置 Gradle 缓存加速。</p></div></div></div>
+          <div class="step"><div class="step-left"><div class="step-num">2</div><div class="step-line"></div></div><div class="step-body"><div class="step-title">生成项目文件</div><div class="step-desc"><p>根据传入参数动态生成 <code>AndroidManifest.xml</code>、应用名称、包名、图标资源。</p></div></div></div>
+          <div class="step"><div class="step-left"><div class="step-num">3</div><div class="step-line"></div></div><div class="step-body"><div class="step-title">Gradle 构建</div><div class="step-desc"><p>执行 <code>./gradlew assembleRelease</code> 编译 APK，内嵌目标 URL 到 WebView 配置。</p></div></div></div>
+          <div class="step"><div class="step-left"><div class="step-num">4</div><div class="step-line"></div></div><div class="step-body"><div class="step-title">签名</div><div class="step-desc"><p>使用 <code>apksigner</code> 和存储在 Secrets 里的 Keystore 对 APK 进行正式 Release 签名。</p></div></div></div>
+          <div class="step"><div class="step-left"><div class="step-num">5</div></div><div class="step-body"><div class="step-title">发布到 Release</div><div class="step-desc"><p>创建 GitHub Release，上传签名后的 APK，前端获取下载链接并展示下载按钮。</p></div></div></div>
+        </div>
+
+        <h2>技术栈</h2>
+        <div class="table-wrap"><table>
+          <tr><th>层</th><th>技术</th><th>用途</th></tr>
+          <tr><td>前端</td><td>Vanilla JS + CSS</td><td>表单交互、进度展示、下载</td></tr>
+          <tr><td>网关</td><td>Cloudflare Worker (JS)</td><td>API 转发、鉴权、轮询</td></tr>
+          <tr><td>构建</td><td>GitHub Actions + Gradle</td><td>Android APK 编译签名</td></tr>
+          <tr><td>存储</td><td>GitHub Releases</td><td>APK 文件托管（7天）</td></tr>
+          <tr><td>托管</td><td>Cloudflare Pages</td><td>静态资源 CDN</td></tr>
+        </table></div>
 
         <div class="pager">
-          <a class="pager-btn" href="#" onclick="goPage('secrets');return false"><div class="pager-label">上一页</div><div class="pager-name">← 配置 Secrets</div></a>
+          <a class="pager-btn" href="#" onclick="goPage('usage');return false"><div class="pager-label">上一页</div><div class="pager-name">← 使用指南</div></a>
+          <a class="pager-btn next" href="#" onclick="goPage('api');return false"><div class="pager-label">下一页</div><div class="pager-name">API 文档 →</div></a>
+        </div>
+      </div>
+
+      <!-- ═══ API 文档 ═══ -->
+      <div class="page" id="page-api">
+        <h1>API 文档</h1>
+        <p class="page-subtitle">Worker 提供以下 HTTP 接口，可用于二次开发或自动化脚本集成。</p>
+
+        <h2>Base URL</h2>
+        <pre><code>https://&lt;你的域名&gt;/api</code></pre>
+        <p>所有接口均为 JSON 格式，响应头包含 <code>Content-Type: application/json</code>。</p>
+
+        <h2>接口列表</h2>
+
+        <!-- 触发打包 -->
+        <div class="endpoint open" onclick="toggleEndpoint(this)">
+          <div class="endpoint-header">
+            <span class="method method-post">POST</span>
+            <span class="endpoint-path">/api/build</span>
+            <span class="endpoint-desc">触发打包任务</span>
+          </div>
+          <div class="endpoint-body">
+            <h4>请求参数（JSON Body）</h4>
+            <table class="param-table">
+              <tr><th>参数</th><th>类型</th><th>必填</th><th>说明</th></tr>
+              <tr><td><code>appName</code></td><td>string</td><td><span class="param-required">必填</span></td><td>应用名称，显示在桌面</td></tr>
+              <tr><td><code>url</code></td><td>string</td><td><span class="param-required">必填</span></td><td>目标网站 URL，需含 https://</td></tr>
+              <tr><td><code>packageName</code></td><td>string</td><td><span class="param-required">必填</span></td><td>包名，格式 com.xxx.yyy</td></tr>
+              <tr><td><code>iconBase64</code></td><td>string</td><td>可选</td><td>图标的 Base64 编码，不传则用 favicon</td></tr>
+              <tr><td><code>arch</code></td><td>string</td><td>可选</td><td><code>arm64</code> / <code>arm32</code> / <code>universal</code>，默认 universal</td></tr>
+            </table>
+            <h4>响应示例</h4>
+            <pre><code>{
+  "success": true,
+  "runId": "12345678",
+  "message": "构建任务已触发"
+}</code></pre>
+          </div>
+        </div>
+
+        <!-- 查询状态 -->
+        <div class="endpoint" onclick="toggleEndpoint(this)">
+          <div class="endpoint-header">
+            <span class="method method-get">GET</span>
+            <span class="endpoint-path">/api/status/:runId</span>
+            <span class="endpoint-desc">查询构建状态</span>
+          </div>
+          <div class="endpoint-body">
+            <h4>路径参数</h4>
+            <table class="param-table">
+              <tr><th>参数</th><th>类型</th><th>说明</th></tr>
+              <tr><td><code>runId</code></td><td>string</td><td>触发打包返回的 runId</td></tr>
+            </table>
+            <h4>响应示例</h4>
+            <pre><code>{
+  "status": "in_progress",
+  "progress": 65,
+  "step": "Gradle 构建中",
+  "conclusion": null
+}</code></pre>
+            <h4>status 枚举值</h4>
+            <div class="table-wrap"><table>
+              <tr><th>值</th><th>含义</th></tr>
+              <tr><td><code>queued</code></td><td>已排队，等待运行</td></tr>
+              <tr><td><code>in_progress</code></td><td>构建中</td></tr>
+              <tr><td><code>completed</code></td><td>已完成，查看 conclusion</td></tr>
+            </table></div>
+          </div>
+        </div>
+
+        <!-- 下载链接 -->
+        <div class="endpoint" onclick="toggleEndpoint(this)">
+          <div class="endpoint-header">
+            <span class="method method-get">GET</span>
+            <span class="endpoint-path">/api/download/:runId</span>
+            <span class="endpoint-desc">获取 APK 下载链接</span>
+          </div>
+          <div class="endpoint-body">
+            <h4>说明</h4>
+            <p>构建成功（<code>status=completed</code> 且 <code>conclusion=success</code>）后调用此接口获取下载地址。</p>
+            <h4>响应示例</h4>
+            <pre><code>{
+  "success": true,
+  "downloadUrl": "https://github.com/.../releases/download/v1.0/app.apk",
+  "fileName": "Pakr_MyApp_v1.0.apk",
+  "size": 4194304
+}</code></pre>
+          </div>
+        </div>
+
+        <h2>错误码</h2>
+        <div class="table-wrap"><table>
+          <tr><th>HTTP 状态码</th><th>说明</th></tr>
+          <tr><td><code>400</code></td><td>参数缺失或格式错误</td></tr>
+          <tr><td><code>401</code></td><td>GH_TOKEN 未配置或已失效</td></tr>
+          <tr><td><code>404</code></td><td>runId 不存在</td></tr>
+          <tr><td><code>500</code></td><td>服务器内部错误</td></tr>
+        </table></div>
+
+        <div class="pager">
+          <a class="pager-btn" href="#" onclick="goPage('arch');return false"><div class="pager-label">上一页</div><div class="pager-name">← 架构说明</div></a>
+          <a class="pager-btn next" href="#" onclick="goPage('changelog');return false"><div class="pager-label">下一页</div><div class="pager-name">更新日志 →</div></a>
+        </div>
+      </div>
+
+      <!-- ═══ 更新日志 ═══ -->
+      <div class="page" id="page-changelog">
+        <h1>更新日志</h1>
+        <p class="page-subtitle">记录每个版本的主要改动。</p>
+
+        <div class="version-block">
+          <div class="version-header">
+            <span class="version-num">v1.8.0</span>
+            <span class="badge badge-green">最新</span>
+            <span class="version-date">2026-04-29</span>
+          </div>
+          <ul>
+            <li><span class="badge badge-green">新增</span>文档站点上线，支持亮色/暗色模式</li>
+            <li><span class="badge badge-green">新增</span>UI 全面升级，圆润风格，CSS 图标</li>
+            <li><span class="badge badge-blue">优化</span>打包进度显示精确到步骤名称</li>
+            <li><span class="badge badge-blue">优化</span>移动端布局适配，侧边栏支持滑动收起</li>
+            <li><span class="badge badge-orange">修复</span>部分设备下载后无法打开文件管理器的问题</li>
+          </ul>
+        </div>
+
+        <div class="version-block">
+          <div class="version-header">
+            <span class="version-num">v1.7.0</span>
+            <span class="version-date">2026-03-15</span>
+          </div>
+          <ul>
+            <li><span class="badge badge-green">新增</span>支持自定义 APK 架构（arm64 / arm32 / 通用）</li>
+            <li><span class="badge badge-green">新增</span>Release 签名支持，可升级覆盖安装</li>
+            <li><span class="badge badge-blue">优化</span>构建速度提升约 30%（启用 Gradle 缓存）</li>
+            <li><span class="badge badge-orange">修复</span>图标上传后预览偶尔不显示的问题</li>
+          </ul>
+        </div>
+
+        <div class="version-block">
+          <div class="version-header">
+            <span class="version-num">v1.6.0</span>
+            <span class="version-date">2026-02-08</span>
+          </div>
+          <ul>
+            <li><span class="badge badge-green">新增</span>系统 DownloadManager 下载，支持后台下载</li>
+            <li><span class="badge badge-green">新增</span>打包历史本地记录</li>
+            <li><span class="badge badge-blue">优化</span>Worker 轮询逻辑优化，减少 API 调用次数</li>
+            <li><span class="badge badge-blue">优化</span>表单验证提示更清晰</li>
+          </ul>
+        </div>
+
+        <div class="version-block">
+          <div class="version-header">
+            <span class="version-num">v1.5.0</span>
+            <span class="version-date">2026-01-10</span>
+          </div>
+          <ul>
+            <li><span class="badge badge-green">新增</span>支持 HTTP/HTTPS 混合内容</li>
+            <li><span class="badge badge-green">新增</span>多架构输出，单 APK 体积压缩至约 4MB</li>
+            <li><span class="badge badge-orange">修复</span>包名包含大写字母时构建失败的问题</li>
+            <li><span class="badge badge-orange">修复</span>暗色模式下输入框颜色异常</li>
+          </ul>
+        </div>
+
+        <div class="version-block">
+          <div class="version-header">
+            <span class="version-num">v1.0.0</span>
+            <span class="badge badge-gray">初始版本</span>
+            <span class="version-date">2025-11-01</span>
+          </div>
+          <ul>
+            <li><span class="badge badge-green">新增</span>基础打包功能上线</li>
+            <li><span class="badge badge-green">新增</span>Cloudflare Pages + Worker 架构</li>
+            <li><span class="badge badge-green">新增</span>GitHub Actions 自动构建流程</li>
+          </ul>
+        </div>
+
+        <div class="pager">
+          <a class="pager-btn" href="#" onclick="goPage('api');return false"><div class="pager-label">上一页</div><div class="pager-name">← API 文档</div></a>
           <a class="pager-btn next" href="#" onclick="goPage('faq');return false"><div class="pager-label">下一页</div><div class="pager-name">常见问题 →</div></a>
         </div>
       </div>
 
-      <!-- FAQ -->
+      <!-- ═══ FAQ ═══ -->
       <div class="page" id="page-faq">
         <h1>常见问题</h1>
 
-        <div class="faq-item" onclick="toggleFaq(this)">
-          <div class="faq-q">打包失败怎么办？<span class="faq-arrow"></span></div>
-          <div class="faq-a"><p>进入 Fork 的仓库 → <strong>Actions</strong>，找到对应运行记录查看详细日志。</p><ul><li><code>GH_PAT</code> 权限不足（需要 <code>repo</code> + <code>workflow</code>）</li><li>Keystore Secrets 填写错误或遗漏</li><li>目标网址无法访问</li></ul></div>
-        </div>
-        <div class="faq-item" onclick="toggleFaq(this)">
-          <div class="faq-q">安装后无法升级覆盖？<span class="faq-arrow"></span></div>
-          <div class="faq-a"><p>两次打包签名不一致导致的。检查 4 个 Keystore Secrets（<code>KEYSTORE_BASE64</code>、<code>KEYSTORE_PASSWORD</code>、<code>KEY_ALIAS</code>、<code>KEY_PASSWORD</code>）是否正确，确保没有重新生成过 Keystore。</p></div>
-        </div>
-        <div class="faq-item" onclick="toggleFaq(this)">
-          <div class="faq-q">Actions 额度用完了？<span class="faq-arrow"></span></div>
-          <div class="faq-a"><p>GitHub 免费账号每月 2000 分钟，单次约 3~5 分钟，每月约可打包 400~600 次。超出后等下月重置，或升级为 GitHub Pro。</p></div>
-        </div>
-        <div class="faq-item" onclick="toggleFaq(this)">
-          <div class="faq-q">支持 iOS 吗？<span class="faq-arrow"></span></div>
-          <div class="faq-a"><p>暂不支持，目前仅生成 Android APK。</p></div>
-        </div>
-        <div class="faq-item" onclick="toggleFaq(this)">
-          <div class="faq-q">可以打包需要登录的网页吗？<span class="faq-arrow"></span></div>
-          <div class="faq-a"><p>可以，WebView 支持 Cookie，登录状态会保留在 APK 内。</p></div>
-        </div>
-        <div class="faq-item" onclick="toggleFaq(this)">
-          <div class="faq-q">打包历史丢了？<span class="faq-arrow"></span></div>
-          <div class="faq-a"><p>历史保存在浏览器 LocalStorage，清除缓存或换设备后会丢失，属正常现象。</p></div>
-        </div>
+        <div class="faq-item" onclick="toggleFaq(this)"><div class="faq-q">打包失败怎么排查？<span class="faq-arrow"></span></div><div class="faq-a"><p>进入 Fork 的仓库 → <strong>Actions</strong>，找到对应运行记录查看详细日志。常见原因：</p><ul><li><code>GH_PAT</code> 权限不足（需要 <code>repo</code> + <code>workflow</code>）</li><li>Keystore Secrets 填写错误或遗漏</li><li>包名格式不对（必须为 <code>com.xxx.yyy</code> 格式）</li><li>目标网址无法访问或返回非 200</li></ul></div></div>
+
+        <div class="faq-item" onclick="toggleFaq(this)"><div class="faq-q">安装后无法升级覆盖安装？<span class="faq-arrow"></span></div><div class="faq-a"><p>两次打包使用了不同的 Keystore 签名导致的。请检查：</p><ul><li>4 个 Keystore Secrets 是否正确且完整</li><li>是否重新运行过 gen-keystore（会生成新的签名）</li></ul><p>如果已重新生成 Keystore，需要先卸载旧版 APK 再安装新版。</p></div></div>
+
+        <div class="faq-item" onclick="toggleFaq(this)"><div class="faq-q">GitHub Actions 免费额度够用吗？<span class="faq-arrow"></span></div><div class="faq-a"><p>GitHub 免费账号每月 2000 分钟，单次约 3~5 分钟，每月约可打包 400~600 次，日常使用完全够用。超出后等下月自动重置，或升级为 GitHub Pro（4000 分钟/月）。</p></div></div>
+
+        <div class="faq-item" onclick="toggleFaq(this)"><div class="faq-q">CF Pages 有流量限制吗？<span class="faq-arrow"></span></div><div class="faq-a"><p>Cloudflare Pages 免费版：无限带宽、每月 500 次构建。Worker 免费版：每天 100,000 次请求。个人使用完全够用，超出需升级 Pro（$5/月）。</p></div></div>
+
+        <div class="faq-item" onclick="toggleFaq(this)"><div class="faq-q">支持 iOS 吗？<span class="faq-arrow"></span></div><div class="faq-a"><p>暂不支持，目前仅生成 Android APK（armeabi-v7a 和 arm64-v8a）。iOS 需要 macOS 环境和 Apple 开发者账号，后续版本可能考虑支持。</p></div></div>
+
+        <div class="faq-item" onclick="toggleFaq(this)"><div class="faq-q">可以打包需要登录的网页吗？<span class="faq-arrow"></span></div><div class="faq-a"><p>可以，WebView 支持完整 Cookie，登录状态会保存在 APK 内（与普通 Android App 一样）。首次打开需要登录，之后保持登录状态。</p></div></div>
+
+        <div class="faq-item" onclick="toggleFaq(this)"><div class="faq-q">打包历史记录丢了怎么办？<span class="faq-arrow"></span></div><div class="faq-a"><p>打包历史保存在浏览器 LocalStorage，清除缓存、使用无痕模式或换设备后会丢失，这是正常现象。APK 文件本身存储在 GitHub Releases，保留 7 天，可到仓库 Releases 页面直接下载。</p></div></div>
+
+        <div class="faq-item" onclick="toggleFaq(this)"><div class="faq-q">能修改 APK 内的 WebView 设置吗？<span class="faq-arrow"></span></div><div class="faq-a"><p>默认开启了以下 WebView 配置：</p><ul><li>JavaScript 启用</li><li>DOM Storage 启用</li><li>混合内容允许（HTTP + HTTPS）</li><li>缩放支持</li></ul><p>如需自定义，Fork 仓库后修改 <code>app/src/main/java/.../MainActivity.java</code> 中的 WebView 设置，重新触发构建即可。</p></div></div>
 
         <div class="pager">
-          <a class="pager-btn" href="#" onclick="goPage('cfpages');return false"><div class="pager-label">上一页</div><div class="pager-name">← 部署到 CF Pages</div></a>
+          <a class="pager-btn" href="#" onclick="goPage('changelog');return false"><div class="pager-label">上一页</div><div class="pager-name">← 更新日志</div></a>
           <span></span>
         </div>
       </div>
@@ -581,6 +708,7 @@ function closeSidebar(){
   document.getElementById('sidebarOverlay').classList.remove('open');
 }
 function toggleFaq(el){el.classList.toggle('open')}
+function toggleEndpoint(el){el.classList.toggle('open')}
 </script>
 </body>
 </html>
