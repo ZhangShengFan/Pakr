@@ -800,6 +800,7 @@ async function handleBuildClick(){
   const e = { preventDefault:()=>{} };
   if(busy) return;
   errBox.classList.remove('show');
+  if(errorLogBox){ errorLogBox.style.display='none'; errorLogBox.textContent=''; }
   if(!validate()) return;
 
   const data = {
@@ -907,7 +908,8 @@ function startPoll(runId, data, buildId=null, dispatchedAt=null){
         } else if(data.conclusion === 'failure'){
           setStep(4,'fail');
           const failStep = data.failed_step ? `步骤「${data.failed_step}」失败` : '构建失败';
-          showErr(failStep + '，请检查参数后重试');
+          showErr(data.failed_log ? (failStep + '，错误日志如下') : (failStep + '，请检查参数后重试'));
+          if(errorLogBox && data.failed_log){ errorLogBox.style.display='block'; errorLogBox.textContent = data.failed_log; }
           if (data.failed_log) {
             const box = document.getElementById('statusBox');
             const detail = document.createElement('div');
