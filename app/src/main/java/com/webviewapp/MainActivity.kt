@@ -156,7 +156,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showBlankPageError(url: String, detail: String) {
-        showWebErrorPage(url, "页面未正常显示：$detail")
+        showWebErrorPage(url, "页面未正常显示：${detail}")
     }
 
     private fun inspectBlankPage(view: WebView, url: String) {
@@ -387,7 +387,7 @@ class MainActivity : AppCompatActivity() {
                             android.webkit.WebViewClient.ERROR_TIMEOUT            -> "连接超时，请稍后重试"
                             android.webkit.WebViewClient.ERROR_FAILED_SSL_HANDSHAKE -> "SSL 握手失败，证书可能有问题"
                             android.webkit.WebViewClient.ERROR_UNKNOWN            -> "未知错误"
-                            else -> error.description?.toString()?.takeIf { it.isNotBlank() } ?: "加载失败（错误码 \${error.errorCode}）"
+                            else -> error.description?.toString()?.takeIf { it.isNotBlank() } ?: "加载失败（错误码 ${error.errorCode}）"
                         }
                     } else {
                         "网络连接失败，请检查网络后重试"
