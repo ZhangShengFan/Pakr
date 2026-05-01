@@ -51,7 +51,7 @@ async function handleBuild(request, env) {
     const runs = await (await gh(env,
       `/repos/${env.GITHUB_OWNER}/${env.GITHUB_REPO}/actions/workflows/build.yml/runs?per_page=10&event=workflow_dispatch`
     )).json();
-    const match = runs.workflow_runs?.find(r => r.name && r.name.includes(buildId));
+    const match = runs.workflow_runs?.find(r => JSON.stringify(r).includes(buildId));
     if (match) { runId = match.id; break; }
   }
   if (!runId) return json({ error: 'Could not find run with build_id=' + buildId + ' after 20s' }, 500);
