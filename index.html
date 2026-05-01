@@ -698,7 +698,7 @@ function startPoll(runId, data){
           const _elapsed = buildStartTime ? Math.round((Date.now()-buildStartTime)/1000) : 0;
           const _min = Math.floor(_elapsed/60), _sec = _elapsed%60;
           const _timeStr = _min>0 ? _min+'分'+_sec+'秒' : _elapsed+'秒';
-          setTitle('打包完成 🎉', 'APK 已生成，点击下载 · 耗时 ' + _timeStr);
+          setTitle('打包完成 🎉', '耗时 ' + _timeStr);
           setBusy(false);
           renderDownloadButtons(data, runId);
           addHistory(data);
@@ -741,7 +741,7 @@ async function tryFetchArtifacts(runId, data){
       const _elapsed = buildStartTime ? Math.round((Date.now()-buildStartTime)/1000) : 0;
           const _min = Math.floor(_elapsed/60), _sec = _elapsed%60;
           const _timeStr = _min>0 ? _min+'分'+_sec+'秒' : _elapsed+'秒';
-          setTitle('打包完成 🎉', 'APK 已生成，点击下载 · 耗时 ' + _timeStr);
+          setTitle('打包完成 🎉', '耗时 ' + _timeStr);
       setBusy(false);
       renderDownloadButtons(fresh, runId);
       addHistory(fresh);
