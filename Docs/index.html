@@ -10,120 +10,234 @@
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:#ffffff;--sidebar-bg:#fafafa;--border:#e5e7eb;
-  --text:#111827;--muted:#6b7280;--faint:#9ca3af;
-  --primary:#059669;--primary-bg:#ecfdf5;--primary-border:#a7f3d0;
-  --surface:#f9fafb;--code-bg:#f3f4f6;--code-border:#e5e7eb;
-  --nav-h:52px;--sidebar-w:240px;
-  --warn-bg:#fffbeb;--warn-border:#fcd34d;--warn-text:#92400e;
-  --tip-bg:#ecfdf5;--tip-border:#6ee7b7;--tip-text:#065f46;
+  --bg:#ffffff;--sidebar-bg:#fafafa;--border:#ebebeb;
+  --text:#1a1a1a;--muted:#6b7280;--faint:#b0b7c3;
+  --primary:#059669;--primary-bg:#f0fdf8;--primary-border:#bbf7d0;
+  --surface:#f5f5f5;--code-bg:#f5f5f5;--code-border:#e8e8e8;
+  --nav-h:56px;--sidebar-w:244px;
+  --warn-bg:#fffbeb;--warn-border:#fde68a;--warn-text:#92400e;
+  --tip-bg:#f0fdf8;--tip-border:#6ee7b7;--tip-text:#065f46;
+  --r-sm:8px;--r-md:12px;--r-lg:16px;--r-xl:20px;--r-full:9999px;
+  --shadow-sm:0 1px 3px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04);
+  --shadow-md:0 4px 12px rgba(0,0,0,.07),0 2px 4px rgba(0,0,0,.04);
 }
 [data-theme="dark"]{
-  --bg:#0d1117;--sidebar-bg:#161b22;--border:#21262d;
-  --text:#c9d1d9;--muted:#8b949e;--faint:#484f58;
-  --primary:#34d399;--primary-bg:#022c22;--primary-border:#065f46;
-  --surface:#161b22;--code-bg:#1c2128;--code-border:#30363d;
-  --warn-bg:#1a1200;--warn-border:#78350f;--warn-text:#fbbf24;
-  --tip-bg:#022c22;--tip-border:#065f46;--tip-text:#6ee7b7;
+  --bg:#0d1117;--sidebar-bg:#12181f;--border:#1e2530;
+  --text:#d4dae4;--muted:#8b949e;--faint:#3d4654;
+  --primary:#34d399;--primary-bg:#021c14;--primary-border:#064e3b;
+  --surface:#161d27;--code-bg:#161d27;--code-border:#252d3a;
+  --warn-bg:#160f00;--warn-border:#78350f;--warn-text:#fbbf24;
+  --tip-bg:#021c14;--tip-border:#065f46;--tip-text:#6ee7b7;
+  --shadow-sm:0 1px 3px rgba(0,0,0,.3);--shadow-md:0 4px 12px rgba(0,0,0,.35);
 }
 html{scroll-behavior:smooth}
 body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);font-size:14.5px;line-height:1.75;-webkit-font-smoothing:antialiased}
 
 /* ── NAV ── */
-.topnav{position:fixed;top:0;left:0;right:0;height:var(--nav-h);background:var(--bg);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 16px;gap:10px;z-index:200}
-.logo{display:flex;align-items:center;gap:8px;font-weight:600;font-size:15px;color:var(--text);text-decoration:none;flex-shrink:0}
-.logo-icon{width:26px;height:26px;background:#059669;border-radius:7px;display:flex;align-items:center;justify-content:center}
+.topnav{
+  position:fixed;top:0;left:0;right:0;height:var(--nav-h);
+  background:var(--bg);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;padding:0 18px;gap:10px;z-index:200;
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+}
+.logo{display:flex;align-items:center;gap:9px;font-weight:650;font-size:15px;color:var(--text);text-decoration:none;flex-shrink:0}
+.logo-icon{width:28px;height:28px;background:var(--primary);border-radius:var(--r-md);display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(5,150,105,.35)}
 .nav-spacer{flex:1}
-.nav-link{display:flex;align-items:center;gap:5px;padding:5px 10px;border-radius:6px;font-size:13px;color:var(--muted);text-decoration:none;border:1px solid transparent;transition:all .15s;flex-shrink:0}
-.nav-link:hover{color:var(--text);border-color:var(--border)}
-.theme-btn{background:none;border:none;cursor:pointer;color:var(--muted);padding:5px;border-radius:6px;display:flex;align-items:center;flex-shrink:0;transition:color .15s}
-.theme-btn:hover{color:var(--text)}
-.menu-btn{display:none;background:none;border:none;cursor:pointer;color:var(--text);padding:4px;border-radius:6px;flex-shrink:0}
+.nav-link{display:flex;align-items:center;gap:5px;padding:6px 11px;border-radius:var(--r-full);font-size:13px;color:var(--muted);text-decoration:none;border:1px solid var(--border);transition:all .18s;flex-shrink:0;background:var(--bg)}
+.nav-link:hover{color:var(--text);border-color:var(--faint);box-shadow:var(--shadow-sm)}
+.theme-btn{background:none;border:1px solid var(--border);cursor:pointer;color:var(--muted);padding:6px;border-radius:var(--r-full);display:flex;align-items:center;flex-shrink:0;transition:all .18s}
+.theme-btn:hover{color:var(--text);border-color:var(--faint)}
+.menu-btn{display:none;background:none;border:none;cursor:pointer;color:var(--text);padding:5px;border-radius:var(--r-md);flex-shrink:0}
 
 /* ── LAYOUT ── */
 .layout{display:flex;margin-top:var(--nav-h);min-height:calc(100vh - var(--nav-h))}
 
 /* ── SIDEBAR ── */
-.sidebar{width:var(--sidebar-w);flex-shrink:0;border-right:1px solid var(--border);position:fixed;top:var(--nav-h);bottom:0;overflow-y:auto;padding:20px 10px;background:var(--sidebar-bg)}
-.sidebar-group{margin-bottom:22px}
-.sidebar-grouplabel{font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--faint);padding:2px 10px 6px;display:block}
-.nav-item{display:flex;align-items:center;gap:7px;width:100%;padding:6px 10px;border-radius:6px;font-size:13.5px;color:var(--muted);text-decoration:none;cursor:pointer;background:none;border:none;text-align:left;transition:all .12s;line-height:1.4}
+.sidebar{
+  width:var(--sidebar-w);flex-shrink:0;border-right:1px solid var(--border);
+  position:fixed;top:var(--nav-h);bottom:0;overflow-y:auto;
+  padding:18px 10px;background:var(--sidebar-bg);
+}
+.sidebar-group{margin-bottom:24px}
+.sidebar-grouplabel{font-size:10.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);padding:2px 12px 7px;display:block}
+.nav-item{
+  display:flex;align-items:center;gap:8px;width:100%;
+  padding:7px 12px;border-radius:var(--r-md);
+  font-size:13.5px;color:var(--muted);text-decoration:none;
+  cursor:pointer;background:none;border:none;text-align:left;
+  transition:all .15s;line-height:1.4;
+}
 .nav-item:hover{background:var(--surface);color:var(--text)}
 .nav-item.active{background:var(--primary-bg);color:var(--primary);font-weight:500}
-.nav-dot{width:5px;height:5px;border-radius:50%;background:currentColor;opacity:.5;flex-shrink:0}
-.nav-item.active .nav-dot{opacity:1}
+/* CSS dot */
+.nav-dot{width:6px;height:6px;border-radius:50%;background:var(--faint);flex-shrink:0;transition:background .15s}
+.nav-item.active .nav-dot{background:var(--primary)}
+.nav-item:hover .nav-dot{background:var(--muted)}
 
 /* ── CONTENT ── */
 .main{margin-left:var(--sidebar-w);flex:1;min-width:0}
 .content{max-width:680px;padding:36px 40px 80px;margin:0 auto}
-
-/* PAGE visibility */
-.page{display:none}
-.page.active{display:block}
+.page{display:none}.page.active{display:block}
 
 /* ── TYPOGRAPHY ── */
-h1{font-size:24px;font-weight:700;line-height:1.25;color:var(--text);margin-bottom:8px}
-.page-subtitle{font-size:15px;color:var(--muted);margin-bottom:28px;line-height:1.6}
-h2{font-size:17px;font-weight:600;color:var(--text);margin:36px 0 12px;padding-bottom:8px;border-bottom:1px solid var(--border)}
-h3{font-size:14.5px;font-weight:600;color:var(--text);margin:20px 0 8px}
-p{margin-bottom:14px;max-width:64ch}
+h1{font-size:23px;font-weight:700;line-height:1.25;color:var(--text);margin-bottom:8px}
+.page-subtitle{font-size:14.5px;color:var(--muted);margin-bottom:28px;line-height:1.65;max-width:56ch}
+h2{font-size:16.5px;font-weight:600;color:var(--text);margin:36px 0 14px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+h3{font-size:14px;font-weight:600;color:var(--text);margin:18px 0 7px}
+p{margin-bottom:13px;max-width:64ch;color:var(--text)}
 a{color:var(--primary);text-decoration:none}
 a:hover{text-decoration:underline}
-
-/* ── STEP LIST ── */
-.steps{margin:20px 0;display:flex;flex-direction:column;gap:0}
-.step{display:flex;gap:0;position:relative}
-.step-left{display:flex;flex-direction:column;align-items:center;width:32px;flex-shrink:0}
-.step-num{width:28px;height:28px;border-radius:50%;background:var(--primary);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;z-index:1;position:relative}
-.step-line{width:2px;background:var(--border);flex:1;margin:4px 0;min-height:16px}
-.step:last-child .step-line{display:none}
-.step-body{padding:0 0 28px 16px;flex:1;min-width:0}
-.step-title{font-size:15px;font-weight:600;color:var(--text);margin-bottom:8px;line-height:1.4;padding-top:3px}
-.step-desc{color:var(--muted);font-size:13.5px;line-height:1.65}
-.step-desc p{margin-bottom:10px;color:var(--muted);max-width:60ch}
-.step-desc ul{padding-left:16px;margin-bottom:10px}
-.step-desc li{color:var(--muted);margin-bottom:4px;font-size:13.5px}
+ul,ol{padding-left:20px;margin-bottom:14px}
+li{margin-bottom:5px;color:var(--muted)}
 
 /* ── CODE ── */
-pre{background:var(--code-bg);border:1px solid var(--code-border);border-radius:8px;padding:14px 16px;overflow-x:auto;margin:12px 0;font-size:12.5px;line-height:1.65}
+pre{
+  background:var(--code-bg);border:1px solid var(--code-border);
+  border-radius:var(--r-lg);padding:16px 18px;overflow-x:auto;
+  margin:14px 0;font-size:12.5px;line-height:1.7;
+  box-shadow:var(--shadow-sm);
+}
 code{font-family:'SF Mono','Fira Code','Cascadia Code',monospace;font-size:12.5px}
-:not(pre)>code{background:var(--code-bg);border:1px solid var(--code-border);padding:1px 5px;border-radius:4px;font-size:12px}
+:not(pre)>code{
+  background:var(--code-bg);border:1px solid var(--code-border);
+  padding:1.5px 5px;border-radius:5px;font-size:12px;
+}
 
 /* ── TABLE ── */
-.table-wrap{overflow-x:auto;margin:14px 0;border-radius:8px;border:1px solid var(--border)}
+.table-wrap{
+  overflow-x:auto;margin:14px 0;border-radius:var(--r-lg);
+  border:1px solid var(--border);box-shadow:var(--shadow-sm);
+}
 table{width:100%;border-collapse:collapse;font-size:13.5px}
-th{text-align:left;padding:9px 14px;background:var(--surface);color:var(--muted);font-weight:500;font-size:11.5px;text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid var(--border)}
+th{
+  text-align:left;padding:9px 14px;background:var(--surface);
+  color:var(--muted);font-weight:500;font-size:11px;
+  text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--border);
+}
 td{padding:10px 14px;border-bottom:1px solid var(--border);color:var(--text);vertical-align:top}
 tr:last-child td{border-bottom:none}
 tr:hover td{background:var(--surface)}
 
 /* ── CALLOUTS ── */
-.callout{border-radius:8px;padding:12px 14px;margin:16px 0;display:flex;gap:10px;font-size:13.5px;line-height:1.6}
+.callout{
+  border-radius:var(--r-lg);padding:13px 16px;margin:16px 0;
+  display:flex;gap:11px;font-size:13.5px;line-height:1.65;
+}
 .callout-warn{background:var(--warn-bg);border:1px solid var(--warn-border);color:var(--warn-text)}
 .callout-tip{background:var(--tip-bg);border:1px solid var(--tip-border);color:var(--tip-text)}
-.callout-icon{font-size:15px;flex-shrink:0;margin-top:1px}
 .callout p{margin:0;color:inherit;max-width:none}
 
-/* ── PAGE NAV ── */
+/* CSS icons for callouts */
+.icon-warn{width:16px;height:16px;flex-shrink:0;margin-top:2px;position:relative}
+.icon-warn::before{
+  content:'';display:block;width:0;height:0;
+  border-left:8px solid transparent;border-right:8px solid transparent;
+  border-bottom:14px solid #f59e0b;border-radius:2px;
+}
+.icon-warn::after{
+  content:'!';position:absolute;left:50%;top:4px;
+  transform:translateX(-50%);font-size:8px;font-weight:700;
+  color:#fff;line-height:1;
+}
+.icon-tip{width:16px;height:16px;flex-shrink:0;margin-top:2px;
+  border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;
+  font-size:9px;font-weight:700;color:#fff;font-family:'Inter',sans-serif;
+}
+
+/* ── STEP TIMELINE ── */
+.steps{margin:20px 0;display:flex;flex-direction:column}
+.step{display:flex;gap:0;position:relative}
+.step-left{display:flex;flex-direction:column;align-items:center;width:34px;flex-shrink:0}
+.step-num{
+  width:30px;height:30px;border-radius:50%;
+  background:var(--primary);color:#fff;
+  font-size:12px;font-weight:700;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;z-index:1;position:relative;
+  box-shadow:0 2px 8px rgba(5,150,105,.3);
+}
+.step-line{width:2px;background:var(--border);flex:1;margin:5px 0;min-height:12px}
+.step:last-child .step-line{display:none}
+.step-body{padding:0 0 28px 16px;flex:1;min-width:0}
+.step-title{font-size:14.5px;font-weight:600;color:var(--text);margin-bottom:8px;line-height:1.4;padding-top:5px}
+.step-desc{color:var(--muted);font-size:13.5px;line-height:1.65}
+.step-desc p{margin-bottom:10px;color:var(--muted);max-width:60ch}
+.step-desc ul{padding-left:16px;margin-bottom:10px}
+.step-desc li{color:var(--muted);margin-bottom:4px;font-size:13.5px}
+
+/* ── REQS CARDS ── */
+.req-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:16px 0 24px}
+.req-card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--r-lg);padding:14px 16px;
+  display:flex;align-items:flex-start;gap:12px;
+  transition:border-color .15s;
+}
+.req-card:hover{border-color:var(--primary)}
+.req-icon{width:32px;height:32px;border-radius:var(--r-md);flex-shrink:0;display:flex;align-items:center;justify-content:center}
+/* GitHub icon */
+.req-icon-gh{background:#1a1a1a}
+[data-theme="dark"] .req-icon-gh{background:#2d333b}
+/* CF icon */
+.req-icon-cf{background:#f6821f}
+.req-card-label{font-size:10.5px;color:var(--faint);font-weight:500;text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px}
+.req-card-title{font-size:13.5px;font-weight:600;color:var(--text)}
+.req-card-sub{font-size:12px;color:var(--muted);margin-top:1px}
+
+/* ── PAGER ── */
 .pager{display:flex;gap:10px;margin-top:48px;padding-top:20px;border-top:1px solid var(--border)}
-.pager-btn{flex:1;border:1px solid var(--border);border-radius:8px;padding:12px 16px;text-decoration:none;color:var(--muted);font-size:13px;transition:all .15s;display:block;max-width:200px}
-.pager-btn:hover{border-color:var(--primary);color:var(--primary);text-decoration:none}
+.pager-btn{
+  border:1px solid var(--border);border-radius:var(--r-lg);
+  padding:12px 18px;text-decoration:none;color:var(--muted);
+  font-size:13px;transition:all .18s;display:block;max-width:200px;
+  background:var(--bg);box-shadow:var(--shadow-sm);
+}
+.pager-btn:hover{border-color:var(--primary);color:var(--primary);text-decoration:none;box-shadow:var(--shadow-md)}
 .pager-btn.next{margin-left:auto;text-align:right}
-.pager-label{font-size:11px;opacity:.7;margin-bottom:2px}
+.pager-label{font-size:11px;opacity:.65;margin-bottom:2px}
 .pager-name{font-weight:500;color:inherit}
 
+/* ── FAQ ITEMS ── */
+.faq-item{border:1px solid var(--border);border-radius:var(--r-lg);margin-bottom:10px;overflow:hidden;box-shadow:var(--shadow-sm)}
+.faq-q{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 18px;cursor:pointer;font-size:14px;font-weight:500;
+  color:var(--text);user-select:none;transition:background .15s;gap:10px;
+}
+.faq-q:hover{background:var(--surface)}
+.faq-arrow{
+  width:18px;height:18px;flex-shrink:0;position:relative;
+  border:1.5px solid var(--faint);border-radius:50%;
+  transition:transform .2s,border-color .15s;
+}
+.faq-arrow::before,.faq-arrow::after{
+  content:'';position:absolute;background:var(--muted);
+  border-radius:2px;transition:background .15s;
+}
+.faq-arrow::before{width:8px;height:1.5px;top:50%;left:50%;transform:translate(-50%,-50%)}
+.faq-arrow::after{width:1.5px;height:8px;top:50%;left:50%;transform:translate(-50%,-50%);transition:transform .2s,opacity .2s}
+.faq-item.open .faq-q{background:var(--surface)}
+.faq-item.open .faq-arrow{transform:rotate(45deg);border-color:var(--primary)}
+.faq-item.open .faq-arrow::before,.faq-item.open .faq-arrow::after{background:var(--primary)}
+.faq-a{display:none;padding:0 18px 16px;font-size:13.5px;color:var(--muted);line-height:1.7}
+.faq-item.open .faq-a{display:block}
+.faq-a p{margin-bottom:8px;color:var(--muted);max-width:none}
+.faq-a ul{padding-left:16px;margin-bottom:8px}
+.faq-a li{color:var(--muted);margin-bottom:4px}
+
 /* ── MOBILE ── */
-.sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:190}
+.sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:190;backdrop-filter:blur(2px)}
 @media(max-width:768px){
-  :root{--nav-h:48px}
+  :root{--nav-h:52px}
   .sidebar{transform:translateX(-100%);transition:transform .22s cubic-bezier(.4,0,.2,1);z-index:195;width:260px}
   .sidebar.open{transform:translateX(0)}
   .sidebar-overlay.open{display:block}
   .menu-btn{display:flex}
   .main{margin-left:0}
-  .content{padding:24px 16px 64px}
+  .content{padding:22px 16px 60px}
   h1{font-size:20px}
-  h2{font-size:15.5px}
+  h2{font-size:15px}
+  .req-grid{grid-template-columns:1fr}
   .nav-link span{display:none}
 }
 </style>
@@ -136,7 +250,7 @@ tr:hover td{background:var(--surface)}
   </button>
   <a class="logo" href="#" onclick="goPage('deploy');return false">
     <div class="logo-icon">
-      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 12L8 3L13 12M5 8.5H11" stroke="white" stroke-width="1.8" stroke-linecap="round"/></svg>
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 12L8 3L13 12M5.5 8.5H10.5" stroke="white" stroke-width="1.8" stroke-linecap="round"/></svg>
     </div>
     Pakr
   </a>
@@ -146,11 +260,11 @@ tr:hover td{background:var(--surface)}
     <span>在线体验</span>
   </a>
   <a class="nav-link" href="https://github.com/ZhangShengFan/Pakr" target="_blank">
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
     <span>GitHub</span>
   </a>
   <button class="theme-btn" onclick="toggleTheme()" id="themeBtn" aria-label="切换主题">
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
   </button>
 </nav>
 
@@ -180,10 +294,28 @@ tr:hover td{background:var(--surface)}
         <p class="page-subtitle">按以下步骤操作，约 5 分钟即可完成部署，获得你自己的 APK 打包服务。</p>
 
         <h2>前置要求</h2>
-        <ul style="padding-left:18px;margin-bottom:20px">
-          <li style="margin-bottom:6px;color:var(--muted)">一个 <strong style="color:var(--text)">GitHub 账号</strong>（免费即可，用于 Actions 构建）</li>
-          <li style="color:var(--muted)">一个 <strong style="color:var(--text)">Cloudflare 账号</strong>（免费，用于 Pages 托管）</li>
-        </ul>
+        <div class="req-grid">
+          <div class="req-card">
+            <div class="req-icon req-icon-gh">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+            </div>
+            <div>
+              <div class="req-card-label">必需</div>
+              <div class="req-card-title">GitHub 账号</div>
+              <div class="req-card-sub">用于 Actions 构建，免费</div>
+            </div>
+          </div>
+          <div class="req-card">
+            <div class="req-icon req-icon-cf">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M16.5 14.3c-.1-.4-.5-.7-1-.7H6.8c-.4 0-.5.5-.1.6l1.5.4c.4.1.7.5.7.9 0 .6-.5 1.1-1.1 1.1H5.3c-.4 0-.5.5-.1.6l1.1.3c.3.1.5.4.5.7 0 .4-.4.8-.9.8H4.5c-.3 0-.4.4-.1.5C5.6 20.4 7.1 21 8.8 21c3.3 0 5.9-2.6 5.9-5.9 0-.2 0-.4-.1-.6l1.2-.1c.5-.1.8-.5.8-1l-.1-.1zM20.1 8.5c0-.1 0-.3-.1-.4-.3-2.3-2.2-4-4.5-4-1.8 0-3.4 1-4.2 2.6-.4-.3-.9-.4-1.4-.4-1.3 0-2.3 1-2.3 2.3 0 .1 0 .2.1.3C6.4 9.1 5.5 10.1 5.5 11.3c0 1.3 1.1 2.4 2.4 2.4h9.8c1.3 0 2.3-1 2.3-2.3 0-.9-.5-1.7-1.3-2.1.1-.3.1-.6 0-.8z"/></svg>
+            </div>
+            <div>
+              <div class="req-card-label">必需</div>
+              <div class="req-card-title">Cloudflare 账号</div>
+              <div class="req-card-sub">用于 Pages 托管，免费</div>
+            </div>
+          </div>
+        </div>
 
         <h2>部署步骤</h2>
         <div class="steps">
@@ -201,9 +333,8 @@ tr:hover td{background:var(--surface)}
             <div class="step-body">
               <div class="step-title">生成签名 Keystore</div>
               <div class="step-desc">
-                <p>进入你 Fork 的仓库 → <strong>Actions</strong> → <strong>gen-keystore</strong> → <strong>Run workflow</strong>，填写密码后运行。</p>
-                <p>运行完成后，打开该次运行的日志，复制输出的 <strong>Base64 字符串</strong>（后面步骤要用）。</p>
-                <div class="callout callout-tip"><span class="callout-icon">💡</span><p>Keystore 是 APK 的签名文件，决定了应用的身份。同一个 Keystore 签的包才能互相升级覆盖安装。</p></div>
+                <p>进入你 Fork 的仓库 → <strong>Actions → gen-keystore → Run workflow</strong>，填写密码后运行。完成后在日志里复制输出的 Base64 字符串备用。</p>
+                <div class="callout callout-tip"><div class="icon-tip">i</div><p>Keystore 决定了 APK 的签名身份。同一个 Keystore 签的包才能互相升级覆盖安装。</p></div>
               </div>
             </div>
           </div>
@@ -212,15 +343,15 @@ tr:hover td{background:var(--surface)}
             <div class="step-body">
               <div class="step-title">配置 GitHub Secrets</div>
               <div class="step-desc">
-                <p>进入你的仓库 → <strong>Settings → Secrets and variables → Actions → New repository secret</strong>，依次添加以下 5 个 Secret：</p>
+                <p>进入仓库 → <strong>Settings → Secrets and variables → Actions → New repository secret</strong>，依次添加 5 个 Secret：</p>
                 <div class="table-wrap">
                   <table>
                     <tr><th>名称</th><th>值</th></tr>
                     <tr><td><code>KEYSTORE_BASE64</code></td><td>上一步复制的 Base64 字符串</td></tr>
                     <tr><td><code>KEYSTORE_PASSWORD</code></td><td>gen-keystore 时设置的密码</td></tr>
-                    <tr><td><code>KEY_ALIAS</code></td><td><code>release</code>（默认）</td></tr>
-                    <tr><td><code>KEY_PASSWORD</code></td><td>同 Keystore 密码</td></tr>
-                    <tr><td><code>GH_PAT</code></td><td>GitHub Personal Access Token（需要 <code>repo</code> + <code>workflow</code> 权限）</td></tr>
+                    <tr><td><code>KEY_ALIAS</code></td><td><code>release</code></td></tr>
+                    <tr><td><code>KEY_PASSWORD</code></td><td>同 KEYSTORE_PASSWORD</td></tr>
+                    <tr><td><code>GH_PAT</code></td><td>GitHub PAT（需要 <code>repo</code> + <code>workflow</code> 权限）</td></tr>
                   </table>
                 </div>
               </div>
@@ -231,16 +362,15 @@ tr:hover td{background:var(--surface)}
             <div class="step-body">
               <div class="step-title">部署到 Cloudflare Pages</div>
               <div class="step-desc">
-                <p>登录 <a href="https://dash.cloudflare.com" target="_blank">Cloudflare Dashboard</a> → <strong>Pages → Create a project → Connect to Git</strong>，选择你 Fork 的仓库。</p>
-                <p>构建配置留空（纯静态文件），直接点击 <strong>Save and Deploy</strong>。</p>
-                <p>部署成功后，进入项目 <strong>Settings → Environment variables</strong>，添加变量：</p>
+                <p>登录 <a href="https://dash.cloudflare.com" target="_blank">Cloudflare Dashboard</a> → <strong>Pages → Create → Connect to Git</strong>，选择你 Fork 的仓库，构建配置留空，点击 <strong>Save and Deploy</strong>。</p>
+                <p>部署成功后，进入 <strong>Settings → Environment variables</strong> 添加：</p>
                 <div class="table-wrap">
                   <table>
                     <tr><th>变量名</th><th>值</th></tr>
                     <tr><td><code>GH_TOKEN</code></td><td>同 GH_PAT 的值</td></tr>
                   </table>
                 </div>
-                <div class="callout callout-warn"><span class="callout-icon">⚠️</span><p>添加 <code>GH_TOKEN</code> 后需要重新触发一次部署才能生效。</p></div>
+                <div class="callout callout-warn"><div class="icon-warn"></div><p>添加变量后需在 Deployments 页面手动 <strong>Retry deployment</strong> 一次才生效。</p></div>
               </div>
             </div>
           </div>
@@ -249,7 +379,7 @@ tr:hover td{background:var(--surface)}
             <div class="step-body">
               <div class="step-title">绑定自定义域名（可选）</div>
               <div class="step-desc">
-                <p>在 Pages 项目 → <strong>Custom domains</strong> → 添加你的域名，Cloudflare 会自动配置 SSL 证书。</p>
+                <p>在 Pages 项目 → <strong>Custom domains</strong> → 添加你的域名，Cloudflare 自动配置 SSL。</p>
               </div>
             </div>
           </div>
@@ -264,25 +394,17 @@ tr:hover td{background:var(--surface)}
         </div>
       </div>
 
-      <!-- 配置签名（详细页）-->
+      <!-- 配置签名 -->
       <div class="page" id="page-keystore">
         <h1>配置签名 Keystore</h1>
-        <p class="page-subtitle">Keystore 决定了 APK 的签名身份，正确配置后每次打包的签名一致，可以升级覆盖安装。</p>
+        <p class="page-subtitle">Keystore 正确配置后，每次打包签名一致，可以升级覆盖安装。</p>
 
         <h2>生成 Keystore</h2>
-        <p>进入你 Fork 的仓库 → <strong>Actions</strong> 标签 → 左侧找到 <strong>gen-keystore</strong> → 点击 <strong>Run workflow</strong>。</p>
-        <p>在弹出的表单中填写：</p>
-        <div class="table-wrap">
-          <table>
-            <tr><th>字段</th><th>说明</th></tr>
-            <tr><td>password</td><td>Keystore 密码，自己设置，记住它</td></tr>
-          </table>
-        </div>
-        <p>点击 <strong>Run workflow</strong> 运行，等待约 30 秒完成。</p>
+        <p>进入你 Fork 的仓库 → <strong>Actions</strong> → 左侧 <strong>gen-keystore</strong> → 点击 <strong>Run workflow</strong>，填写密码，等待约 30 秒完成。</p>
 
         <h2>获取 Base64 字符串</h2>
-        <p>运行完成后，点击该次运行 → 展开 <strong>Generate Keystore</strong> 步骤 → 找到 <code>KEYSTORE_BASE64:</code> 行，复制其后面的整段字符串。</p>
-        <div class="callout callout-warn"><span class="callout-icon">⚠️</span><p>这段字符串是你的签名凭证，不要泄露。丢失后无法找回，只能重新生成（重新生成后，已安装的 APK 将无法升级覆盖）。</p></div>
+        <p>运行完成后，点击该次运行 → 展开 <strong>Generate Keystore</strong> 步骤 → 找到 <code>KEYSTORE_BASE64:</code> 行，复制后面的完整字符串。</p>
+        <div class="callout callout-warn"><div class="icon-warn"></div><p>这段字符串是签名凭证，不要泄露。丢失后无法找回，重新生成后已安装的 APK 将无法升级覆盖。</p></div>
 
         <div class="pager">
           <a class="pager-btn" href="#" onclick="goPage('deploy');return false"><div class="pager-label">上一页</div><div class="pager-name">← 快速部署</div></a>
@@ -293,27 +415,27 @@ tr:hover td{background:var(--surface)}
       <!-- 配置 Secrets -->
       <div class="page" id="page-secrets">
         <h1>配置 GitHub Secrets</h1>
-        <p class="page-subtitle">Secrets 用于向 GitHub Actions 传递敏感信息，不会暴露在代码或日志中。</p>
+        <p class="page-subtitle">Secrets 向 Actions 传递敏感信息，不会出现在代码或日志中。</p>
 
         <h2>创建 PAT</h2>
         <p>前往 <a href="https://github.com/settings/tokens/new" target="_blank">GitHub → Settings → Developer settings → Personal access tokens → Tokens (classic) → Generate new token</a>。</p>
-        <p>勾选以下权限：</p>
-        <ul style="padding-left:18px;margin-bottom:14px">
-          <li style="margin-bottom:5px;color:var(--muted)"><code>repo</code> — 访问仓库</li>
-          <li style="color:var(--muted)"><code>workflow</code> — 触发 Actions</li>
+        <p>勾选权限：</p>
+        <ul>
+          <li><code>repo</code> — 访问仓库</li>
+          <li><code>workflow</code> — 触发 Actions</li>
         </ul>
         <p>生成后复制 Token（只显示一次）。</p>
 
         <h2>添加 Secrets</h2>
-        <p>进入你 Fork 的仓库 → <strong>Settings → Secrets and variables → Actions → New repository secret</strong>，依次添加：</p>
+        <p>进入仓库 → <strong>Settings → Secrets and variables → Actions → New repository secret</strong>：</p>
         <div class="table-wrap">
           <table>
-            <tr><th>Secret 名称</th><th>值</th></tr>
-            <tr><td><code>KEYSTORE_BASE64</code></td><td>gen-keystore 输出的 Base64 字符串</td></tr>
-            <tr><td><code>KEYSTORE_PASSWORD</code></td><td>gen-keystore 时设置的密码</td></tr>
+            <tr><th>名称</th><th>值</th></tr>
+            <tr><td><code>KEYSTORE_BASE64</code></td><td>gen-keystore 输出的 Base64</td></tr>
+            <tr><td><code>KEYSTORE_PASSWORD</code></td><td>gen-keystore 时的密码</td></tr>
             <tr><td><code>KEY_ALIAS</code></td><td><code>release</code></td></tr>
             <tr><td><code>KEY_PASSWORD</code></td><td>同 KEYSTORE_PASSWORD</td></tr>
-            <tr><td><code>GH_PAT</code></td><td>刚刚生成的 Personal Access Token</td></tr>
+            <tr><td><code>GH_PAT</code></td><td>刚生成的 Personal Access Token</td></tr>
           </table>
         </div>
 
@@ -323,33 +445,32 @@ tr:hover td{background:var(--surface)}
         </div>
       </div>
 
-      <!-- 部署到 CF Pages -->
+      <!-- CF Pages -->
       <div class="page" id="page-cfpages">
         <h1>部署到 Cloudflare Pages</h1>
-        <p class="page-subtitle">Pakr 前后端合并为单个静态文件，直接托管在 Cloudflare Pages 上，无需额外服务器。</p>
+        <p class="page-subtitle">Pakr 是纯静态文件，直接托管在 Cloudflare Pages，无需服务器。</p>
 
-        <h2>创建 Pages 项目</h2>
         <div class="steps">
           <div class="step">
             <div class="step-left"><div class="step-num">1</div><div class="step-line"></div></div>
             <div class="step-body">
               <div class="step-title">连接 GitHub 仓库</div>
-              <div class="step-desc"><p>进入 <a href="https://dash.cloudflare.com" target="_blank">Cloudflare Dashboard</a> → <strong>Workers & Pages → Create → Pages → Connect to Git</strong>，选择你 Fork 的仓库，点击 <strong>Begin setup</strong>。</p></div>
+              <div class="step-desc"><p><a href="https://dash.cloudflare.com" target="_blank">Cloudflare Dashboard</a> → <strong>Workers & Pages → Create → Pages → Connect to Git</strong>，选择你 Fork 的仓库，点击 <strong>Begin setup</strong>。</p></div>
             </div>
           </div>
           <div class="step">
             <div class="step-left"><div class="step-num">2</div><div class="step-line"></div></div>
             <div class="step-body">
-              <div class="step-title">构建配置</div>
+              <div class="step-title">构建配置留空</div>
               <div class="step-desc">
-                <p>构建命令和输出目录均留空，Pakr 是纯静态文件，不需要构建步骤。</p>
                 <div class="table-wrap">
                   <table>
                     <tr><th>配置项</th><th>值</th></tr>
-                    <tr><td>Build command</td><td>（留空）</td></tr>
-                    <tr><td>Build output directory</td><td>（留空）</td></tr>
+                    <tr><td>Build command</td><td>留空</td></tr>
+                    <tr><td>Build output directory</td><td>留空</td></tr>
                   </table>
                 </div>
+                <p>直接点击 <strong>Save and Deploy</strong>。</p>
               </div>
             </div>
           </div>
@@ -358,28 +479,28 @@ tr:hover td{background:var(--surface)}
             <div class="step-body">
               <div class="step-title">添加环境变量</div>
               <div class="step-desc">
-                <p>部署完成后，进入项目 → <strong>Settings → Environment variables → Add variable</strong>：</p>
+                <p>部署完成后 → <strong>Settings → Environment variables → Add variable</strong>：</p>
                 <div class="table-wrap">
                   <table>
                     <tr><th>变量名</th><th>值</th></tr>
-                    <tr><td><code>GH_TOKEN</code></td><td>与 GH_PAT 相同的 Token</td></tr>
+                    <tr><td><code>GH_TOKEN</code></td><td>与 GH_PAT 相同</td></tr>
                   </table>
                 </div>
-                <div class="callout callout-warn"><span class="callout-icon">⚠️</span><p>添加完变量后，需要在 <strong>Deployments</strong> 页面手动触发一次 <strong>Retry deployment</strong> 才会生效。</p></div>
+                <div class="callout callout-warn"><div class="icon-warn"></div><p>添加后需在 <strong>Deployments</strong> 手动触发 <strong>Retry deployment</strong> 才生效。</p></div>
               </div>
             </div>
           </div>
           <div class="step">
             <div class="step-left"><div class="step-num">4</div></div>
             <div class="step-body">
-              <div class="step-title">绑定自定义域名（可选）</div>
-              <div class="step-desc"><p>进入项目 → <strong>Custom domains → Set up a custom domain</strong>，输入你的域名，按照提示添加 DNS 记录即可。SSL 证书自动颁发。</p></div>
+              <div class="step-title">绑定域名（可选）</div>
+              <div class="step-desc"><p>项目 → <strong>Custom domains → Set up a custom domain</strong>，输入域名，按提示添加 DNS 记录，SSL 自动颁发。</p></div>
             </div>
           </div>
         </div>
 
         <h2>自动更新</h2>
-        <p>Cloudflare Pages 默认开启 <strong>Auto Deployment</strong>，每次你的仓库有新提交，会自动触发重新部署。无需手动操作。</p>
+        <p>CF Pages 默认开启 Auto Deployment，每次 push 自动重新部署，无需手动操作。</p>
 
         <div class="pager">
           <a class="pager-btn" href="#" onclick="goPage('secrets');return false"><div class="pager-label">上一页</div><div class="pager-name">← 配置 Secrets</div></a>
@@ -391,29 +512,30 @@ tr:hover td{background:var(--surface)}
       <div class="page" id="page-faq">
         <h1>常见问题</h1>
 
-        <h2>打包失败怎么办？</h2>
-        <p>进入你 Fork 的仓库 → <strong>Actions</strong>，找到对应的运行记录，点进去查看详细日志。</p>
-        <p>常见原因：</p>
-        <ul style="padding-left:18px;margin-bottom:14px">
-          <li style="margin-bottom:5px;color:var(--muted)"><code>GH_PAT</code> 权限不足，需要同时勾选 <code>repo</code> 和 <code>workflow</code></li>
-          <li style="margin-bottom:5px;color:var(--muted)">Keystore Secrets 填写错误或遗漏</li>
-          <li style="color:var(--muted)">目标网址无法访问或返回非 200</li>
-        </ul>
-
-        <h2>安装后无法升级覆盖？</h2>
-        <p>说明两次打包的签名不一致。请检查 4 个 Keystore Secrets（<code>KEYSTORE_BASE64</code>、<code>KEYSTORE_PASSWORD</code>、<code>KEY_ALIAS</code>、<code>KEY_PASSWORD</code>）是否填写正确，且没有重新生成过 Keystore。</p>
-
-        <h2>Actions 额度用完了？</h2>
-        <p>GitHub 免费账号每月 2000 分钟，单次构建约 3~5 分钟，每月约可打包 400~600 次。超出后等下月重置，或升级为 GitHub Pro。</p>
-
-        <h2>支持 iOS 吗？</h2>
-        <p>暂不支持，目前仅生成 Android APK。</p>
-
-        <h2>可以打包需要登录的网页吗？</h2>
-        <p>可以，WebView 支持 Cookie，登录状态会保留在 APK 内。</p>
-
-        <h2>打包历史丢了？</h2>
-        <p>历史记录保存在浏览器 LocalStorage，清除浏览器缓存或换设备后会丢失，属于正常现象。</p>
+        <div class="faq-item" onclick="toggleFaq(this)">
+          <div class="faq-q">打包失败怎么办？<span class="faq-arrow"></span></div>
+          <div class="faq-a"><p>进入 Fork 的仓库 → <strong>Actions</strong>，找到对应运行记录查看详细日志。</p><ul><li><code>GH_PAT</code> 权限不足（需要 <code>repo</code> + <code>workflow</code>）</li><li>Keystore Secrets 填写错误或遗漏</li><li>目标网址无法访问</li></ul></div>
+        </div>
+        <div class="faq-item" onclick="toggleFaq(this)">
+          <div class="faq-q">安装后无法升级覆盖？<span class="faq-arrow"></span></div>
+          <div class="faq-a"><p>两次打包签名不一致导致的。检查 4 个 Keystore Secrets（<code>KEYSTORE_BASE64</code>、<code>KEYSTORE_PASSWORD</code>、<code>KEY_ALIAS</code>、<code>KEY_PASSWORD</code>）是否正确，确保没有重新生成过 Keystore。</p></div>
+        </div>
+        <div class="faq-item" onclick="toggleFaq(this)">
+          <div class="faq-q">Actions 额度用完了？<span class="faq-arrow"></span></div>
+          <div class="faq-a"><p>GitHub 免费账号每月 2000 分钟，单次约 3~5 分钟，每月约可打包 400~600 次。超出后等下月重置，或升级为 GitHub Pro。</p></div>
+        </div>
+        <div class="faq-item" onclick="toggleFaq(this)">
+          <div class="faq-q">支持 iOS 吗？<span class="faq-arrow"></span></div>
+          <div class="faq-a"><p>暂不支持，目前仅生成 Android APK。</p></div>
+        </div>
+        <div class="faq-item" onclick="toggleFaq(this)">
+          <div class="faq-q">可以打包需要登录的网页吗？<span class="faq-arrow"></span></div>
+          <div class="faq-a"><p>可以，WebView 支持 Cookie，登录状态会保留在 APK 内。</p></div>
+        </div>
+        <div class="faq-item" onclick="toggleFaq(this)">
+          <div class="faq-q">打包历史丢了？<span class="faq-arrow"></span></div>
+          <div class="faq-a"><p>历史保存在浏览器 LocalStorage，清除缓存或换设备后会丢失，属正常现象。</p></div>
+        </div>
 
         <div class="pager">
           <a class="pager-btn" href="#" onclick="goPage('cfpages');return false"><div class="pager-label">上一页</div><div class="pager-name">← 部署到 CF Pages</div></a>
@@ -426,41 +548,30 @@ tr:hover td{background:var(--surface)}
 </div>
 
 <script>
-// Theme init
 (function(){
-  const dark = window.matchMedia('(prefers-color-scheme:dark)').matches;
-  document.documentElement.setAttribute('data-theme', dark?'dark':'light');
+  const dark=window.matchMedia('(prefers-color-scheme:dark)').matches;
+  document.documentElement.setAttribute('data-theme',dark?'dark':'light');
   updateIcon(dark);
 })();
-function updateIcon(dark){
-  const b = document.getElementById('themeBtn');
-  if(!b) return;
-  b.innerHTML = dark
-    ? '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>'
-    : '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>';
+function updateIcon(d){
+  const b=document.getElementById('themeBtn');if(!b)return;
+  b.innerHTML=d
+    ?'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>'
+    :'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>';
 }
 function toggleTheme(){
-  const h = document.documentElement;
-  const dark = h.getAttribute('data-theme')==='dark';
-  h.setAttribute('data-theme', dark?'light':'dark');
-  updateIcon(!dark);
+  const h=document.documentElement,d=h.getAttribute('data-theme')==='dark';
+  h.setAttribute('data-theme',d?'light':'dark');updateIcon(!d);
 }
-
-// Navigation
 function goPage(id){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
-  const page = document.getElementById('page-'+id);
-  if(page) page.classList.add('active');
+  const pg=document.getElementById('page-'+id);if(pg)pg.classList.add('active');
   document.querySelectorAll('.nav-item').forEach(n=>{
-    const oc = n.getAttribute('onclick')||'';
-    if(oc.includes("'"+id+"'")) n.classList.add('active');
+    if((n.getAttribute('onclick')||'').includes("'"+id+"'"))n.classList.add('active');
   });
-  window.scrollTo({top:0,behavior:'instant'});
-  closeSidebar();
+  window.scrollTo({top:0,behavior:'instant'});closeSidebar();
 }
-
-// Sidebar
 function toggleSidebar(){
   document.getElementById('sidebar').classList.toggle('open');
   document.getElementById('sidebarOverlay').classList.toggle('open');
@@ -469,6 +580,7 @@ function closeSidebar(){
   document.getElementById('sidebar').classList.remove('open');
   document.getElementById('sidebarOverlay').classList.remove('open');
 }
+function toggleFaq(el){el.classList.toggle('open')}
 </script>
 </body>
 </html>
