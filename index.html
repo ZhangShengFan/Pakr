@@ -920,7 +920,10 @@ function startPoll(runId, data, buildId=null, dispatchedAt=null){
               .replace(/&/g,'&amp;')
               .replace(/</g,'&lt;')
               .replace(/>/g,'&gt;');
-            detail.innerHTML = `<div class="err-detail-title">错误日志</div><div class="err-detail-log">${safeLog}</div>`;
+            const hint = /compileReleaseKotlin FAILED[\s\S]*Compilation error\. See log for more details/i.test(data.failed_log)
+              ? '<div style="margin-top:8px;color:#666;font-size:12px">当前 Worker 返回的仍是摘要日志，说明线上 Worker 还没发布到最新版本；需要重新部署 Worker 后才能显示完整 Kotlin 编译行号。</div>'
+              : '';
+            detail.innerHTML = `<div class="err-detail-title">错误日志</div><div class="err-detail-log">${safeLog}</div>${hint}`;
             box.appendChild(detail);
           }
           setBusy(false);
