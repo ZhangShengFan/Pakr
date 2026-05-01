@@ -9,6 +9,7 @@
 [![Android](https://img.shields.io/badge/Platform-Android-3ddc84.svg?logo=android&logoColor=white)](https://developer.android.com)
 [![Cloudflare Pages](https://img.shields.io/badge/Hosted_on-Cloudflare_Pages-f6821f.svg?logo=cloudflare&logoColor=white)](https://pages.cloudflare.com)
 [![GitHub Actions](https://img.shields.io/badge/CI-GitHub_Actions-2088ff.svg?logo=githubactions&logoColor=white)](https://github.com/features/actions)
+[![Linux Do](https://img.shields.io/badge/Linux%20Do-Community-ffb003?style=flat&logo=data:image/svg%2Bxml;base64,PHN2ZyB3aWR0aD0iMTIwIiBoZWlnaHQ9IjEyMCIgdmlld0JveD0iMCAwIDEyMCAxMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNsaXBQYXRoIGlkPSJhIj48Y2lyY2xlIGN4PSI2MCIgY3k9IjYwIiByPSI0NyIvPjwvY2xpcFBhdGg+PGNpcmNsZSBmaWxsPSIjZjBmMGYwIiBjeD0iNjAiIGN5PSI2MCIgcj0iNTAiLz48cmVjdCBmaWxsPSIjMWMxYzFlIiBjbGlwLXBhdGg9InVybCgjYSkiIHg9IjEwIiB5PSIxMCIgd2lkdGg9IjEwMCIgaGVpZ2h0PSIzMCIvPjxyZWN0IGZpbGw9IiNmMGYwZjAiIGNsaXAtcGF0aD0idXJsKCNhKSIgeD0iMTAiIHk9IjQwIiB3aWR0aD0iMTAwIiBoZWlnaHQ9IjQwIi8+PHJlY3QgZmlsbD0iI2ZmYjAwMyIgY2xpcC1wYXRoPSJ1cmwoI2EpIiB4PSIxMCIgeT0iODAiIHdpZHRoPSIxMDAiIGhlaWdodD0iMzAiLz48L3N2Zz4=)](https://linux.do)
 
 **[🚀 在线体验](https://apk.091224.xyz)　·　[📖 使用文档](https://apk.091224.xyz/Docs)**
 
