@@ -275,6 +275,7 @@ tr:hover td{background:var(--surface)}
       <span class="sidebar-grouplabel">入门</span>
       <button class="nav-item active" onclick="goPage('guide')"><span class="nav-dot"></span>使用指南</button>
       <button class="nav-item" onclick="goPage('arch')"><span class="nav-dot"></span>架构说明</button>
+      <button class="nav-item" onclick="goPage('params')"><span class="nav-dot"></span>打包参数</button>
     </div>
     <div class="sidebar-group">
       <span class="sidebar-grouplabel">部署</span>
@@ -447,9 +448,166 @@ tr:hover td{background:var(--surface)}
 
   <div class="pager">
     <a class="pager-btn" href="#" onclick="goPage('guide');return false"><div class="pager-label">上一页</div><div class="pager-name">← 使用指南</div></a>
+    <a class="pager-btn next" href="#" onclick="goPage('params');return false"><div class="pager-label">下一页</div><div class="pager-name">打包参数 →</div></a>
+  </div>
+</div>
+
+<!-- ════════════════ 打包参数说明 ════════════════ -->
+<div class="page" id="page-params">
+  <h1>打包参数说明</h1>
+  <p class="page-subtitle">详细说明每个打包字段的格式要求、限制与最佳实践。</p>
+
+  <h2>网站 URL</h2>
+  <div class="field-group">
+    <div class="field-item">
+      <div class="field-num">!</div>
+      <div class="field-content">
+        <div class="field-name">格式要求</div>
+        <p class="field-desc">必须包含协议头，支持 <code>http://</code> 和 <code>https://</code>，不支持 IP 直连或 <code>localhost</code>。</p>
+      </div>
+    </div>
+    <div class="field-item">
+      <div class="field-num">✓</div>
+      <div class="field-content">
+        <div class="field-name">最佳实践</div>
+        <p class="field-desc">优先使用 HTTPS，HTTP 网站在 Android 9+ 默认被阻止明文流量，需额外配置 <code>network_security_config</code>（Pakr 已自动处理）。建议填写登录后的首页而非登录页，避免用户每次打开都需要重新登录。</p>
+      </div>
+    </div>
+    <div class="field-item">
+      <div class="field-num">✗</div>
+      <div class="field-content">
+        <div class="field-name">不支持的情况</div>
+        <p class="field-desc">需要客户端证书的 mTLS 站点、需要 VPN 才能访问的内网地址、本地 <code>file://</code> 路径。</p>
+      </div>
+    </div>
+  </div>
+
+  <h2>应用名称</h2>
+  <div class="field-group">
+    <div class="field-item">
+      <div class="field-num">!</div>
+      <div class="field-content">
+        <div class="field-name">格式要求</div>
+        <p class="field-desc">支持中文、英文、数字及常见符号，建议不超过 <strong>10 个字符</strong>（超出部分在桌面图标下方会被截断显示）。</p>
+      </div>
+    </div>
+    <div class="field-item">
+      <div class="field-num">✓</div>
+      <div class="field-content">
+        <div class="field-name">最佳实践</div>
+        <p class="field-desc">使用简短、有辨识度的名称。避免与已知应用同名，防止用户混淆。不要在名称中包含版本号，版本信息有单独字段。</p>
+      </div>
+    </div>
+  </div>
+
+  <h2>包名（Package Name）</h2>
+  <div class="field-group">
+    <div class="field-item">
+      <div class="field-num">!</div>
+      <div class="field-content">
+        <div class="field-name">格式规则</div>
+        <p class="field-desc">必须为反向域名格式，由小写字母、数字和点（<code>.</code>）组成，至少包含两段，每段以字母开头。</p>
+      </div>
+    </div>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <tr><th>示例</th><th>是否合法</th><th>说明</th></tr>
+      <tr><td><code>com.example.myapp</code></td><td style="color:var(--primary)">✓ 合法</td><td>标准三段式</td></tr>
+      <tr><td><code>io.github.username.pakr</code></td><td style="color:var(--primary)">✓ 合法</td><td>四段式，GitHub 项目常用</td></tr>
+      <tr><td><code>com.myapp</code></td><td style="color:var(--primary)">✓ 合法</td><td>两段式最简形式</td></tr>
+      <tr><td><code>MyApp</code></td><td style="color:#ef4444">✗ 非法</td><td>缺少点分隔</td></tr>
+      <tr><td><code>com.My-App</code></td><td style="color:#ef4444">✗ 非法</td><td>含有连字符和大写字母</td></tr>
+      <tr><td><code>com.123app</code></td><td style="color:#ef4444">✗ 非法</td><td>段首为数字</td></tr>
+    </table>
+  </div>
+  <div class="callout callout-warn"><div class="icon-warn"></div><p>包名一旦确定不要轻易修改。修改包名后，已安装的旧版 APK 与新版被系统视为不同应用，用户需先卸载再安装，且数据无法迁移。</p></div>
+
+  <h2>版本号（Version Name）</h2>
+  <div class="field-group">
+    <div class="field-item">
+      <div class="field-num">!</div>
+      <div class="field-content">
+        <div class="field-name">格式要求</div>
+        <p class="field-desc">显示给用户的版本字符串，无严格格式限制，推荐遵循语义化版本 <a href="https://semver.org/lang/zh-CN/" target="_blank">SemVer</a>：<code>主版本.次版本.修订号</code>，如 <code>1.0.0</code>、<code>2.3.1</code>。</p>
+      </div>
+    </div>
+    <div class="field-item">
+      <div class="field-num">✓</div>
+      <div class="field-content">
+        <div class="field-name">最佳实践</div>
+        <p class="field-desc">即使网站内容更新，也建议递增版本号后重新打包，方便用户知晓有更新版本可用。版本号只是展示用的字符串，升级覆盖安装的判断依据是 <strong>包名 + 签名</strong>，与版本号无关。</p>
+      </div>
+    </div>
+  </div>
+
+  <h2>应用图标</h2>
+  <div class="field-group">
+    <div class="field-item">
+      <div class="field-num">!</div>
+      <div class="field-content">
+        <div class="field-name">规格要求</div>
+        <p class="field-desc">PNG 格式，建议 <strong>512×512px</strong>，最小 192×192px，文件不超过 <strong>2 MB</strong>。非正方形图片会被强制裁剪为正方形。</p>
+      </div>
+    </div>
+    <div class="field-item">
+      <div class="field-num">✓</div>
+      <div class="field-content">
+        <div class="field-name">最佳实践</div>
+        <p class="field-desc">使用透明背景（Alpha 通道），Android 系统会自动应用圆角遮罩（Adaptive Icon）。避免在图标四周留过多空白，主体内容应占图标面积的 <strong>66%~80%</strong>。不要在图标中放置文字，小尺寸下无法辨认。</p>
+      </div>
+    </div>
+    <div class="field-item">
+      <div class="field-num">✗</div>
+      <div class="field-content">
+        <div class="field-name">常见错误</div>
+        <p class="field-desc">上传 JPEG（不支持透明通道）、GIF、WebP 格式；图片尺寸过小（低于 48×48px）；图标内容四周有大面积白边导致在桌面显示过小。</p>
+      </div>
+    </div>
+  </div>
+
+  <h2>启动屏图片（Splash Screen）</h2>
+  <div class="field-group">
+    <div class="field-item">
+      <div class="field-num">!</div>
+      <div class="field-content">
+        <div class="field-name">规格要求</div>
+        <p class="field-desc">PNG 格式，推荐 <strong>1080×2340px</strong>（约 20:9 竖屏比例），文件不超过 <strong>5 MB</strong>。横屏设备会自动居中裁剪。</p>
+      </div>
+    </div>
+    <div class="field-item">
+      <div class="field-num">✓</div>
+      <div class="field-content">
+        <div class="field-name">最佳实践</div>
+        <p class="field-desc">启动屏仅在应用冷启动时显示约 1~2 秒，建议设计简洁，放置 Logo + 品牌色背景即可。重要信息不要放在边缘，防止被不同屏幕比例裁切。</p>
+      </div>
+    </div>
+  </div>
+
+  <h2>WebView 配置项</h2>
+  <p>Pakr 打包时会自动注入以下 WebView 配置，无需手动设置：</p>
+  <div class="table-wrap">
+    <table>
+      <tr><th>配置项</th><th>值</th><th>说明</th></tr>
+      <tr><td><code>JavaScript</code></td><td>启用</td><td>绝大多数现代网站依赖 JS</td></tr>
+      <tr><td><code>DOM Storage</code></td><td>启用</td><td>支持 localStorage / sessionStorage</td></tr>
+      <tr><td><code>Mixed Content</code></td><td>允许</td><td>兼容 HTTP 资源嵌入 HTTPS 页面</td></tr>
+      <tr><td><code>Zoom</code></td><td>禁用</td><td>防止误触缩放，提升 APP 体验感</td></tr>
+      <tr><td><code>Cache</code></td><td>启用</td><td>加速二次加载</td></tr>
+      <tr><td><code>File Access</code></td><td>禁用</td><td>安全考虑，禁止访问本地文件系统</td></tr>
+      <tr><td><code>Geolocation</code></td><td>按需授权</td><td>网站请求时弹出系统权限对话框</td></tr>
+      <tr><td><code>User Agent</code></td><td>默认 Android WebView UA</td><td>网站可通过 UA 识别为移动端</td></tr>
+    </table>
+  </div>
+
+  <div class="callout callout-info"><div class="icon-info">i</div><p>如需修改 WebView 配置（如启用文件访问、自定义 User Agent），可在 Fork 的仓库中编辑 <code>.github/workflows/build-apk.yml</code> 对应的模板参数。</p></div>
+
+  <div class="pager">
+    <a class="pager-btn" href="#" onclick="goPage('arch');return false"><div class="pager-label">上一页</div><div class="pager-name">← 架构说明</div></a>
     <a class="pager-btn next" href="#" onclick="goPage('deploy');return false"><div class="pager-label">下一页</div><div class="pager-name">快速部署 →</div></a>
   </div>
 </div>
+
 
 <!-- ════════════════ 快速部署 ════════════════ -->
 <div class="page" id="page-deploy">
