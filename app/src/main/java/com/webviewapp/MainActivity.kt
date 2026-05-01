@@ -111,9 +111,12 @@ class MainActivity : AppCompatActivity() {
         }
         webView.webViewClient = object : WebViewClient() {
             override fun onPageStarted(view: WebView, url: String, favicon: Bitmap?) {
-                // 只要开始加载新页面，就重置错误状态（包括重试同一 URL 的情况）
-                isShowingError = false
-                failedUrl = null
+                // 仅当加载的不是错误页本身时才重置错误状态
+                // loadDataWithBaseURL 会触发 onPageStarted(url=failedUrl)，需跳过
+                if (url != "about:blank" && url != failedUrl) {
+                    isShowingError = false
+                    failedUrl = null
+                }
                 if (isFirstLoad) showOverlay()
             }
 
@@ -148,7 +151,7 @@ class MainActivity : AppCompatActivity() {
                     } else {
                         "网络连接失败，请检查网络后重试"
                     }
-                    view.loadDataWithBaseURL(failedUrl, errorHtml(failedUrl, errDesc), "text/html", "UTF-8", null)
+                    view.loadDataWithBaseURL(failedUrl, errorHtml(failedUrl, errDesc), "text/html", "UTF-8", failedUrl)
                 }
             }
         }
@@ -317,6 +320,15 @@ class MainActivity : AppCompatActivity() {
             }
 
             @JavascriptInterface
+            fun reload() {
+                runOnUiThread {
+                    isShowingError = false
+                    failedUrl = null
+                    webView.reload()
+                }
+            }
+
+            @JavascriptInterface
             fun getPermissions(): String = "camera,microphone,location,storage"
         }, "NativeBridge")
         webView.loadUrl(APP_URL)
@@ -371,7 +383,7 @@ class MainActivity : AppCompatActivity() {
 <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="#d1d5db" stroke-width="1.5" style="margin-bottom:8px;flex-shrink:0"><circle cx="12" cy="12" r="9"/><path d="M4.93 4.93l14.14 14.14"/></svg>
 <p style="margin:12px 0 6px;font-size:17px;font-weight:600;color:#111;">网页加载失败</p>
 <p style="margin:0 0 28px;font-size:13px;color:#888;max-width:260px;line-height:1.6">${"$"}{safeDesc}</p>
-<button onclick="window.location.replace('${"$"}{safeUrl}')" style="padding:13px 36px;border:none;border-radius:999px;background:#111;color:#fff;font-size:15px;cursor:pointer;font-family:-apple-system,sans-serif;font-weight:500;-webkit-tap-highlight-color:transparent;">重试</button>
+<button onclick="if(window.NativeBridge){NativeBridge.reload()}else{window.location.href='${"$"}{safeUrl}'}" style="padding:13px 36px;border:none;border-radius:999px;background:#111;color:#fff;font-size:15px;cursor:pointer;font-family:-apple-system,sans-serif;font-weight:500;-webkit-tap-highlight-color:transparent;active:opacity:.8">重试</button>
 </body></html>""".trimIndent()
     }
 
