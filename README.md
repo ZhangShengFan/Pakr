@@ -1,11 +1,11 @@
-# 网页打包APK
+# Pakr — 网页一键打包 APK
 
-> 填写网址和基本信息，3~5 分钟自动生成可安装的 Android APK。
+> 填写网址和应用信息，3~5 分钟自动生成可安装的 Android APK。
 > 无需本地安装任何工具，全程云端完成编译、签名、打包。
 
-**在线体验：** [apk-c1m.pages.dev](https://apk-c1m.pages.dev)
+**在线体验：** [apk.091224.xyz](https://apk.091224.xyz)
 
-**GitHub：** [ZSFan888/APK](https://github.com/ZSFan888/APK)
+**GitHub：** [ZhangShengFan/Pakr](https://github.com/ZhangShengFan/Pakr)
 
 ---
 
@@ -14,33 +14,35 @@
 | 功能 | 说明 |
 |------|------|
 | 🔨 全自动构建 | 提交表单触发 GitHub Actions，自动完成编译 → 签名 → 打包 |
-| 📊 精确进度 | 实时解析 Actions job steps，显示精确百分比和当前步骤 |
+| 📊 实时进度 | 实时解析 Actions job steps，显示精确百分比和当前步骤 |
 | 📱 全屏 WebView | 沉浸式全屏，iOS 风格加载动画，进度条颜色跟随网页主题色 |
-| 🔏 Release 签名 | 自动 Keystore 签名，可直接侧载安装，支持版本升级覆盖 |
+| 🔏 Release 签名 | 自动 Keystore 签名，可直接侧载安装，支持版本升级覆盖安装 |
 | 📦 多架构输出 | 同时生成 `arm64-v8a` + `armeabi-v7a` 两个 APK，体积约 4MB |
 | 🌐 支持任意网址 | HTTP / HTTPS 均可，支持 Cookie、文件上传、摄像头权限 |
-| ⬇️ 下载支持 | 网页内触发的文件下载通过系统 DownloadManager 保存到本地 |
-| 🔗 复制下载链接 | 打包完成后可一键复制下载链接，便于手机直接安装 |
+| ⬇️ 系统下载 | 网页内触发的文件下载通过系统 DownloadManager 保存到本地 |
 | 🔄 下拉刷新 | 页面滚动到顶部时下拉可刷新 WebView 内容 |
 | ⌨️ 键盘适配 | 软键盘弹出时 WebView 内容自动上移，表单不被遮挡 |
-| 🗂️ 表单记忆 | 自动记住上次填写内容，打包历史最多保留 5 条 |
+| 🗂️ 打包历史 | 右上角历史面板，记录最近打包记录，支持一键重新填入 |
+| 🌙 深色模式 | 自动跟随系统深色/浅色模式，手动切换按钮 |
 
 ---
 
 ## 项目结构
 
 ```
-APK/
+Pakr/
 ├── .github/workflows/
 │   ├── build.yml              # 主构建流程
 │   └── gen-keystore.yml       # 生成签名 Keystore
 ├── Frontend/
-│   └── index.html             # 前端页面（部署到 Cloudflare Pages）
+│   └── index.html             # 旧版前端（已迁移至根目录 index.html）
 ├── Worker/
 │   ├── worker.js              # Cloudflare Worker API
 │   └── wrangler.toml          # Worker 配置
 ├── Scripts/
 │   └── process_icon.py        # 图标处理脚本
+├── index.html                 # 前端页面（部署到 Cloudflare Pages）
+├── _worker.js                 # Pages Advanced Mode Worker 入口
 └── app/                       # Android 项目源码
     └── src/main/java/com/webviewapp/
         ├── MainActivity.kt
@@ -70,7 +72,7 @@ APK/
 
 进入你 Fork 的仓库 → **Actions** → **gen-keystore** → **Run workflow**
 
-运行完成后在 Actions 日志里复制输出的 Base64 Keystore 字符串，备用。
+填写密码后运行，完成后在 Actions 日志里复制输出的 Base64 Keystore 字符串，备用。
 
 ---
 
@@ -92,38 +94,25 @@ APK/
 
 Worker 负责接收前端请求、触发 Actions、查询构建状态、转发下载链接。
 
-#### 方案 A：Dashboard 部署（推荐）
+#### Dashboard 部署（推荐）
 
 1. [Cloudflare Dashboard](https://dash.cloudflare.com) → **Workers & Pages** → **Create** → **Worker**
-2. 随意取名（如 `apk-builder-api`）→ **Deploy**
+2. 随意取名（如 `pakr-api`）→ **Deploy**
 3. 进入 Worker → **Edit Code** → 粘贴 `Worker/worker.js` 全部内容 → **Deploy**
 4. **Settings** → **Variables and Secrets** 添加以下变量：
 
    | 变量名 | 值 | 类型 |
    |--------|----|------|
    | `GITHUB_OWNER` | 你的 GitHub 用户名 | Text |
-   | `GITHUB_REPO` | `APK` | Text |
+   | `GITHUB_REPO` | `Pakr` | Text |
    | `ALLOWED_ORIGIN` | `*` | Text |
    | `GH_PAT` | 你的 GitHub PAT | Secret |
 
-5. 记录 Worker URL：`https://apk-builder-api.<子域>.workers.dev`
-
-#### 方案 B：Wrangler CLI 部署
-
-```bash
-npm install -g wrangler && wrangler login
-
-# 编辑 Worker/wrangler.toml，填入你的 GitHub 信息
-cd Worker
-wrangler secret put GH_PAT   # 粘贴 PAT 回车确认
-wrangler deploy
-```
+5. 记录 Worker URL：`https://pakr-api.<子域>.workers.dev`
 
 ---
 
 ### 第五步 — 部署前端到 Cloudflare Pages
-
-#### 方案 A：连接 Git 仓库（推荐，提交后自动同步）
 
 1. Dashboard → **Workers & Pages** → **Create** → **Pages** → **Connect to Git**
 2. 授权并选择你 Fork 的仓库，填写构建配置：
@@ -132,25 +121,21 @@ wrangler deploy
    |--------|----|
    | Framework preset | None |
    | Build command | （留空） |
-   | Build output directory | `Frontend` |
+   | Build output directory | `/`（根目录） |
 
 3. **Save and Deploy**
-
-#### 方案 B：直接上传文件
-
-**Workers & Pages** → **Create** → **Pages** → **Upload assets** → 上传 `Frontend/index.html`
 
 ---
 
 ### 第六步 — 更新 Worker 地址
 
-编辑 `Frontend/index.html` 顶部常量，改为你自己的 Worker URL：
+编辑根目录 `index.html` 顶部常量，改为你自己的 Worker URL：
 
 ```js
-const WORKER = 'https://apk-builder-api.<你的子域>.workers.dev';
+const WORKER = 'https://pakr-api.<你的子域>.workers.dev';
 ```
 
-提交后 Pages 自动重新部署（方案 A），或手动重新上传（方案 B）。
+提交后 Pages 自动重新部署。
 
 ---
 
@@ -176,10 +161,10 @@ GitHub Actions
    └── 4. Sign & Upload       zipalign + apksigner 签名，上传 Artifact
    │
    ▼
-前端轮询 /status，精确进度百分比实时更新
+前端每 5 秒轮询 /status，实时更新进度百分比和步骤状态
    │
    ▼
-构建完成 → 显示下载按钮 + 复制链接按钮
+构建完成 → 显示多架构下载按钮，记录到历史面板
 ```
 
 ---
@@ -188,7 +173,7 @@ GitHub Actions
 
 - GitHub Actions 免费账号每月有 **2000 分钟**额度，单次构建约消耗 **3~5 分钟**
 - 未配置 Keystore Secrets 时自动使用临时 Debug Key 签名，**不同次打包签名不一致，无法升级覆盖安装**
-- Worker 的 `GITHUB_TOKEN` 环境变量即为 `GH_PAT`，两者等价
+- 打包历史记录保存在浏览器本地，清除缓存后会丢失
 
 ---
 
