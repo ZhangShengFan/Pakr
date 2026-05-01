@@ -44,17 +44,13 @@ async function handleBuild(request, env) {
   );
   if (r.status !== 204) return json({ error: 'Trigger failed', detail: await r.text() }, 500);
 
-  // dispatch 触发后立即用精确时间戳快速匹配 run_id，最多 10 秒
-  let runId = null;
-  for (let i = 0; i < 20; i++) {  // 500ms × 20 = 10s
-    await sleep(500);
-    const runs = await (await gh(env,
-      `/repos/${env.GITHUB_OWNER}/${env.GITHUB_REPO}/actions/workflows/build.yml/runs?per_page=5`
-    )).json();
-    const fresh = runs.workflow_runs?.find(r => new Date(r.created_at) >= triggeredAt);
-    if (fresh) { runId = fresh.id; break; }
-  }
-  if (!runId) return json({ error: 'Could not get run_id after 10s' }, 500);
+  // 最初方案：固定等待 5 秒，再取最近一次 run 作为 run_id
+  await sleep(5000);
+  const runs = await (await gh(env,
+    `/repos/${env.GITHUB_OWNER}/${env.GITHUB_REPO}/actions/workflows/build.yml/runs?per_page=1`
+  )).json();
+  const runId = runs.workflow_runs?.[0]?.id;
+  if (!runId) return json({ error: 'Could not get latest run_id after 5s' }, 500);
   return json({ run_id: runId, status: 'queued' });
 }
 
