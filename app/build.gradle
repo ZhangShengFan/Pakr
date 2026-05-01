@@ -12,11 +12,16 @@ android {
         versionCode {{VERSION_CODE}}
         versionName "{{VERSION_NAME}}"
     }
-    buildTypes {
-        release {
-            minifyEnabled false
-            // 不在 Gradle 里配置签名，由 workflow 的 apksigner 负责
+    splits {
+        abi {
+            enable true
+            reset()
+            include "arm64-v8a", "armeabi-v7a"
+            universalApk false
         }
+    }
+    buildTypes {
+        release { minifyEnabled false }
     }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
