@@ -1,33 +1,9 @@
 name: Build APK
+run-name: >
+  Build APK${{ github.event.client_payload.distinct_id && format(' · {0}', github.event.client_payload.distinct_id) || '' }}
 on:
-  workflow_dispatch:
-    inputs:
-      build_id:
-        description: Unique build ID
-        required: false
-        default: ''
-      app_url:
-        description: Target URL
-        required: true
-      app_name:
-        description: App Name
-        required: true
-      package_name:
-        description: Package Name
-        required: true
-      version_name:
-        description: Version Name
-        required: true
-        default: 1.0.0
-      icon_url:
-        description: Icon Image URL
-        required: false
-        default: ''
-      no_screenshot:
-        description: Disable screenshot (true/false)
-        required: false
-        default: 'false'
-
+  repository_dispatch:
+    types: [build_apk]
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -61,19 +37,19 @@ jobs:
       - name: Inject parameters
         run: |
           # fix(bug#2): 对 URL 中的 sed 特殊字符做转义，防止注入崩溃
-          URL="${{ github.event.inputs.app_url }}"
+          URL="${{ github.event.client_payload.app_url }}"
           URL_ESC=$(printf '%s\n' "$URL" | sed 's/[&/\]/\\&/g')
           sed -i "s|{{APP_URL}}|${URL_ESC}|g" app/src/main/java/com/webviewapp/MainActivity.kt
 
-          PKG="${{ github.event.inputs.package_name }}"
+          PKG="${{ github.event.client_payload.package_name }}"
           sed -i "s|{{APP_PACKAGE}}|${PKG}|g" app/src/main/AndroidManifest.xml app/build.gradle
 
-          NAME="${{ github.event.inputs.app_name }}"
+          NAME="${{ github.event.client_payload.app_name }}"
           NAME_XML=$(echo "$NAME" | sed 's/&/\&amp;/g; s/</\&lt;/g; s/>/\&gt;/g; s/"/\&quot;/g; s/'"'"'/\&apos;/g')
           sed -i "s|{{APP_NAME}}|${NAME_XML}|g" app/src/main/res/values/strings.xml app/src/main/AndroidManifest.xml
 
           # VERSION_NAME 支持任意字符（1.0、2.0-beta、v3.1.0-rc1 等均可）
-          VER="${{ github.event.inputs.version_name }}"
+          VER="${{ github.event.client_payload.version_name }}"
           # VERSION_CODE 使用 Unix 时间戳，与版本号格式完全解耦，永远单调递增
           VC=$(date +%s)
           sed -i "s|{{VERSION_NAME}}|${VER}|g" app/build.gradle
@@ -86,12 +62,12 @@ jobs:
           mv app/src/main/java/com/webviewapp/*.kt app/src/main/java/$PKG_PATH/
           sed -i "s|com.webviewapp|$PKG|g" app/src/main/res/layout/activity_main.xml
 
-          NO_SS="${{ github.event.inputs.no_screenshot }}"
+          NO_SS="${{ github.event.client_payload.no_screenshot }}"
           sed -i "s|{{NO_SCREENSHOT}}|${NO_SS:-false}|g" app/src/main/java/$PKG_PATH/MainActivity.kt
 
       - name: Process icon
         env:
-          ICON_URL: ${{ github.event.inputs.icon_url }}
+          ICON_URL: ${{ github.event.client_payload.icon_url }}
         run: |
           pip install Pillow -q
           python3 Scripts/process_icon.py
@@ -117,9 +93,9 @@ jobs:
             KS_PASS="android"; KEY_ALIAS="debugkey"; KEY_PASS="android"
           fi
           BUILD_TOOLS=$(ls $ANDROID_HOME/build-tools/ | sort -V | tail -1)
-          SAFE=$(echo "${{ github.event.inputs.app_name }}" | tr ' /' '__' | LC_ALL=C tr -cd 'A-Za-z0-9_.-')
+          SAFE=$(echo "${{ github.event.client_payload.app_name }}" | tr ' /' '__' | LC_ALL=C tr -cd 'A-Za-z0-9_.-')
           [ -z "$SAFE" ] && SAFE="app"
-          VER="${{ github.event.inputs.version_name }}"
+          VER="${{ github.event.client_payload.version_name }}"
           mkdir -p /tmp/signed
           for APK in $(find app/build/outputs/apk -name '*.apk' 2>/dev/null); do
             ABI=$(echo "$APK" | grep -oE 'arm64-v8a|armeabi-v7a' || echo "universal")
