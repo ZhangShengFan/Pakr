@@ -15,6 +15,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import android.net.Uri
+import android.net.http.SslError
 import android.os.Bundle
 import android.os.Build
 import android.os.Handler
@@ -24,10 +25,13 @@ import android.os.Vibrator
 import android.view.View
 import android.webkit.CookieManager
 import android.webkit.PermissionRequest
+import android.webkit.SslErrorHandler
 import android.webkit.ValueCallback
 import android.webkit.WebChromeClient
 import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
+import android.webkit.WebResourceResponse
+import android.webkit.RenderProcessGoneDetail
 import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.JavascriptInterface
@@ -52,8 +56,14 @@ class MainActivity : AppCompatActivity() {
     private val handler = Handler(Looper.getMainLooper())
     private var overlayVisible = false
     private var isFirstLoad = true
+    private var pageVisibleCommitted = false
 
     private val timeoutRunnable = Runnable { hideOverlay() }
+    private val renderTimeoutRunnable = Runnable {
+        if (!pageVisibleCommitted && !isShowingError) {
+            showWebErrorPage(webView.url ?: APP_URL, "页面长时间未正常渲染，可能被网站限制或渲染失败")
+        }
+    }
 
     // 错误页状态：防止 onPageFinished 在错误页上执行主题色注入
     private var isShowingError = false
@@ -141,6 +151,16 @@ class MainActivity : AppCompatActivity() {
         setupWebView()
     }
 
+    private fun showWebErrorPage(url: String, message: String) {
+        hideOverlay()
+        handler.removeCallbacks(renderTimeoutRunnable)
+        pageVisibleCommitted = false
+        isShowingError = true
+        failedUrl = url
+        swipeRefresh.isRefreshing = false
+        webView.loadDataWithBaseURL(url, errorHtml(url, message), "text/html", "UTF-8", url)
+    }
+
     @SuppressLint("SetJavaScriptEnabled")
     private fun setupWebView() {
         webView.settings.apply {
@@ -167,12 +187,60 @@ class MainActivity : AppCompatActivity() {
                     isShowingError = false
                     failedUrl = null
                 }
+                pageVisibleCommitted = false
+                handler.removeCallbacks(renderTimeoutRunnable)
+                handler.postDelayed(renderTimeoutRunnable, 12000)
                 if (isFirstLoad) showOverlay()
             }
 
             override fun onPageFinished(view: WebView, url: String) {
                 swipeRefresh.isRefreshing = false
+                handler.removeCallbacks(renderTimeoutRunnable)
                 if (!isShowingError) fetchThemeColor(view)
+            }
+
+            override fun onPageCommitVisible(view: WebView, url: String) {
+                pageVisibleCommitted = true
+                handler.removeCallbacks(renderTimeoutRunnable)
+                hideOverlay()
+            }
+
+            override fun onReceivedHttpError(
+                view: WebView,
+                request: WebResourceRequest,
+                errorResponse: WebResourceResponse
+            ) {
+                if (request.isForMainFrame) {
+                    val code = errorResponse.statusCode
+                    val reason = errorResponse.reasonPhrase?.takeIf { it.isNotBlank() } ?: "HTTP 错误"
+                    showWebErrorPage(request.url.toString(), "页面返回异常：HTTP $code $reason")
+                }
+            }
+
+            override fun onReceivedSslError(
+                view: WebView,
+                handler: SslErrorHandler,
+                error: SslError
+            ) {
+                handler.cancel()
+                val msg = when (error.primaryError) {
+                    SslError.SSL_UNTRUSTED -> "证书不受信任"
+                    SslError.SSL_EXPIRED -> "证书已过期"
+                    SslError.SSL_IDMISMATCH -> "证书域名不匹配"
+                    SslError.SSL_NOTYETVALID -> "证书尚未生效"
+                    else -> "SSL 证书异常"
+                }
+                showWebErrorPage(error.url ?: (view.url ?: APP_URL), msg)
+            }
+
+            override fun onRenderProcessGone(view: WebView, detail: RenderProcessGoneDetail): Boolean {
+                val reason = if (detail.didCrash()) {
+                    "页面渲染进程已崩溃"
+                } else {
+                    "页面渲染进程已被系统回收"
+                }
+                showWebErrorPage(view.url ?: APP_URL, reason)
+                return true
             }
 
             override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
@@ -186,8 +254,6 @@ class MainActivity : AppCompatActivity() {
             override fun onReceivedError(view: WebView, request: WebResourceRequest, error: WebResourceError) {
                 if (request.isForMainFrame) {
                     hideOverlay()
-                    isShowingError = true
-                    failedUrl = request.url.toString()
                     val errDesc = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
                         when (error.errorCode) {
                             android.webkit.WebViewClient.ERROR_HOST_LOOKUP        -> "域名解析失败，请检查网络连接"
@@ -201,7 +267,7 @@ class MainActivity : AppCompatActivity() {
                     } else {
                         "网络连接失败，请检查网络后重试"
                     }
-                    view.loadDataWithBaseURL(failedUrl, errorHtml(failedUrl, errDesc), "text/html", "UTF-8", failedUrl)
+                    showWebErrorPage(request.url.toString(), errDesc)
                 }
             }
         }
