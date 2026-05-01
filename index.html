@@ -826,7 +826,9 @@ async function handleBuildClick(){
     const res  = await fetch(WORKER + '/build', {
       method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify(data),
+      signal: ctl.signal,
     });
+    clearTimeout(buildTimeout);
     const json = await res.json();
     if(!res.ok) throw new Error(json.error || '触发失败');
 
@@ -836,11 +838,15 @@ async function handleBuildClick(){
     startPoll(json.run_id, data);
 
   } catch(err){
-    const msg = err.message.includes('fetch') || err.message.includes('network') || err.message === 'Failed to fetch'
-      ? '网络连接失败，请检查网络后重试'
-      : err.message;
+    const msg = err && err.name === 'AbortError'
+      ? '触发 GitHub Actions 超时，请稍后重试'
+      : (err.message.includes('fetch') || err.message.includes('network') || err.message === 'Failed to fetch'
+        ? '网络连接失败，请检查网络后重试'
+        : err.message);
     stopLogPoll();
     showErr(msg);
+  } finally {
+    setBusy(false);
   }
 }
 
