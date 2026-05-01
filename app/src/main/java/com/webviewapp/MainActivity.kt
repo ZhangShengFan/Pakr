@@ -10,6 +10,8 @@ import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.os.VibrationEffect
+import android.os.Vibrator
 import android.view.View
 import android.webkit.CookieManager
 import android.webkit.PermissionRequest
@@ -21,8 +23,9 @@ import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.JavascriptInterface
 import android.webkit.WebViewClient
-import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
@@ -34,23 +37,17 @@ class MainActivity : AppCompatActivity() {
     private lateinit var swipeRefresh: SwipeRefreshLayout
     private lateinit var progressBar: TopProgressBar
     private lateinit var overlay: View
-    private lateinit var spinner: IOSSpinnerView
-    private lateinit var loadingText: TextView
 
     private val handler = Handler(Looper.getMainLooper())
     private var overlayVisible = false
-
-    private val dotsFrames = arrayOf("", ".", "..", "...")
-    private var dotsIndex = 0
-    private val dotsRunnable = object : Runnable {
-        override fun run() {
-            loadingText.text = "加载中${dotsFrames[dotsIndex]}"
-            dotsIndex = (dotsIndex + 1) % dotsFrames.size
-            handler.postDelayed(this, 500)
-        }
-    }
+    private var isFirstLoad = true
 
     private val timeoutRunnable = Runnable { hideOverlay() }
+
+    // 按需权限：存储待处理的 web 权限请求
+    private var pendingWebPermissionRequest: PermissionRequest? = null
+    private var pendingGeoCallback: android.webkit.GeolocationPermissions.Callback? = null
+    private var pendingGeoOrigin: String? = null
 
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -67,12 +64,16 @@ class MainActivity : AppCompatActivity() {
         controller.hide(WindowInsetsCompat.Type.systemBars())
         controller.systemBarsBehavior =
             WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+        if ("{{NO_SCREENSHOT}}" == "true") {
+            window.setFlags(
+                android.view.WindowManager.LayoutParams.FLAG_SECURE,
+                android.view.WindowManager.LayoutParams.FLAG_SECURE
+            )
+        }
         setContentView(R.layout.activity_main)
         webView     = findViewById(R.id.webView)
         progressBar = findViewById(R.id.progressBar)
         overlay     = findViewById(R.id.overlay)
-        spinner     = findViewById(R.id.spinner)
-        loadingText = findViewById(R.id.loadingText)
         swipeRefresh = findViewById(R.id.swipeRefresh)
         swipeRefresh.setColorSchemeColors(
             android.graphics.Color.parseColor("#6366F1")
@@ -104,7 +105,7 @@ class MainActivity : AppCompatActivity() {
         }
         webView.webViewClient = object : WebViewClient() {
             override fun onPageStarted(view: WebView, url: String, favicon: Bitmap?) {
-                showOverlay()
+                if (isFirstLoad) showOverlay()
             }
 
             override fun onPageFinished(view: WebView, url: String) {
@@ -130,10 +131,56 @@ class MainActivity : AppCompatActivity() {
         webView.webChromeClient = object : WebChromeClient() {
             override fun onProgressChanged(view: WebView, newProgress: Int) {
                 progressBar.setProgress(newProgress)
-                if (newProgress >= 75) hideOverlay()
+                if (newProgress >= 75 && isFirstLoad) {
+                    hideOverlay()
+                    isFirstLoad = false
+                }
             }
             override fun onPermissionRequest(request: PermissionRequest) {
-                request.grant(request.resources)
+                val androidPerms = mutableListOf<String>()
+                for (res in request.resources) {
+                    when (res) {
+                        PermissionRequest.RESOURCE_VIDEO_CAPTURE ->
+                            androidPerms.add(android.Manifest.permission.CAMERA)
+                        PermissionRequest.RESOURCE_AUDIO_CAPTURE ->
+                            androidPerms.add(android.Manifest.permission.RECORD_AUDIO)
+                    }
+                }
+                val toRequest = androidPerms.filter {
+                    ContextCompat.checkSelfPermission(this@MainActivity, it) !=
+                        android.content.pm.PackageManager.PERMISSION_GRANTED
+                }
+                if (toRequest.isEmpty()) {
+                    request.grant(request.resources)
+                } else {
+                    pendingWebPermissionRequest = request
+                    ActivityCompat.requestPermissions(
+                        this@MainActivity, toRequest.toTypedArray(), PERMISSION_REQUEST_CODE
+                    )
+                }
+            }
+
+            override fun onGeolocationPermissionsShowPrompt(
+                origin: String,
+                callback: android.webkit.GeolocationPermissions.Callback
+            ) {
+                val perms = arrayOf(
+                    android.Manifest.permission.ACCESS_FINE_LOCATION,
+                    android.Manifest.permission.ACCESS_COARSE_LOCATION
+                )
+                val toRequest = perms.filter {
+                    ContextCompat.checkSelfPermission(this@MainActivity, it) !=
+                        android.content.pm.PackageManager.PERMISSION_GRANTED
+                }
+                if (toRequest.isEmpty()) {
+                    callback.invoke(origin, true, false)
+                } else {
+                    pendingGeoCallback = callback
+                    pendingGeoOrigin   = origin
+                    ActivityCompat.requestPermissions(
+                        this@MainActivity, toRequest.toTypedArray(), PERMISSION_REQUEST_CODE + 1
+                    )
+                }
             }
             override fun onShowFileChooser(
                 webView: WebView,
@@ -187,6 +234,56 @@ class MainActivity : AppCompatActivity() {
                 } catch (e: Exception) {}
             }
         }, "ThemeBridge")
+
+        // ── NativeBridge：供网页调用的原生功能 ──
+        webView.addJavascriptInterface(object {
+            @JavascriptInterface
+            fun vibrate(ms: Long) {
+                try {
+                    val v = getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+                    if (android.os.Build.VERSION.SDK_INT >= 26)
+                        v.vibrate(VibrationEffect.createOneShot(ms.coerceIn(1,2000), VibrationEffect.DEFAULT_AMPLITUDE))
+                    else @Suppress("DEPRECATION") v.vibrate(ms.coerceIn(1,2000))
+                } catch (e: Exception) {}
+            }
+
+            @JavascriptInterface
+            fun share(title: String, text: String, url: String) {
+                runOnUiThread {
+                    val intent = Intent(Intent.ACTION_SEND).apply {
+                        type = "text/plain"
+                        putExtra(Intent.EXTRA_TITLE, title)
+                        putExtra(Intent.EXTRA_TEXT, if (url.isNotEmpty()) "$text\n$url" else text)
+                    }
+                    startActivity(Intent.createChooser(intent, title))
+                }
+            }
+
+            @JavascriptInterface
+            fun toast(msg: String) {
+                runOnUiThread {
+                    android.widget.Toast.makeText(this@MainActivity, msg, android.widget.Toast.LENGTH_SHORT).show()
+                }
+            }
+
+            @JavascriptInterface
+            fun getAppVersion(): String = APP_VERSION
+
+            @JavascriptInterface
+            fun openExternal(url: String) {
+                runOnUiThread {
+                    try { startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) } catch (e: Exception) {}
+                }
+            }
+
+            @JavascriptInterface
+            fun back() {
+                runOnUiThread { if (webView.canGoBack()) webView.goBack() }
+            }
+
+            @JavascriptInterface
+            fun getPermissions(): String = "camera,microphone,location,storage"
+        }, "NativeBridge")
         webView.loadUrl(APP_URL)
     }
 
@@ -215,11 +312,7 @@ class MainActivity : AppCompatActivity() {
         overlayVisible = true
         overlay.alpha = 1f
         overlay.visibility = View.VISIBLE
-        progressBar.visibility = View.VISIBLE
         progressBar.setProgress(0)
-        spinner.start()
-        dotsIndex = 0
-        handler.post(dotsRunnable)
         handler.removeCallbacks(timeoutRunnable)
         handler.postDelayed(timeoutRunnable, 10_000L)
     }
@@ -227,12 +320,9 @@ class MainActivity : AppCompatActivity() {
     private fun hideOverlay() {
         if (!overlayVisible) return
         handler.removeCallbacks(timeoutRunnable)
-        handler.removeCallbacks(dotsRunnable)
         overlayVisible = false
         overlay.animate().alpha(0f).setDuration(300).withEndAction {
             overlay.visibility = View.GONE
-            spinner.stop()
-            progressBar.visibility = View.GONE
         }.start()
     }
 
@@ -273,6 +363,35 @@ class MainActivity : AppCompatActivity() {
 
     private var fileChooserCallbackRef: ValueCallback<Array<Uri>>? = null
 
+    override fun onRequestPermissionsResult(
+        requestCode: Int, permissions: Array<out String>, grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        when (requestCode) {
+            PERMISSION_REQUEST_CODE -> {
+                val req = pendingWebPermissionRequest
+                if (req != null) {
+                    pendingWebPermissionRequest = null
+                    if (grantResults.all { it == android.content.pm.PackageManager.PERMISSION_GRANTED }) {
+                        req.grant(req.resources)
+                    } else {
+                        req.deny()
+                    }
+                }
+            }
+            PERMISSION_REQUEST_CODE + 1 -> {
+                val cb     = pendingGeoCallback
+                val origin = pendingGeoOrigin
+                pendingGeoCallback = null
+                pendingGeoOrigin   = null
+                if (cb != null && origin != null) {
+                    val granted = grantResults.any { it == android.content.pm.PackageManager.PERMISSION_GRANTED }
+                    cb.invoke(origin, granted, false)
+                }
+            }
+        }
+    }
+
     @Deprecated("Deprecated in Java")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         if (requestCode == FILE_CHOOSER_REQUEST) {
@@ -289,6 +408,10 @@ class MainActivity : AppCompatActivity() {
 
     companion object {
         const val APP_URL = "{{APP_URL}}"
+        const val APP_VERSION = "{{VERSION_NAME}}"
         private const val FILE_CHOOSER_REQUEST = 1001
+        const val PERMISSION_REQUEST_CODE = 1002
     }
+
+
 }
