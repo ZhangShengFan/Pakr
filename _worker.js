@@ -137,13 +137,21 @@ async function handleStatus(request, env) {
           const logText = await logRes.text();
           const lines = logText.split('\n').filter(l => l.trim());
           // 找失败步骤附近的错误行（含 Error/error/FAILED/exception）
-          const errLines = lines.filter(l =>
-            /error|failed|exception|cannot|unable|no such/i.test(l) &&
-            !/^##\[group\]|^##\[endgroup\]/i.test(l)
+          const clean = lines.map(l =>
+            l.replace(/^\d{4}-\d{2}-\d{2}T[\d:.]+Z /, '').replace(/\x1b\[[\d;]*m/g,'').trim()
           );
-          result.failed_log = errLines.slice(-8).map(l =>
-            l.replace(/^\d{4}-\d{2}-\d{2}T[\d:.]+Z /, '').trim()
-          ).join('\n');
+          const errorIdx = clean.findIndex(l => /Execution failed for task ':app:compileReleaseKotlin'|Compilation error|compileReleaseKotlin FAILED/i.test(l));
+          if (errorIdx !== -1) {
+            const start = Math.max(0, errorIdx - 25);
+            const end = Math.min(clean.length, errorIdx + 80);
+            result.failed_log = clean.slice(start, end).filter(Boolean).join('\n');
+          } else {
+            const errLines = clean.filter(l =>
+              /error|failed|exception|cannot|unable|no such|expecting|unresolved reference/i.test(l) &&
+              !/^##\[group\]|^##\[endgroup\]/i.test(l)
+            );
+            result.failed_log = errLines.slice(-30).join('\n');
+          }
         }
       } catch (_) {}
     }
