@@ -1,7 +1,12 @@
 name: Build APK
+run-name: "Build APK [${{ github.event.inputs.build_id }}]"
 on:
   workflow_dispatch:
     inputs:
+      build_id:
+        description: Unique build ID
+        required: false
+        default: ''
       app_url:
         description: Target URL
         required: true
