@@ -9,6 +9,7 @@ export default {
       else if (url.pathname === '/status'   && request.method === 'GET')  res = await handleStatus(request, env);
       else if (url.pathname === '/logs'     && request.method === 'GET')  res = await handleLogs(request, env);
       else if (url.pathname === '/download' && request.method === 'GET')  res = await handleDownload(request, env);
+      else if (url.pathname === '/cancel'   && request.method === 'POST') res = await handleCancel(request, env);
       else return env.ASSETS.fetch(request);
       return cors(res, env);
     } catch (e) {
@@ -277,6 +278,18 @@ function gh(env, path, opts = {}) {
 
 function json(d, s = 200) { return new Response(JSON.stringify(d), { status: s, headers: { 'Content-Type': 'application/json' } }); }
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+async function handleCancel(request, env) {
+  const runId = new URL(request.url).searchParams.get('run_id');
+  if (!runId) return json({ error: 'Missing run_id' }, 400);
+  const r = await gh(env,
+    `/repos/${env.GITHUB_OWNER}/${env.GITHUB_REPO}/actions/runs/${runId}/cancel`,
+    { method: 'POST' }
+  );
+  // 202 = cancel accepted, 409 = already completed
+  if (r.status === 202 || r.status === 409) return json({ ok: true });
+  return json({ error: 'Cancel failed', status: r.status }, 500);
+}
+
 function cors(res, env) {
   const h = new Headers(res.headers);
   h.set('Access-Control-Allow-Origin',  '*');
