@@ -210,6 +210,42 @@ input.err{border-color:#ef4444;box-shadow:0 0 0 3px rgba(239,68,68,0.08)}
 .copy-link-btn:active{transform:scale(0.97)}
 .copy-link-btn.copied{background:#dcfce7;color:#15803d;border-color:#4ade80}
 
+/* ── 下载卡片（折叠） ── */
+.apk-card{margin-top:10px;border-radius:14px;overflow:hidden;border:1.5px solid #e8e8e8;background:#fff}
+.apk-card+.apk-card{margin-top:8px}
+.apk-trigger{width:100%;display:flex;align-items:center;justify-content:space-between;padding:0 16px;height:52px;background:#fff;border:none;font-size:14px;font-weight:600;font-family:inherit;color:#111;cursor:pointer;transition:background .15s;-webkit-tap-highlight-color:transparent}
+.apk-trigger:hover{background:#f9f9f9}
+.apk-trigger:active{background:#f3f3f3}
+.apk-trigger-left{display:flex;align-items:center;gap:10px}
+.apk-trigger-badge{font-size:11px;font-weight:600;color:#fff;background:#111;padding:3px 9px;border-radius:100px;letter-spacing:.02em}
+.apk-trigger-arrow{width:18px;height:18px;fill:none;stroke:#aaa;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;transition:transform .25s cubic-bezier(.4,0,.2,1)}
+.apk-card.open .apk-trigger-arrow{transform:rotate(180deg)}
+.apk-card.open .apk-trigger{background:#fafafa}
+/* 子操作区 —— 关键：默认 display:none，open 时显示 */
+.apk-actions{display:none;padding:10px 12px 12px;gap:8px;border-top:1px solid #f0f0f0;background:#fafafa;flex-wrap:wrap}
+.apk-card.open .apk-actions{display:flex}
+/* 下载按钮 */
+.dl-btn{flex:1;min-width:0;height:42px;background:#111;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:background .15s,transform .1s;-webkit-tap-highlight-color:transparent}
+.dl-btn:hover{background:#2a2a2a}
+.dl-btn:active{transform:scale(0.97)}
+/* 二维码按钮 */
+.qr-btn{height:42px;padding:0 14px;background:#fff;color:#555;border:1.5px solid #e5e5e5;border-radius:10px;font-size:13px;font-weight:500;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:background .15s,border-color .15s;white-space:nowrap;-webkit-tap-highlight-color:transparent}
+.qr-btn:hover{background:#f5f5f5;border-color:#ccc;color:#111}
+/* 复制按钮 */
+.cp-btn{height:42px;padding:0 14px;background:#fff;color:#555;border:1.5px solid #e5e5e5;border-radius:10px;font-size:13px;font-weight:500;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:background .15s,border-color .15s;white-space:nowrap;-webkit-tap-highlight-color:transparent}
+.cp-btn:hover{background:#f5f5f5;border-color:#ccc;color:#111}
+.cp-btn.copied{background:#f0fdf4;color:#16a34a;border-color:#86efac}
+/* 二维码弹窗 */
+.qr-modal{display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.45);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);align-items:flex-end;justify-content:center;padding:0}
+.qr-modal.show{display:flex}
+.qr-box{background:#fff;border-radius:24px 24px 0 0;padding:28px 24px 36px;width:100%;max-width:480px;text-align:center;box-shadow:0 -8px 40px rgba(0,0,0,0.12)}
+.qr-box-handle{width:36px;height:4px;background:#e0e0e0;border-radius:100px;margin:0 auto 20px}
+.qr-box-title{font-size:15px;font-weight:700;color:#111;margin-bottom:4px}
+.qr-box-sub{font-size:13px;color:#999;margin-bottom:20px}
+.qr-box canvas{border-radius:12px;display:block;margin:0 auto;box-shadow:0 2px 12px rgba(0,0,0,0.08)}
+.qr-box-close{margin-top:20px;width:100%;height:46px;background:#f5f5f5;color:#444;border:none;border-radius:12px;font-size:14px;font-weight:500;font-family:inherit;cursor:pointer;transition:background .15s}
+.qr-box-close:hover{background:#ebebeb}
+
 /* ── Footer ── */
 footer{
   border-top:1px solid #f0f0f0;
@@ -725,108 +761,106 @@ async function tryFetchArtifacts(runId, data){
 /* ── QR 弹窗（全局单例） ── */
 (function(){
   if(document.getElementById('qrModal')) return;
-  const modal = document.createElement('div');
-  modal.id = 'qrModal'; modal.className = 'qr-modal';
-  modal.innerHTML = `
-    <div class="qr-box">
-      <div class="qr-box-title" id="qrTitle">扫码下载</div>
-      <div class="qr-box-sub" id="qrSub">用手机扫描二维码即可下载</div>
-      <canvas id="qrCanvas" width="200" height="200"></canvas>
-      <button class="qr-box-close" onclick="document.getElementById('qrModal').classList.remove('show')">关闭</button>
-    </div>`;
-  modal.addEventListener('click', e => { if(e.target===modal) modal.classList.remove('show'); });
-  document.body.appendChild(modal);
+  const m = document.createElement('div');
+  m.id='qrModal'; m.className='qr-modal';
+  m.innerHTML=`<div class="qr-box">
+    <div class="qr-box-handle"></div>
+    <div class="qr-box-title" id="qrTitle">扫码下载</div>
+    <div class="qr-box-sub" id="qrSub">用手机扫描二维码即可下载</div>
+    <canvas id="qrCanvas" width="200" height="200"></canvas>
+    <button class="qr-box-close" onclick="document.getElementById('qrModal').classList.remove('show')">关闭</button>
+  </div>`;
+  m.addEventListener('click',e=>{ if(e.target===m) m.classList.remove('show'); });
+  document.body.appendChild(m);
 })();
 
 function showQR(url, label){
   document.getElementById('qrTitle').textContent = label + ' 扫码下载';
   document.getElementById('qrModal').classList.add('show');
-  function drawQR(){
-    const qr = qrcode(0,'M');
-    qr.addData(url); qr.make();
-    const size=200, cells=qr.getModuleCount(), cell=Math.floor(size/cells);
-    const pad=Math.floor((size-cells*cell)/2);
-    const canvas=document.getElementById('qrCanvas');
-    canvas.width=canvas.height=size;
-    const ctx=canvas.getContext('2d');
-    ctx.fillStyle='#fff'; ctx.fillRect(0,0,size,size);
-    ctx.fillStyle='#111';
-    for(let r=0;r<cells;r++) for(let c=0;c<cells;c++)
-      if(qr.isDark(r,c)) ctx.fillRect(pad+c*cell,pad+r*cell,cell,cell);
+  function draw(){
+    try{
+      const qr=qrcode(0,'M'); qr.addData(url); qr.make();
+      const size=200,cells=qr.getModuleCount(),cell=Math.floor(size/cells);
+      const pad=Math.floor((size-cells*cell)/2);
+      const cv=document.getElementById('qrCanvas');
+      cv.width=cv.height=size;
+      const ctx=cv.getContext('2d');
+      ctx.fillStyle='#fff'; ctx.fillRect(0,0,size,size);
+      ctx.fillStyle='#111';
+      for(let r=0;r<cells;r++) for(let c=0;c<cells;c++)
+        if(qr.isDark(r,c)) ctx.fillRect(pad+c*cell,pad+r*cell,cell,cell);
+    }catch(e){ console.error('QR draw error',e); }
   }
-  if(window.qrcode){ drawQR(); return; }
+  if(window.qrcode){ draw(); return; }
   const s=document.createElement('script');
   s.src='https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js';
-  s.onload=drawQR;
+  s.onload=draw;
   document.head.appendChild(s);
 }
 
 function renderDownloadButtons(data, runId){
-  const dlActions = document.getElementById('dlActions');
-  dlActions.innerHTML = '';
-  dlActions.style.display = 'block';
-  dlActions.style.flexWrap = '';
+  const dlActions=document.getElementById('dlActions');
+  dlActions.innerHTML='';
+  dlActions.style.cssText='display:block;margin-top:4px';
 
-  const artifacts = data.artifacts || (data.artifact_id ? [{id:data.artifact_id,name:data.artifact_name||'APK'}] : []);
+  const artifacts=data.artifacts||(data.artifact_id?[{id:data.artifact_id,name:data.artifact_name||'APK'}]:[]);
 
-  const DL_ICO   = '<svg style="width:13px;height:13px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round" viewBox="0 0 24 24"><path d="M12 3v13M5 14l7 7 7-7"/><path d="M3 21h18"/></svg>';
-  const DL_ICO_D = '<svg style="width:13px;height:13px;fill:none;stroke:#111;stroke-width:2;stroke-linecap:round" viewBox="0 0 24 24"><path d="M12 3v13M5 14l7 7 7-7"/><path d="M3 21h18"/></svg>';
-  const QR_ICO   = '<svg style="width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="5" y="5" width="3" height="3"/><rect x="16" y="5" width="3" height="3"/><rect x="5" y="16" width="3" height="3"/><path d="M14 14h3v3M17 17h3v3M14 17v3"/></svg>';
-  const COPY_ICO = '<svg style="width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
-  const OK_ICO   = '<svg style="width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>';
-  const ARROW    = '<svg class="apk-trigger-arrow" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>';
+  const DL_ICO  ='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v13M5 14l7 7 7-7"/><line x1="3" y1="21" x2="21" y2="21"/></svg>';
+  const QR_ICO  ='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="5" y="5" width="3" height="3"/><rect x="16" y="5" width="3" height="3"/><rect x="5" y="16" width="3" height="3"/><path d="M14 14h3v3M17 17h3v3M14 17v3"/></svg>';
+  const CP_ICO  ='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
+  const OK_ICO  ='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+  const ARR_ICO ='<svg class="apk-trigger-arrow" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>';
 
-  function makeCard(dlUrl, label, badge){
-    const card = document.createElement('div');
-    card.className = 'apk-card';
+  function makeCard(dlUrl, label, badge, defaultOpen){
+    // 卡片容器
+    const card=document.createElement('div');
+    card.className='apk-card'+(defaultOpen?' open':'');
 
-    const trigger = document.createElement('button');
-    trigger.className = 'apk-trigger';
-    trigger.innerHTML =
-      '<span class="apk-trigger-left">' +
-        DL_ICO_D +
-        '<span>' + label + '</span>' +
-        '<span class="apk-trigger-badge">' + badge + '</span>' +
-      '</span>' + ARROW;
-    trigger.onclick = () => {
-      const isOpen = card.classList.contains('open');
-      document.querySelectorAll('.apk-card.open').forEach(c => c.classList.remove('open'));
-      if(!isOpen) card.classList.add('open');
-    };
+    // 触发头部
+    const trigger=document.createElement('button');
+    trigger.className='apk-trigger';
+    trigger.type='button';
+    trigger.innerHTML=
+      '<span class="apk-trigger-left">'+
+        '<span>'+label+'</span>'+
+        '<span class="apk-trigger-badge">'+badge+'</span>'+
+      '</span>'+ARR_ICO;
+    trigger.addEventListener('click',()=>{
+      const wasOpen=card.classList.contains('open');
+      document.querySelectorAll('.apk-card.open').forEach(c=>c.classList.remove('open'));
+      if(!wasOpen) card.classList.add('open');
+    });
 
-    const actions = document.createElement('div');
-    actions.className = 'apk-actions';
+    // 操作区（CSS 控制 display）
+    const actions=document.createElement('div');
+    actions.className='apk-actions';
 
     // 下载
-    const dlBtn = document.createElement('button');
-    dlBtn.className = 'dl-btn';
-    dlBtn.innerHTML = DL_ICO + ' 下载';
-    dlBtn.onclick = () => { window.location.href = dlUrl; };
+    const dlBtn=document.createElement('button');
+    dlBtn.type='button'; dlBtn.className='dl-btn';
+    dlBtn.innerHTML=DL_ICO+' 下载';
+    dlBtn.addEventListener('click',()=>{ window.location.href=dlUrl; });
 
     // 二维码
-    const qrBtn = document.createElement('button');
-    qrBtn.className = 'qr-btn';
-    qrBtn.innerHTML = QR_ICO + ' 二维码';
-    qrBtn.onclick = () => { showQR(new URL(dlUrl, window.location.href).href, label); };
+    const qrBtn=document.createElement('button');
+    qrBtn.type='button'; qrBtn.className='qr-btn';
+    qrBtn.innerHTML=QR_ICO+' 二维码';
+    qrBtn.addEventListener('click',()=>{ showQR(new URL(dlUrl,window.location.href).href, label); });
 
     // 复制链接
-    const cpBtn = document.createElement('button');
-    cpBtn.className = 'cp-btn';
-    cpBtn.innerHTML = COPY_ICO + ' 复制链接';
-    cpBtn.onclick = () => {
-      const fullUrl = new URL(dlUrl, window.location.href).href;
-      const doCopy = () => {
-        cpBtn.innerHTML = OK_ICO + ' 已复制';
+    const cpBtn=document.createElement('button');
+    cpBtn.type='button'; cpBtn.className='cp-btn';
+    cpBtn.innerHTML=CP_ICO+' 复制链接';
+    cpBtn.addEventListener('click',()=>{
+      const fullUrl=new URL(dlUrl,window.location.href).href;
+      const done=()=>{
+        cpBtn.innerHTML=OK_ICO+' 已复制';
         cpBtn.classList.add('copied');
-        setTimeout(() => { cpBtn.innerHTML = COPY_ICO + ' 复制链接'; cpBtn.classList.remove('copied'); }, 2000);
+        setTimeout(()=>{ cpBtn.innerHTML=CP_ICO+' 复制链接'; cpBtn.classList.remove('copied'); },2000);
       };
-      navigator.clipboard?.writeText(fullUrl).then(doCopy).catch(() => {
-        const tmp = document.createElement('input');
-        tmp.value = fullUrl; document.body.appendChild(tmp);
-        tmp.select(); document.execCommand('copy'); document.body.removeChild(tmp);
-        doCopy();
-      });
-    };
+      if(navigator.clipboard){ navigator.clipboard.writeText(fullUrl).then(done).catch(()=>fallbackCopy(fullUrl,done)); }
+      else{ fallbackCopy(fullUrl,done); }
+    });
 
     actions.appendChild(dlBtn);
     actions.appendChild(qrBtn);
@@ -836,20 +870,25 @@ function renderDownloadButtons(data, runId){
     dlActions.appendChild(card);
   }
 
-  if(artifacts.length === 0){
-    makeCard(WORKER+'/download?run_id='+runId, 'APK', '下载');
+  function fallbackCopy(text,cb){
+    const t=document.createElement('textarea');
+    t.value=text; t.style.cssText='position:fixed;opacity:0';
+    document.body.appendChild(t); t.focus(); t.select();
+    try{ document.execCommand('copy'); cb(); }catch(e){}
+    document.body.removeChild(t);
+  }
+
+  if(artifacts.length===0){
+    makeCard(WORKER+'/download?run_id='+runId,'APK','下载',true);
   } else {
-    artifacts.forEach(art => {
-      const isArm64   = art.name && /arm64/i.test(art.name);
-      const isArmeabi = art.name && /armeabi/i.test(art.name);
-      const label = isArm64 ? '64 位 APK' : isArmeabi ? '32 位 APK' : 'APK';
-      const badge = isArm64 ? '64 Bit' : isArmeabi ? '32 Bit' : 'APK';
-      const dlUrl = WORKER+'/download?run_id='+runId+'&artifact_id='+art.id;
-      makeCard(dlUrl, label, badge);
+    artifacts.forEach((art,i)=>{
+      const is64 =art.name&&/arm64/i.test(art.name);
+      const is32 =art.name&&/armeabi/i.test(art.name);
+      const label=is64?'64 位 APK':is32?'32 位 APK':'APK';
+      const badge=is64?'64 Bit':is32?'32 Bit':'APK';
+      const dlUrl=WORKER+'/download?run_id='+runId+'&artifact_id='+art.id;
+      makeCard(dlUrl,label,badge,i===0);
     });
-    // 默认展开第一个
-    const first = dlActions.querySelector('.apk-card');
-    if(first) first.classList.add('open');
   }
 }
 
