@@ -166,11 +166,3 @@ GitHub Actions
 ## License
 
 [MIT](LICENSE)
-
-## 友链
-
-<a href="https://linux.do" target="_blank" rel="noopener noreferrer" title="Linux Do">
-  <img src="data:image/svg+xml;utf8,<svg width='120' height='120' viewBox='0 0 120 120' xmlns='http://www.w3.org/2000/svg'><clipPath id='a'><circle cx='60' cy='60' r='47'/></clipPath><circle fill='%23f0f0f0' cx='60' cy='60' r='50'/><rect fill='%231c1c1e' clip-path='url(%23a)' x='10' y='10' width='100' height='30'/><rect fill='%23f0f0f0' clip-path='url(%23a)' x='10' y='40' width='100' height='40'/><rect fill='%23ffb003' clip-path='url(%23a)' x='10' y='80' width='100' height='30'/></svg>" width="24" height="24" alt="Linux Do" />
-  Linux Do
-</a>
-
