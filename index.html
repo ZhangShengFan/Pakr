@@ -878,5 +878,33 @@ function addHistory(data){
 
 renderHistory();
 </script>
+
+<script>
+(function(){
+  const JAVA_KW = new Set(["abstract","assert","boolean","break","byte","case","catch","char","class","const","continue","default","do","double","else","enum","extends","final","finally","float","for","goto","if","implements","import","instanceof","int","interface","long","native","new","package","private","protected","public","return","short","static","strictfp","super","switch","synchronized","this","throw","throws","transient","try","void","volatile","while"]);
+  const pkgInput = document.getElementById('f_pkg');
+  if(!pkgInput) return;
+  // 找或创建错误提示元素
+  let errEl = document.getElementById('pkg-kw-error');
+  if(!errEl){
+    errEl = document.createElement('div');
+    errEl.id = 'pkg-kw-error';
+    errEl.style.cssText = 'color:#dc2626;font-size:12px;margin-top:4px;display:none';
+    pkgInput.parentNode.insertBefore(errEl, pkgInput.nextSibling);
+  }
+  pkgInput.addEventListener('input', function(){
+    const segs = this.value.split('.');
+    const bad = segs.find(s => JAVA_KW.has(s));
+    if(bad){
+      errEl.textContent = '「' + bad + '」是 Java 保留关键字，不能用作包名的一部分（如 do、if、for、class 等）';
+      errEl.style.display = 'block';
+      this.style.borderColor = '#dc2626';
+    } else {
+      errEl.style.display = 'none';
+      this.style.borderColor = '';
+    }
+  });
+})();
+</script>
 </body>
 </html>
