@@ -68,9 +68,10 @@ jobs:
           NAME_XML=$(echo "$NAME" | sed 's/&/\&amp;/g; s/</\&lt;/g; s/>/\&gt;/g; s/"/\&quot;/g; s/'"'"'/\&apos;/g')
           sed -i "s|{{APP_NAME}}|${NAME_XML}|g" app/src/main/res/values/strings.xml app/src/main/AndroidManifest.xml
 
-          # fix(bug#3): VERSION_CODE 用 ($3+0) 防止 2 段版本号时 $3 为空导致冲突
+          # VERSION_NAME 支持任意字符（1.0、2.0-beta、v3.1.0-rc1 等均可）
           VER="${{ github.event.inputs.version_name }}"
-          VC=$(echo "$VER" | awk -F. '{ printf "%d%02d%02d", $1+0, $2+0, $3+0 }')
+          # VERSION_CODE 使用 Unix 时间戳，与版本号格式完全解耦，永远单调递增
+          VC=$(date +%s)
           sed -i "s|{{VERSION_NAME}}|${VER}|g" app/build.gradle
           sed -i "s|{{VERSION_CODE}}|${VC}|g" app/build.gradle
 
