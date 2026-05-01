@@ -834,8 +834,8 @@ async function handleBuildClick(){
 
     setStep(1,'done'); setStep(2,'active'); setProgress(18);
     setTitle('排队中','等待 GitHub Actions 启动…');
-    startLogPoll(json.run_id);
-    startPoll(json.run_id, data);
+    if(json.run_id) startLogPoll(json.run_id);
+    startPoll(json.run_id || null, data, json.build_id || null);
 
   } catch(err){
     const msg = err && err.name === 'AbortError'
@@ -850,15 +850,17 @@ async function handleBuildClick(){
   }
 }
 
-function startPoll(runId, data){
+function startPoll(runId, data, buildId=null){
   let elapsed = 0;
   const MAX_WAIT = 900; // 最长等 15 分钟
   currentRunId = runId;
   pollTimer = setInterval(async ()=>{
     elapsed += 5;
     try {
-      const r    = await fetch(WORKER + '/status?run_id=' + runId);
+      const qs = runId ? ('run_id=' + encodeURIComponent(runId)) : ('build_id=' + encodeURIComponent(buildId));
+      const r    = await fetch(WORKER + '/status?' + qs);
       const data = await r.json();
+      if(!runId && data.run_id){ runId = data.run_id; currentRunId = runId; startLogPoll(runId); }
       const est  = Math.min(18 + Math.round(elapsed / 300 * 70), 88);
 
       if(data.status === 'queued' || data.status === 'waiting'){
