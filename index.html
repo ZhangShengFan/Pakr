@@ -417,8 +417,7 @@ footer span{margin:0 8px;opacity:.4}
         <div class="field">
           <label for="f_url">目标网址</label>
           <input type="url" id="f_url" placeholder="https://example.com" autocomplete="off" required>
-          <span id="urlFetchHint" style="display:none;font-size:12px;margin-top:6px;"></span>
-        </div>
+</div>
         <div class="field">
           <label for="f_name">App 名称</label>
           <input type="text" id="f_name" placeholder="我的应用" required>
@@ -768,69 +767,6 @@ SAVE_KEYS.forEach(id => {
 });
 loadForm();
 
-/* ── URL 自动提取 App 名称 ── */
-(function(){
-  var urlInput  = document.getElementById('f_url');
-  var nameInput = document.getElementById('f_name');
-  var hint      = document.getElementById('urlFetchHint');
-  if(!urlInput || !hint) return;
-
-  var timer = null;
-  var lastUrl = '';
-
-  function setHint(msg, ok){
-    hint.textContent = msg;
-    hint.style.color = ok ? '#16a34a' : '#6b7280';
-    hint.style.display = msg ? 'block' : 'none';
-  }
-
-  function fetchPageTitle(url){
-    if(!url || url === lastUrl) return;
-    if(!/^https?:\/\/.{4}/.test(url)) return;
-    setHint('⏳ 正在识别网站名称…');
-    var api = 'https://api.allorigins.win/get?url=' + encodeURIComponent(url);
-    var ctrl = new AbortController();
-    var tid = setTimeout(function(){ ctrl.abort(); }, 8000);
-    fetch(api, { signal: ctrl.signal })
-      .then(function(r){ return r.json(); })
-      .then(function(j){
-        clearTimeout(tid);
-        var html = j.contents || '';
-        var m = html.match(/<title[^>]*>([^<]{1,80})<\/title>/i);
-        if(m && m[1]){
-          var title = m[1].trim().replace(/\s*[-–|_·•·]\s*.{0,30}$/, '').trim().slice(0,30);
-          if(title && !nameInput.value.trim()){
-            nameInput.value = title;
-            saveForm && saveForm();
-            setHint('✓ 已自动识别：' + title, true);
-            setTimeout(function(){ setHint(''); }, 4000);
-          } else if(title) {
-            setHint('识别到：' + title + '（名称已填，未覆盖）');
-            setTimeout(function(){ setHint(''); }, 3000);
-          } else { setHint(''); }
-          lastUrl = url;
-        } else { setHint(''); }
-      })
-      .catch(function(){ clearTimeout(tid); setHint(''); });
-  }
-
-  urlInput.addEventListener('input', function(){
-    clearTimeout(timer);
-    var val = urlInput.value.trim();
-    if(!val){ setHint(''); return; }
-    timer = setTimeout(function(){ tryFetch(val); }, 1000);
-  });
-
-  urlInput.addEventListener('paste', function(){
-    clearTimeout(timer);
-    timer = setTimeout(function(){ fetchPageTitle(urlInput.value.trim()); }, 400);
-  });
-
-  urlInput.addEventListener('blur', function(){
-    clearTimeout(timer);
-    fetchPageTitle(urlInput.value.trim());
-  });
-})();
 
 
 
