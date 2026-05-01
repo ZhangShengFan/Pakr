@@ -45,7 +45,7 @@ async function handleBuild(request, env) {
   if (r.status !== 204) return json({ error: 'Trigger failed', detail: await r.text() }, 500);
 
   // 立即返回，避免在 Worker 请求链路中等待 run_id 导致前端卡住
-  return json({ status: 'queued', build_id: buildId });
+  return json({ status: 'queued', build_id: buildId, dispatched_at: new Date().toISOString() });
 }
 
 async function handleStatus(request, env) {
@@ -54,15 +54,17 @@ async function handleStatus(request, env) {
   const buildId = u.searchParams.get('build_id');
 
   if (!runId && buildId) {
+    const dispatchedAt = u.searchParams.get('dispatched_at');
     const runsRes = await gh(env,
-      `/repos/${env.GITHUB_OWNER}/${env.GITHUB_REPO}/actions/workflows/build.yml/runs?per_page=10`
+      `/repos/${env.GITHUB_OWNER}/${env.GITHUB_REPO}/actions/workflows/build.yml/runs?event=workflow_dispatch&per_page=20`
     );
     const runs = await runsRes.json();
-    const matched = (runs.workflow_runs || []).find(r =>
-      (r.display_title && r.display_title.includes(buildId)) ||
-      (r.name && r.name.includes(buildId))
-    );
-    if (!matched) return json({ status: 'queued', waiting_run_id: true, build_id: buildId });
+    const baseTs = dispatchedAt ? Date.parse(dispatchedAt) : Date.now();
+    const matched = (runs.workflow_runs || []).find(r => {
+      const created = Date.parse(r.created_at || 0);
+      return Number.isFinite(created) && created >= (baseTs - 15000);
+    });
+    if (!matched) return json({ status: 'queued', waiting_run_id: true, build_id: buildId, dispatched_at });
     runId = matched.id;
   }
 
