@@ -854,8 +854,11 @@ function startPoll(runId, data){
 
       if(data.status === 'queued' || data.status === 'waiting'){
         setDot('running');
-        setProgress(8);
-        setTitle('排队中','等待 GitHub Actions 分配运行器…');
+        setProgress(Math.min(8 + Math.floor(elapsed / 15), 15));
+        const waitHint = elapsed >= 60
+          ? '排队时间较长，可能是 GitHub Actions 当前繁忙，仍在等待运行器…'
+          : '等待 GitHub Actions 分配运行器…';
+        setTitle('排队中', waitHint);
       }
 
       if(data.status === 'in_progress'){
@@ -913,6 +916,7 @@ function startPoll(runId, data){
       if(elapsed >= MAX_WAIT){
         clearInterval(pollTimer);
         stopLogPoll();
+        showErr('GitHub Actions 长时间未启动，可能是运行器繁忙，请稍后重试');
         tryFetchArtifacts(runId, data);
       }
 
