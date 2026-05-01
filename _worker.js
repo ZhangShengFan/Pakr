@@ -140,17 +140,19 @@ async function handleStatus(request, env) {
           const clean = lines.map(l =>
             l.replace(/^\d{4}-\d{2}-\d{2}T[\d:.]+Z /, '').replace(/\x1b\[[\d;]*m/g,'').trim()
           );
-          const errorIdx = clean.findIndex(l => /Execution failed for task ':app:compileReleaseKotlin'|Compilation error|compileReleaseKotlin FAILED/i.test(l));
-          if (errorIdx !== -1) {
-            const start = Math.max(0, errorIdx - 25);
-            const end = Math.min(clean.length, errorIdx + 80);
-            result.failed_log = clean.slice(start, end).filter(Boolean).join('\n');
+          const compileFail = clean.some(l => /Execution failed for task ':app:compileReleaseKotlin'|Compilation error|compileReleaseKotlin FAILED/i.test(l));
+          if (compileFail) {
+            const focused = clean.filter(l =>
+              !/^##\[group\]|^##\[endgroup\]/i.test(l) &&
+              !/^shell:|^env:|^with:|JAVA_HOME|ANDROID_HOME|GRADLE_USER/i.test(l)
+            );
+            result.failed_log = focused.slice(-220).join('\n');
           } else {
             const errLines = clean.filter(l =>
               /error|failed|exception|cannot|unable|no such|expecting|unresolved reference/i.test(l) &&
               !/^##\[group\]|^##\[endgroup\]/i.test(l)
             );
-            result.failed_log = errLines.slice(-30).join('\n');
+            result.failed_log = errLines.slice(-60).join('\n');
           }
         }
       } catch (_) {}
