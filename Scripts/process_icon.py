@@ -5,7 +5,9 @@ url = os.environ.get('ICON_URL', '').strip()
 DEFAULT_LOGO = 'logo.jpg'
 
 if not url:
-    print('No icon URL provided, keeping default Android launcher icon.')
+    print('No icon URL provided, fallback to root logo.jpg')
+    write_default_logo()
+    print('FALLBACK_ICON_USED: /logo.jpg')
 else:
     img = None
     try:
@@ -18,6 +20,12 @@ else:
         # fix(bug#4): 下载失败时 exit 1，让 CI 明确报错而不是静默跳过
         print(f'Download/open failed: {e}')
         sys.exit(1)
+
+    if img is None:
+        print('Image unavailable, fallback to root logo.jpg')
+        write_default_logo()
+        print('FALLBACK_ICON_USED: /logo.jpg')
+        sys.exit(0)
 
     if img is not None:
         for density, size in [('mdpi',48),('hdpi',72),('xhdpi',96),('xxhdpi',144),('xxxhdpi',192)]:
