@@ -18,12 +18,13 @@
         android:theme="@style/AppTheme"
         android:usesCleartextTraffic="true"
         android:networkSecurityConfig="@xml/network_security_config">
+
+        <!-- SplashActivity：启动入口 -->
         <activity
-            android:name=".MainActivity"
+            android:name=".SplashActivity"
             android:configChanges="orientation|screenSize|keyboardHidden"
             android:exported="true"
             android:screenOrientation="portrait"
-            android:windowLayoutInDisplayCutoutMode="shortEdges"
             android:theme="@style/AppTheme"
             android:windowSoftInputMode="adjustResize">
             <intent-filter>
@@ -31,5 +32,16 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- MainActivity：由 SplashActivity 跳转启动 -->
+        <activity
+            android:name=".MainActivity"
+            android:configChanges="orientation|screenSize|keyboardHidden"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:windowLayoutInDisplayCutoutMode="shortEdges"
+            android:theme="@style/AppTheme"
+            android:windowSoftInputMode="adjustResize" />
+
     </application>
 </manifest>
