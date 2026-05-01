@@ -3,7 +3,9 @@ package com.webviewapp
 import android.annotation.SuppressLint
 import android.app.DownloadManager
 import android.content.Context
+import android.content.ClipData
 import android.content.pm.PackageManager
+import android.content.pm.ResolveInfo
 import android.os.Environment
 import android.content.Intent
 import android.graphics.Bitmap
@@ -76,6 +78,7 @@ class MainActivity : AppCompatActivity() {
             cameraImageUri != null -> arrayOf(cameraImageUri!!)
             else -> null
         }
+        revokeCapturedUriPermissions()
         fileChooserCallbackRef?.onReceiveValue(results)
         fileChooserCallbackRef = null
         pendingFileChooserParams = null
@@ -90,6 +93,7 @@ class MainActivity : AppCompatActivity() {
         if (allGranted) {
             pendingFileChooserParams?.let { launchFileChooser(it) }
         } else {
+            revokeCapturedUriPermissions()
             fileChooserCallbackRef?.onReceiveValue(null)
             fileChooserCallbackRef = null
             pendingFileChooserParams = null
@@ -527,11 +531,15 @@ class MainActivity : AppCompatActivity() {
                 val cameraIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE).apply {
                     putExtra(MediaStore.EXTRA_OUTPUT, cameraImageUri)
                     addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION or Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                    clipData = ClipData.newRawUri("captured_image", cameraImageUri)
                 }
-                chooserIntents.add(cameraIntent)
-                if (fileChooserParams.isCaptureEnabled && acceptTypes.all { it.isBlank() || it.startsWith("image/") }) {
-                    fileChooserLauncher.launch(cameraIntent)
-                    return
+                grantUriPermissionsToResolvedActivities(cameraIntent, cameraImageUri!!)
+                if (cameraIntent.resolveActivity(packageManager) != null) {
+                    chooserIntents.add(cameraIntent)
+                    if (fileChooserParams.isCaptureEnabled && acceptTypes.all { it.isBlank() || it.startsWith("image/") }) {
+                        fileChooserLauncher.launch(cameraIntent)
+                        return
+                    }
                 }
             }
 
@@ -545,20 +553,26 @@ class MainActivity : AppCompatActivity() {
                 val videoIntent = Intent(MediaStore.ACTION_VIDEO_CAPTURE).apply {
                     putExtra(MediaStore.EXTRA_OUTPUT, cameraVideoUri)
                     addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION or Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                    clipData = ClipData.newRawUri("captured_video", cameraVideoUri)
                 }
-                chooserIntents.add(videoIntent)
-                if (fileChooserParams.isCaptureEnabled && acceptTypes.all { it.startsWith("video/") }) {
-                    fileChooserLauncher.launch(videoIntent)
-                    return
+                grantUriPermissionsToResolvedActivities(videoIntent, cameraVideoUri!!)
+                if (videoIntent.resolveActivity(packageManager) != null) {
+                    chooserIntents.add(videoIntent)
+                    if (fileChooserParams.isCaptureEnabled && acceptTypes.all { it.startsWith("video/") }) {
+                        fileChooserLauncher.launch(videoIntent)
+                        return
+                    }
                 }
             }
 
             if (wantsAudio) {
                 val audioIntent = Intent(MediaStore.Audio.Media.RECORD_SOUND_ACTION)
-                chooserIntents.add(audioIntent)
-                if (fileChooserParams.isCaptureEnabled && acceptTypes.all { it.startsWith("audio/") }) {
-                    fileChooserLauncher.launch(audioIntent)
-                    return
+                if (audioIntent.resolveActivity(packageManager) != null) {
+                    chooserIntents.add(audioIntent)
+                    if (fileChooserParams.isCaptureEnabled && acceptTypes.all { it.startsWith("audio/") }) {
+                        fileChooserLauncher.launch(audioIntent)
+                        return
+                    }
                 }
             }
 
@@ -566,9 +580,15 @@ class MainActivity : AppCompatActivity() {
                 putExtra(Intent.EXTRA_INTENT, contentIntent)
                 putExtra(Intent.EXTRA_INITIAL_INTENTS, chooserIntents.toTypedArray())
                 putExtra(Intent.EXTRA_TITLE, "选择文件")
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             }
-            fileChooserLauncher.launch(chooser)
+            if (contentIntent.resolveActivity(packageManager) != null) {
+                fileChooserLauncher.launch(chooser)
+            } else {
+                throw IllegalStateException("No file chooser available")
+            }
         } catch (e: Exception) {
+            revokeCapturedUriPermissions()
             fileChooserCallbackRef?.onReceiveValue(null)
             fileChooserCallbackRef = null
             pendingFileChooserParams = null
@@ -587,6 +607,30 @@ class MainActivity : AppCompatActivity() {
         if (!parsed.isNullOrEmpty()) return parsed
         data.data?.let { return arrayOf(it) }
         return null
+    }
+
+    private fun grantUriPermissionsToResolvedActivities(intent: Intent, uri: Uri) {
+        val resolveInfos: List<ResolveInfo> = packageManager.queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY)
+        for (resolveInfo in resolveInfos) {
+            grantUriPermission(
+                resolveInfo.activityInfo.packageName,
+                uri,
+                Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+            )
+        }
+    }
+
+    private fun revokeCapturedUriPermissions() {
+        cameraImageUri?.let {
+            try {
+                revokeUriPermission(it, Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
+            } catch (_: Exception) {}
+        }
+        cameraVideoUri?.let {
+            try {
+                revokeUriPermission(it, Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
+            } catch (_: Exception) {}
+        }
     }
 
     private fun requiredFileChooserPermissions(fileChooserParams: WebChromeClient.FileChooserParams): Array<String> {
