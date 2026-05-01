@@ -286,7 +286,6 @@ tr:hover td{background:var(--surface)}
     <div class="sidebar-group">
       <span class="sidebar-grouplabel">参考</span>
       <button class="nav-item" onclick="goPage('api')"><span class="nav-dot"></span>API 文档</button>
-      <button class="nav-item" onclick="goPage('changelog')"><span class="nav-dot"></span>更新日志</button>
       <button class="nav-item" onclick="goPage('faq')"><span class="nav-dot"></span>常见问题</button>
     </div>
   </aside>
@@ -740,70 +739,9 @@ base64 -i release.jks | tr -d '\n'</code></pre>
 
   <div class="pager">
     <a class="pager-btn" href="#" onclick="goPage('cfpages');return false"><div class="pager-label">上一页</div><div class="pager-name">← 部署到 CF Pages</div></a>
-    <a class="pager-btn next" href="#" onclick="goPage('changelog');return false"><div class="pager-label">下一页</div><div class="pager-name">更新日志 →</div></a>
+    <a class="pager-btn next" href="#" onclick="goPage('faq');return false"><div class="pager-label">下一页</div><div class="pager-name">常见问题 →</div></a>
   </div>
 </div>
-
-<!-- ════════════════ 更新日志 ════════════════ -->
-<div class="page" id="page-changelog">
-  <h1>更新日志</h1>
-  <p class="page-subtitle">记录每个版本的改动，<span style="color:var(--primary)">■</span> 新增 &nbsp;<span style="color:#f59e0b">■</span> 修复 &nbsp;<span style="color:#ef4444">■</span> 破坏性变更。</p>
-
-  <div class="version-list">
-    <div class="version-item">
-      <div class="version-header">
-        <span class="version-tag">v1.8.0</span>
-        <span class="version-date">2026-04-29</span>
-        <span class="version-badge badge-latest">Latest</span>
-      </div>
-      <div class="version-body"><ul>
-        <li><span class="change-add">新增</span> &nbsp;UI 界面全面更新，更圆润的卡片风格</li>
-        <li><span class="change-add">新增</span> &nbsp;文档页（本页面）</li>
-        <li><span class="change-add">新增</span> &nbsp;打包历史支持本地持久化</li>
-        <li><span class="change-add">新增</span> &nbsp;深色模式自动跟随系统</li>
-        <li><span class="change-fix">修复</span> &nbsp;进度轮询在网络波动时偶发卡死</li>
-        <li><span class="change-fix">修复</span> &nbsp;大图标上传后编译失败的问题</li>
-      </ul></div>
-    </div>
-    <div class="version-item">
-      <div class="version-header">
-        <span class="version-tag">v1.7.0</span>
-        <span class="version-date">2026-03-15</span>
-        <span class="version-badge badge-stable">Stable</span>
-      </div>
-      <div class="version-body"><ul>
-        <li><span class="change-add">新增</span> &nbsp;支持自定义启动屏图片</li>
-        <li><span class="change-add">新增</span> &nbsp;ARM64 + ARMv7 双架构打包（单 APK）</li>
-        <li><span class="change-add">新增</span> &nbsp;Release 签名自动使用 GitHub Secrets</li>
-        <li><span class="change-fix">修复</span> &nbsp;包名含大写字母时编译报错</li>
-      </ul></div>
-    </div>
-    <div class="version-item">
-      <div class="version-header">
-        <span class="version-tag">v1.6.0</span>
-        <span class="version-date">2026-02-01</span>
-        <span class="version-badge badge-stable">Stable</span>
-      </div>
-      <div class="version-body"><ul>
-        <li><span class="change-add">新增</span> &nbsp;实时进度显示，精确到编译步骤</li>
-        <li><span class="change-add">新增</span> &nbsp;DownloadManager 系统下载支持</li>
-        <li><span class="change-fix">修复</span> &nbsp;HTTP 网站无法在 WebView 加载</li>
-        <li><span class="change-fix">修复</span> &nbsp;部分设备安装后图标显示模糊</li>
-      </ul></div>
-    </div>
-    <div class="version-item">
-      <div class="version-header">
-        <span class="version-tag">v1.5.0</span>
-        <span class="version-date">2025-12-20</span>
-        <span class="version-badge badge-stable">Stable</span>
-      </div>
-      <div class="version-body"><ul>
-        <li><span class="change-add">新增</span> &nbsp;Cloudflare Pages + Worker 一体化部署</li>
-        <li><span class="change-add">新增</span> &nbsp;gen-keystore 一键生成签名工作流</li>
-        <li><span class="change-break">破坏性</span> &nbsp;移除旧版独立 Worker 部署方式，统一到 Pages</li>
-      </ul></div>
-    </div>
-  </div>
 
   <div class="pager">
     <a class="pager-btn" href="#" onclick="goPage('api');return false"><div class="pager-label">上一页</div><div class="pager-name">← API 文档</div></a>
@@ -849,7 +787,7 @@ base64 -i release.jks | tr -d '\n'</code></pre>
   </div>
 
   <div class="pager">
-    <a class="pager-btn" href="#" onclick="goPage('changelog');return false"><div class="pager-label">上一页</div><div class="pager-name">← 更新日志</div></a>
+    <a class="pager-btn" href="#" onclick="goPage('api');return false"><div class="pager-label">上一页</div><div class="pager-name">← API 文档</div></a>
     <span></span>
   </div>
 </div>
