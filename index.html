@@ -630,7 +630,6 @@ footer{border-top-color:var(--border);color:var(--faint)}
       <div class="err-msg" id="errBox"></div>
       <div id="iconFallbackTip" style="display:none;margin-top:10px;font-size:12px;color:#666">图标下载失败，已自动回退为默认 logo.jpg</div>
       <div class="log-stream" id="logStream" style="display:none;margin-top:14px;padding:12px;border:1px solid #eee;border-radius:12px;white-space:pre-wrap;font:12px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;max-height:220px;overflow:auto">等待日志输出…</div>
-      <div id="dlHint" style="display:none;margin-top:10px;font-size:12px;color:#666">APK 已生成，请点击下面的下载卡片展开按钮。</div>
       <div id="dlActions"></div>
       </div>
     </div>
@@ -894,7 +893,6 @@ function startPoll(runId, data){
           setTitle('打包完成 🎉', '耗时 ' + _timeStr);
           setBusy(false);
           renderDownloadButtons(data, runId);
-          setTimeout(()=>document.getElementById('dlActions')?.scrollIntoView({behavior:'smooth',block:'center'}), 180);
           addHistory(data);
         } else if(data.conclusion === 'failure'){
           setStep(4,'fail');
@@ -940,7 +938,6 @@ async function tryFetchArtifacts(runId, data){
           setTitle('打包完成 🎉', '耗时 ' + _timeStr);
       setBusy(false);
       renderDownloadButtons(fresh, runId);
-      setTimeout(()=>document.getElementById('dlActions')?.scrollIntoView({behavior:'smooth',block:'center'}), 180);
       addHistory(fresh);
     } else {
       setDot('fail');
@@ -997,10 +994,8 @@ function showQR(url, label){
 
 function renderDownloadButtons(data, runId){
   const dlActions=document.getElementById('dlActions');
-  const dlHint=document.getElementById('dlHint');
   dlActions.innerHTML='';
   dlActions.style.cssText='display:block;margin-top:4px';
-  if(dlHint) dlHint.style.display='block';
 
   const artifacts=data.artifacts||(data.artifact_id?[{id:data.artifact_id,name:data.artifact_name||'APK'}]:[]);
 
@@ -1037,7 +1032,7 @@ function renderDownloadButtons(data, runId){
     // 下载
     const dlBtn=document.createElement('button');
     dlBtn.type='button'; dlBtn.className='dl-btn';
-    dlBtn.innerHTML=DL_ICO+' 立即下载';
+    dlBtn.innerHTML=DL_ICO+' 下载';
     dlBtn.addEventListener('click',()=>{ window.location.href=dlUrl; });
 
     // 二维码
@@ -1083,7 +1078,7 @@ function renderDownloadButtons(data, runId){
     artifacts.forEach((art,i)=>{
       const is64 =art.name&&/arm64/i.test(art.name);
       const is32 =art.name&&/armeabi/i.test(art.name);
-      const label=is64?'64 位 APK 下载':is32?'32 位 APK 下载':'APK 下载';
+      const label=is64?'64 位 APK':is32?'32 位 APK':'APK';
       const badge=is64?'64 Bit':is32?'32 Bit':'APK';
       const dlUrl=WORKER+'/download?run_id='+runId+'&artifact_id='+art.id;
       makeCard(dlUrl,label,badge,i===0);
