@@ -816,7 +816,7 @@ async function handleBuildClick(){
   buildStartTime = Date.now();
   showStatus();
   setDot('running');
-  setTitle('提交中', '正在触发 GitHub Actions，并等待回执…');
+  setTitle('提交中', '正在触发 GitHub Actions…');
   setProgress(6);
   [1,2,3,4].forEach(n => setStep(n, ''));
 
