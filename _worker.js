@@ -1,38 +1,25 @@
-/**
- * Cloudflare Pages _worker.js — APK Builder API
- * 置于 Frontend/ 目录（build output dir）
- * 环境变量在 Pages > Settings > Environment variables 配置:
- *   GITHUB_TOKEN / GITHUB_OWNER / GITHUB_REPO
- */
-
-const GH = 'https://api.github.com';
-
 export default {
-  async fetch(request, env, ctx) {
+  async fetch(request, env) {
+
+    if (request.method === 'OPTIONS') return cors(new Response(null, { status: 204 }), env);
     const url = new URL(request.url);
-
-    // API 路由
-    if (request.method === 'OPTIONS') {
-      return cors(new Response(null, { status: 204 }));
+    try {
+      let res;
+      if      (url.pathname === '/build'    && request.method === 'POST') res = await handleBuild(request, env);
+      else if (url.pathname === '/status'   && request.method === 'GET')  res = await handleStatus(request, env);
+      else if (url.pathname === '/logs'     && request.method === 'GET')  res = await handleLogs(request, env);
+      else if (url.pathname === '/download' && request.method === 'GET')  res = await handleDownload(request, env);
+      else return env.ASSETS.fetch(request);
+      return cors(res, env);
+    } catch (e) {
+      return cors(json({ error: e.message }, 500), env);
     }
-    if (url.pathname === '/build' && request.method === 'POST') {
-      return cors(await handleBuild(request, env));
-    }
-    if (url.pathname === '/status' && request.method === 'GET') {
-      return cors(await handleStatus(request, env));
-    }
-    if (url.pathname === '/download' && request.method === 'GET') {
-      return cors(await handleDownload(request, env));
-    }
-
-    // 静态资源 fallback → 由 Pages 服务 index.html 等
-    return env.ASSETS.fetch(request);
   }
 };
 
 async function handleBuild(request, env) {
-  const { app_url, app_name, package_name, version_name, icon_url } = await request.json();
-  if (!app_url || !app_name || !package_name || !version_name || !icon_url)
+  const { app_url, app_name, package_name, version_name, icon_url, no_screenshot } = await request.json();
+  if (!app_url || !app_name || !package_name || !version_name)
     return json({ error: 'Missing required fields' }, 400);
   const pkgRe = /^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*){2,}$/;
   if (!pkgRe.test(package_name))
@@ -42,7 +29,7 @@ async function handleBuild(request, env) {
     `/repos/${env.GITHUB_OWNER}/${env.GITHUB_REPO}/actions/workflows/build.yml/dispatches`,
     { method: 'POST', body: JSON.stringify({
         ref: 'main',
-        inputs: { app_url, app_name, package_name, version_name, icon_url }
+        inputs: { app_url, app_name, package_name, version_name, icon_url: icon_url || 'https://apk.091224.xyz/logo.jpg', no_screenshot: no_screenshot||'false' }
     })}
   );
   if (r.status !== 204) return json({ error: 'Trigger failed', detail: await r.text() }, 500);
@@ -65,64 +52,81 @@ async function handleBuild(request, env) {
 async function handleStatus(request, env) {
   const runId = new URL(request.url).searchParams.get('run_id');
   if (!runId) return json({ error: 'Missing run_id' }, 400);
+  const data = await (await gh(env,
+    `/repos/${env.GITHUB_OWNER}/${env.GITHUB_REPO}/actions/runs/${runId}`
+  )).json();
+  const result = { run_id: runId, status: data.status, conclusion: data.conclusion, job_id: null, step_index: 0, step_total: 0 };
 
-  const runRes = await gh(env, `/repos/${env.GITHUB_OWNER}/${env.GITHUB_REPO}/actions/runs/${runId}`);
-  if (!runRes.ok) return json({ error: 'Run not found', status: runRes.status }, 404);
-  const data = await runRes.json();
-  const result = { run_id: runId, status: data.status, conclusion: data.conclusion };
-
-  const jobsRes = await gh(env, `/repos/${env.GITHUB_OWNER}/${env.GITHUB_REPO}/actions/runs/${runId}/jobs`);
+  // 解析 job steps 获取精确进度
+  const jobsRes = await gh(env,
+    `/repos/${env.GITHUB_OWNER}/${env.GITHUB_REPO}/actions/runs/${runId}/jobs`
+  );
   const jobs = await jobsRes.json();
   const job = jobs.jobs?.[0];
   if (job) {
-    const stepMap = {
-      'Inject parameters': 15, 'Process icon': 30,
-      'Build APK': 70, 'Sign APK': 90, 'Upload APK': 100,
-    };
-    let progress = 5, currentStep = '';
-    for (const step of (job.steps || [])) {
-      if (step.status === 'completed' && step.conclusion === 'success')
-        for (const [n, p] of Object.entries(stepMap))
-          if (step.name.includes(n)) progress = Math.max(progress, p);
+    result.job_id = job.id;
+    const steps = job.steps || [];
+    const userSteps = steps.filter(s => !['Set up job','Post','Complete job','Cache'].some(k => s.name.includes(k)));
+    const stepMap = { 'Inject':15,'Process':30,'Build':70,'Sign':90,'Upload':100 };
+    let progress = 5, currentStep = '', stepIndex = 0;
+    for (const step of userSteps) {
+      if (step.status === 'completed' && step.conclusion === 'success') {
+        stepIndex++;
+        for (const [name, pct] of Object.entries(stepMap)) {
+          if (step.name.includes(name)) progress = Math.max(progress, pct);
+        }
+      }
       if (step.status === 'in_progress') {
         currentStep = step.name;
         const base = Object.entries(stepMap).find(([n]) => step.name.includes(n));
         if (base) progress = Math.max(progress, base[1] - 10);
       }
     }
-    result.progress = progress;
+    result.progress    = progress;
     result.current_step = currentStep;
+    result.step_index  = stepIndex;
+    result.step_total  = userSteps.length || 5;
   }
 
   if (data.status === 'completed' && data.conclusion === 'success') {
     result.progress = 100;
-    // 重试最多5次，等待artifact同步（GitHub有时延迟）
-    for (let i = 0; i < 5; i++) {
-      const artsRes = await gh(env, `/repos/${env.GITHUB_OWNER}/${env.GITHUB_REPO}/actions/runs/${runId}/artifacts`);
-      if (artsRes.ok) {
-        const arts = await artsRes.json();
-        if (arts.artifacts?.length) {
-          result.artifacts = arts.artifacts.map(a => ({ id: a.id, name: a.name }));
-          result.artifact_id   = arts.artifacts[0].id;
-          result.artifact_name = arts.artifacts[0].name;
-          break;
-        }
-      }
-      if (i < 4) await sleep(2000);
+    const arts = await (await gh(env,
+      `/repos/${env.GITHUB_OWNER}/${env.GITHUB_REPO}/actions/runs/${runId}/artifacts`
+    )).json();
+    // 返回全部 artifacts，让前端展示多个 APK 下载选项
+    if (arts.artifacts?.length) {
+      result.artifacts = arts.artifacts.map(a => ({
+        id: a.id,
+        name: a.name,
+      }));
+      // 兼容旧字段
+      result.artifact_id   = arts.artifacts[0].id;
+      result.artifact_name = arts.artifacts[0].name;
     }
   }
 
+  // 构建失败时找出失败步骤，并拉取该步骤的日志片段
   if (data.status === 'completed' && data.conclusion === 'failure') {
-    const failedStep = jobs.jobs?.[0]?.steps?.find(s => s.conclusion === 'failure');
+    const steps = jobs.jobs?.[0]?.steps || [];
+    const failedStep = steps.find(s => s.conclusion === 'failure');
     if (failedStep) {
       result.failed_step = failedStep.name;
+      // 拉取日志，截取最后 30 行作为错误摘要
       try {
-        const logRes = await gh(env, `/repos/${env.GITHUB_OWNER}/${env.GITHUB_REPO}/actions/jobs/${jobs.jobs[0].id}/logs`);
+        const logRes = await gh(env,
+          `/repos/${env.GITHUB_OWNER}/${env.GITHUB_REPO}/actions/jobs/${jobs.jobs[0].id}/logs`
+        );
         if (logRes.ok) {
-          const lines = (await logRes.text()).split('\n').filter(l => l.trim());
-          result.failed_log = lines
-            .filter(l => /error|failed|exception|cannot|unable|no such/i.test(l) && !/^\#\#\[/i.test(l))
-            .slice(-8).map(l => l.replace(/^\d{4}-\d{2}-\d{2}T[\d:.]+Z /, '').trim()).join('\n');
+          const logText = await logRes.text();
+          const lines = logText.split('\n').filter(l => l.trim());
+          // 找失败步骤附近的错误行（含 Error/error/FAILED/exception）
+          const errLines = lines.filter(l =>
+            /error|failed|exception|cannot|unable|no such/i.test(l) &&
+            !/^##\[group\]|^##\[endgroup\]/i.test(l)
+          );
+          result.failed_log = errLines.slice(-8).map(l =>
+            l.replace(/^\d{4}-\d{2}-\d{2}T[\d:.]+Z /, '').trim()
+          ).join('\n');
         }
       } catch (_) {}
     }
@@ -131,53 +135,74 @@ async function handleStatus(request, env) {
   return json(result);
 }
 
+async function handleLogs(request, env) {
+  const p = new URL(request.url).searchParams;
+  const runId = p.get('run_id'), jobId = p.get('job_id');
+  if (!runId) return json({ lines: [] });
+  let jid = jobId;
+  if (!jid) {
+    const jr = await gh(env, `/repos/${env.GITHUB_OWNER}/${env.GITHUB_REPO}/actions/runs/${runId}/jobs`);
+    const jd = await jr.json();
+    jid = jd.jobs?.[0]?.id;
+  }
+  if (!jid) return json({ lines: [] });
+  try {
+    const lr = await gh(env, `/repos/${env.GITHUB_OWNER}/${env.GITHUB_REPO}/actions/jobs/${jid}/logs`);
+    if (!lr.ok) return json({ lines: [] });
+    const raw = await lr.text();
+    const lines = raw.split('\n')
+      .map(l => l.replace(/^\d{4}-\d{2}-\d{2}T[\d:.]+Z /, '').replace(/\x1b\[[\d;]*m/g,'').trim())
+      .filter(l => l &&
+        !/^##\[group|^##\[endgroup/i.test(l) &&
+        !/California|MIPS|Evaluation|Recipient|UL or FCC|Pre-Release|GOOGLE_|LIMITATION|LICENSE|jurisdic/i.test(l) &&
+        !/^shell:|^env:|^with:|JAVA_HOME|ANDROID_HOME|GRADLE_USER/i.test(l)
+      );
+    return json({ lines: lines.slice(-150) });
+  } catch(_) { return json({ lines: [] }); }
+}
+
 async function handleDownload(request, env) {
   const params     = new URL(request.url).searchParams;
   const runId      = params.get('run_id');
   const artifactId = params.get('artifact_id');
   if (!runId) return json({ error: 'Missing run_id' }, 400);
 
-  let resolvedId   = artifactId;
-  let artifactName = 'app';
+  let resolvedId = artifactId;
+  let artifactName = 'apk';
 
   if (!resolvedId) {
-    // 没有 artifact_id，重试查列表（最多5次，兼容GitHub延迟同步）
-    for (let i = 0; i < 5; i++) {
-      const artsRes = await gh(env, `/repos/${env.GITHUB_OWNER}/${env.GITHUB_REPO}/actions/runs/${runId}/artifacts`);
-      if (artsRes.ok) {
-        const arts = await artsRes.json();
-        if (arts.artifacts?.length) {
-          resolvedId   = arts.artifacts[0].id;
-          artifactName = arts.artifacts[0].name;
-          break;
-        }
-      }
-      if (i < 4) await sleep(2000);
-    }
-    if (!resolvedId) return json({ error: 'Artifact not found after retries. The build may have failed to upload the APK.' }, 404);
+    // 没有指定 artifact_id，查列表取第一个
+    const arts = await (await gh(env,
+      `/repos/${env.GITHUB_OWNER}/${env.GITHUB_REPO}/actions/runs/${runId}/artifacts`
+    )).json();
+    const a = arts.artifacts?.[0];
+    if (!a) return json({ error: 'Artifact not found' }, 404);
+    resolvedId = a.id;
+    artifactName = a.name;
   }
 
-  // 拿重定向 URL（redirect:manual 保留 302）
-  const dlRes = await gh(env,
+  // GitHub artifact 下载：先拿重定向 URL，再不带 Auth 头去 S3 下载
+  const dlRedirect = await gh(env,
     `/repos/${env.GITHUB_OWNER}/${env.GITHUB_REPO}/actions/artifacts/${resolvedId}/zip`,
     { redirect: 'manual' }
   );
-  const s3Url = dlRes.headers.get('location');
-  if (!s3Url) return json({ error: `Redirect failed (${dlRes.status}). Artifact may have expired.` }, 502);
+  // 302 重定向到 S3，不能带 Authorization 头
+  const s3Url = dlRedirect.headers.get('location');
+  if (!s3Url) return json({ error: 'Download redirect failed', status: dlRedirect.status }, 502);
 
-  // Worker 直接 fetch S3，流式返回给用户
   const dl = await fetch(s3Url);
-  if (!dl.ok) return json({ error: `S3 download failed: ${dl.status}` }, 502);
-
+  if (!dl.ok) return json({ error: 'Download failed from S3', status: dl.status }, 502);
   const zipBuf = await dl.arrayBuffer();
 
+  // 尝试解压，直接返回 .apk
   try {
     const apk = await extractApkFromZip(zipBuf);
     if (apk) {
+      const apkName = artifactName.replace(/\.zip$/, '') + '.apk';
       return new Response(apk, {
         headers: {
           'Content-Type': 'application/vnd.android.package-archive',
-          'Content-Disposition': `attachment; filename="${artifactName}.apk"`,
+          'Content-Disposition': `attachment; filename="${apkName}"`,
           'Content-Length': apk.byteLength.toString(),
           'Cache-Control': 'no-store',
         }
@@ -185,6 +210,7 @@ async function handleDownload(request, env) {
     }
   } catch (_) {}
 
+  // 解压失败，降级返回原始 ZIP
   return new Response(zipBuf, {
     headers: {
       'Content-Type': 'application/zip',
@@ -224,8 +250,8 @@ async function extractApkFromZip(buf) {
   return null;
 }
 
-const gh = (env, path, opts = {}) =>
-  fetch(`${GH}${path}`, {
+function gh(env, path, opts = {}) {
+  return fetch(`https://api.github.com${path}`, {
     ...opts,
     headers: {
       Authorization: `Bearer ${env.GITHUB_TOKEN}`,
@@ -236,15 +262,15 @@ const gh = (env, path, opts = {}) =>
       ...(opts.headers || {}),
     }
   });
+}
 
-const json  = (d, s = 200) => new Response(JSON.stringify(d), {
-  status: s, headers: { 'Content-Type': 'application/json' }
-});
-const sleep = ms => new Promise(r => setTimeout(r, ms));
-const cors  = (res, env) => {
+function json(d, s = 200) { return new Response(JSON.stringify(d), { status: s, headers: { 'Content-Type': 'application/json' } }); }
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+function cors(res, env) {
   const h = new Headers(res.headers);
   h.set('Access-Control-Allow-Origin',  '*');
   h.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   h.set('Access-Control-Allow-Headers', 'Content-Type');
   return new Response(res.body, { status: res.status, headers: h });
-};
+}
+// force-redeploy: 1777597096
