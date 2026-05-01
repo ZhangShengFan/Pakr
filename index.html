@@ -1051,7 +1051,6 @@ function loadForm(){
     SAVE_KEYS.forEach(id => {
       if(saved[id]) document.getElementById(id).value = saved[id];
     });
-    triggerIconPreview(saved['f_icon'] || '');
   } catch(e){}
 }
 SAVE_KEYS.forEach(id => {
@@ -1067,7 +1066,6 @@ loadForm();
 const iconInput   = document.getElementById('f_icon');
 const iconImg     = document.getElementById('iconImg');
 const iconPreview = document.getElementById('iconPreview');
-let iconTimer = null;
 
 function triggerIconPreview(url){
   iconPreview.className = 'icon-preview';
@@ -1091,9 +1089,15 @@ function triggerIconPreview(url){
 }
 
 iconInput.addEventListener('input', () => {
-  clearTimeout(iconTimer);
-  iconTimer = setTimeout(() => triggerIconPreview(iconInput.value.trim()), 400);
+  triggerIconPreview(iconInput.value.trim());
 });
+iconInput.addEventListener('change', () => {
+  triggerIconPreview(iconInput.value.trim());
+});
+window.addEventListener('pageshow', () => {
+  triggerIconPreview(iconInput.value.trim());
+});
+triggerIconPreview(iconInput.value.trim());
 
 /* ── 打包历史 ── */
 const HISTORY_KEY = 'apkbuilder_history';
