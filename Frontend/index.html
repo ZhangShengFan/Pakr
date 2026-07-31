@@ -1,155 +1,28 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>网页打包APK</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<style>
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html{scroll-behavior:smooth;-webkit-font-smoothing:antialiased}
-body{font-family:'Inter',system-ui,sans-serif;background:#fff;color:#111;line-height:1.6}
-/* (CSS omitted for brevity in commit) */
-</style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Pakr — Headless Mode</title>
+<style>body{font-family:system-ui,-apple-system,Segoe UI,Roboto,'Helvetica Neue',Arial;margin:40px;color:#111}pre{background:#f6f8fa;padding:12px;border-radius:8px;overflow:auto}code{background:#eef;padding:2px 4px;border-radius:4px}</style>
 </head>
 <body>
-
-<nav>
-  <a href="#" class="nav-logo">
-    <div class="nav-logo-icon">
-      <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
-    </div>
-    Pakr
-  </a>
-  <a href="https://github.com/ZhangShengFan/Pakr" target="_blank" class="nav-badge github-link" title="GitHub">
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1[...]"/></svg>
-  </a>
-</nav>
-
-<div class="content">
-  <div>
-    <div class="card">
-      <div class="card-title">填写应用信息</div>
-      <form class="form" id="form" novalidate>
-        <div class="field">
-          <label for="f_url">目标网址</label>
-          <input type="url" id="f_url" placeholder="https://example.com" autocomplete="off" required>
-        </div>
-        <div class="field">
-          <label for="f_name">App 名称</label>
-          <input type="text" id="f_name" placeholder="我的应用" required>
-        </div>
-        <div class="field">
-          <label for="f_pkg">包名</label>
-          <input type="text" id="f_pkg" placeholder="com.example.myapp" required>
-        </div>
-        <div class="field">
-            <label for="f_ver">版本号</label>
-            <input type="text" id="f_ver" placeholder="1.0.0" value="1.0.0" required>
-          </div>
-          <div class="icon-field">
-            <div class="field">
-              <label for="f_icon">图标 URL</label>
-              <input type="url" id="f_icon" placeholder="可选，留空使用仓库 logo.jpg">
-            </div>
-            <div class="icon-preview" id="iconPreview">
-              <svg class="icon-preview-placeholder" viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="8.5" cy="8.5" r="1.5"/></svg>
-              <img id="iconImg" alt="icon">
-            </div>
-          </div>
-        <button type="submit" class="btn" id="submitBtn">开始打包</button>
-      </form>
-    </div>
-
-    <div class="status-box" id="statusBox" style="margin-top:16px">
-      <div class="status-header">
-        <div class="status-dot" id="sDot"></div>
-        <div>
-          <div class="status-title" id="sTitle">等待中</div>
-          <div class="status-sub" id="sSub">正在初始化构建任务</div>
-        </div>
-      </div>
-      <div class="progress-wrap"><div class="progress-bar" id="progFill"></div></div>
-      <div class="check-list">
-        <div class="check-item" id="st1">触发构建任务</div>
-        <div class="check-item" id="st2">注入参数 &amp; 处理图标</div>
-        <div class="check-item" id="st3">Gradle 编译 APK</div>
-        <div class="check-item" id="st4">签名 &amp; 打包完成</div>
-      </div>
-      <div class="err-msg" id="errBox"></div>
-      <div id="dlActions"></div>
-    </div>
-  </div>
-</div>
-
-<footer></footer>
-
-<script>
-// BUILD_URL: 设置为你的构建端点（例如自建代理或托管的 API）。
-// 默认示例：如果你已经有部署的 API，请替换为真实地址（不要包含末尾斜杠）。
-const BUILD_URL = 'https://your-build-endpoint.example';
-const WORKER = BUILD_URL; // 兼容旧代码
-
-/* 简单说明：
-  - 前端会向 BUILD_URL/build 发起 POST 触发构建
-  - 轮询 BUILD_URL/status?run_id=... 获取进度
-  - 下载通过 BUILD_URL/download?run_id=...&artifact_id=... 获取
-*/
-
-const form      = document.getElementById('form');
-const submitBtn = document.getElementById('submitBtn');
-const statusBox = document.getElementById('statusBox');
-const sDot      = document.getElementById('sDot');
-const sTitle    = document.getElementById('sTitle');
-const sSub      = document.getElementById('sSub');
-const progFill  = document.getElementById('progFill');
-const errBox    = document.getElementById('errBox');
-
-let pollTimer = null; let busy = false;
-function setBusy(v){ busy=v; submitBtn.disabled=v; }
-function setStep(n, state){ const el = document.getElementById('st'+n); el.className = 'check-item ' + state; }
-function setProgress(p){ progFill.style.width = p + '%'; }
-function setTitle(t,s){ sTitle.textContent=t; sSub.textContent=s; }
-function setDot(state){ sDot.className = 'status-dot ' + state; }
-function showErr(msg){ errBox.innerHTML = msg; errBox.classList.add('show'); setDot('fail'); setTitle('提交失败',''); setBusy(false); }
-function showStatus(){ statusBox.classList.add('show'); }
-
-function validate(){
-  let ok = true;
-  ['f_url','f_name','f_pkg','f_ver'].forEach(id=>{ const el=document.getElementById(id); if(!el.value.trim()){ el.classList.add('err'); ok=false } else el.classList.remove('err'); });
-  const pkg = document.getElementById('f_pkg').value.trim();
-  if(!/^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*){2,}$/.test(pkg)){ document.getElementById('f_pkg').classList.add('err'); ok=false }
-  return ok;
-}
-
-form.addEventListener('submit', async e=>{
-  e.preventDefault(); if(busy) return; errBox.classList.remove('show'); if(!validate()) return;
-  const data = { app_url: document.getElementById('f_url').value.trim(), app_name: document.getElementById('f_name').value.trim(), package_name: document.getElementById('f_pkg').value.trim(), version_name: document.getElementById('f_ver').value.trim(), icon_url: document.getElementById('f_icon').value.trim() };
-  setBusy(true); showStatus(); setDot('running'); setTitle('提交中','正在触发构建…'); setProgress(6); [1,2,3,4].forEach(n=>setStep(n,''));
-  try{
-    const res = await fetch(WORKER + '/build', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(data) });
-    const json = await res.json(); if(!res.ok) throw new Error(json.error || '触发失败');
-    setStep(1,'done'); setStep(2,'active'); setProgress(18); setTitle('排队中','等待运行器启动…'); startPoll(json.run_id);
-  }catch(err){ showErr(err.message || '网络错误'); }
-});
-
-function startPoll(runId){ let elapsed=0; pollTimer = setInterval(async ()=>{ elapsed+=5; try{ const r = await fetch(WORKER + '/status?run_id=' + runId); const data = await r.json(); const est = Math.min(18 + Math.round(elapsed / 300 * 70), 88);
-    if(data.status==='queued'||data.status==='waiting'){ setDot('running'); setProgress(8); setTitle('排队中','等待运行器分配…'); }
-    if(data.status==='in_progress'){ setDot('running'); const pct = data.progress || est; setProgress(Math.min(pct,95)); const step = data.current_step||''; if(step.includes('Inject')||pct<20){ setStep(2,'active'); setTitle('构建中','注入参数 & 处理图标…'); } else if(step.includes('Process')||pct<35){ setStep(2,'done'); setStep(3,'active'); setTitle('构建中','处理图标资源…'); } else if(step.includes('Build')||pct<85){ setStep(2,'done'); setStep(3,'active'); setTitle('编译中','Gradle 正在编译 APK…'); } else { setStep(3,'done'); setStep(4,'active'); setTitle('签名中','正在签名打包…'); } }
-    if(data.status==='completed'){ clearInterval(pollTimer); if(data.conclusion==='success'||data.artifacts?.length||data.artifact_id){ setStep(2,'done'); setStep(3,'done'); setStep(4,'done'); setProgress(100); setDot('success'); setTitle('打包完成 🎉','APK 已生成，点击下载'); setBusy(false); renderDownloadButtons(data, runId); } else if(data.conclusion==='failure'){ setStep(4,'fail'); showErr('构建失败，请检查参数'); setBusy(false); } else { tryFetchArtifacts(runId); } return; }
-  }catch(e){} },5000); }
-
-async function tryFetchArtifacts(runId){ try{ const r=await fetch(WORKER + '/status?run_id=' + runId); const fresh=await r.json(); if(fresh.artifacts?.length||fresh.artifact_id){ setStep(2,'done'); setStep(3,'done'); setStep(4,'done'); setProgress(100); setDot('success'); setTitle('打包完成 🎉','APK 已生成'); setBusy(false); renderDownloadButtons(fresh, runId); } else { setDot('fail'); setTitle('超时','构建超时，请手动查看 Actions'); showErr('构建超时，请至 GitHub Actions 页面查看'); setBusy(false); } }catch(e){ setDot('fail'); showErr('网络错误'); setBusy(false); } }
-
-function renderDownloadButtons(data, runId){ const dlActions=document.getElementById('dlActions'); dlActions.innerHTML=''; const artifacts=data.artifacts|| (data.artifact_id ? [{id:data.artifact_id,name:data.artifact_name}] : []); const firstUrl = WORKER + '/download?run_id=' + runId + (artifacts[0] ? '&artifact_id=' + artifacts[0].id : ''); if(artifacts.length===0){ const btn=document.createElement('button'); btn.className='download-btn show'; btn.style.flex='1'; btn.textContent='下载'; btn.onclick=()=>window.location.href=firstUrl; dlActions.appendChild(btn); } else { artifacts.forEach((art,i)=>{ const dlUrl=WORKER + '/download?run_id=' + runId + '&artifact_id=' + art.id; const arch=art.name.match(/arm64|armeabi|x86_64|universal/i)?.[0] || (i===0 ? 'arm64':'armeabi'); const btn=document.createElement('button'); btn.className='download-btn show'; btn.style.flex='1'; btn.textContent=arch; btn.onclick=()=>window.location.href=dlUrl; dlActions.appendChild(btn); }); }
-  const qrBtn=document.createElement('button'); qrBtn.className='download-btn show'; qrBtn.style.cssText='flex:0 0 auto;background:#f5f5f5;color:#111;border:1px solid #e0e0e0'; qrBtn.textContent='QR'; qrBtn.onclick=()=>showQrModal(firstUrl); dlActions.appendChild(qrBtn); dlActions.style.display='flex'; }
-
-// QR modal
-function showQrModal(url){ const modal=document.getElementById('qrModal'); const canvas=document.getElementById('qrCanvas'); canvas.innerHTML=''; modal.style.display='flex'; QRCode.toCanvas(document.createElement('canvas'), url, { width:200, margin:2, color:{dark:'#111', light:'#fff'} }, (err,c)=>{ if(!err){ c.style.borderRadius='8px'; canvas.appendChild(c); } }); }
-
-</script>
-<div id="qrModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:999;align-items:center;justify-content:center"><div style="background:#fff;border-radius:20px;padding:28px 24px;text-align:center;max-width:280px;width:90%;position:relative"><button onclick="document.getElementById('qrModal').style.display='none'" style="position:absolute;top:12px;right:14px;background:none;border:none;font-size:20px;color:#999;cursor:pointer">✕</button><div style="font-size:14px;font-weight:600;color:#111;margin-bottom:16px">扫码下载 APK</div><div id="qrCanvas" style="display:flex;justify-content:center"></div><div style="font-size:11px;color:#999;margin-top:12px">使用手机扫描二维码直接下载安装</div></div></div>
-<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+  <h1>Pakr — Headless / Manual Build Mode</h1>
+  <p>This repository is configured to run builds from GitHub Actions. The frontend UI has been removed in this branch. To trigger a build, use the repository workflow or update the configuration file.</p>
+  <h2>How to run</h2>
+  <ol>
+    <li>Edit <code>.github/build-config.json</code> and set <code>app_url</code>, <code>app_name</code>, and <code>package_name</code> as needed.</li>
+    <li>Go to GitHub → Actions → "Build APK" workflow → Run workflow. If you leave inputs empty, values from <code>.github/build-config.json</code> will be used.</li>
+    <li>After the workflow finishes, download artifacts (APK) from the workflow run page.</li>
+  </ol>
+  <h3>Sample .github/build-config.json</h3>
+  <pre>{
+  "app_url": "https://zs.rednet.cn/calendar.html",
+  "app_name": "MyCalendar",
+  "package_name": "com.zs.calendar",
+  "version_name": "1.0.0",
+  "icon_url": ""
+}</pre>
+  <p>Secrets for signing (KEYSTORE_BASE64, KEYSTORE_PASSWORD, KEY_ALIAS, KEY_PASSWORD) should be set in repository Settings → Secrets and variables → Actions.</p>
 </body>
 </html>
